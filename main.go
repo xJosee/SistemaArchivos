@@ -10,6 +10,8 @@ import (
 	"math/rand"
 	"os"
 	"time"
+
+	parser "./Analisis"
 )
 
 type payload struct {
@@ -53,18 +55,25 @@ func Menu() {
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan() // use `for scanner.Scan()` to keep reading
 	Comando := scanner.Text()
-	fmt.Println(Comando)
-	comandoMKDISK(22, 'F', 'K', "/home/jose/Escritorio/test.disk")
+	parser.Analizar(Comando)
+	comandoMKDISK(22, 'F', 'K', "/home/jose/Escritorio/", "test")
 }
 
 /*
  * FUNCIONES UTILIZADAS PARA EL COMANDO MKDISK
  */
 
-func comandoMKDISK(size int, fit byte, unit byte, path string) {
-	err := ioutil.WriteFile(path, []byte(""), 0755)
+func comandoMKDISK(size int, fit byte, unit byte, path string, name string) {
+	err := ioutil.WriteFile(path+name+".disk", []byte(""), 0755)
 	if err == nil {
-		writeFile(path, CalcularSize(size, unit))
+		writeFile(path+name+".disk", CalcularSize(size, unit))
+		CrearRaid(size, fit, unit, path, name)
+	}
+}
+func CrearRaid(size int, fit byte, unit byte, path string, name string) {
+	err := ioutil.WriteFile(path+name+"Raid.disk", []byte(""), 0755)
+	if err == nil {
+		writeFile(path+name+"Raid.disk", CalcularSize(size, unit))
 	}
 }
 func writeFile(path string, size int) {
@@ -117,3 +126,7 @@ func VerificarRuta(name string) bool {
 	}
 	return true
 }
+
+/*
+ * FUNCIONES UTILIZADAS PARA EL COMANDO RMDISK
+ */
