@@ -12,6 +12,7 @@ func main() {
 	Menu()
 }
 
+//Menu is...
 func Menu() {
 	Menu := "Bienvenido a la consola de comandos\n>> "
 	fmt.Print(Menu)

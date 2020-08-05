@@ -1,4 +1,4 @@
-package Analisis
+package analisis
 
 import (
 	"fmt"
@@ -11,11 +11,13 @@ var size string
 var path string
 var fit string
 
+//Analizar is...
 func Analizar(comandos string) {
 	Comandos := strings.Split(comandos, " ")
 	VerificarComando(Comandos)
 }
 
+//VerificarComando is...
 func VerificarComando(listaComandos []string) {
 	if listaComandos[0] == "mkdisk" {
 		for i := 1; i < len(listaComandos); i++ {

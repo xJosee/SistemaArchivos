@@ -1,4 +1,4 @@
-package Comandos
+package comandos
 
 import (
 	"bytes"
@@ -16,31 +16,36 @@ type payload struct {
 	Three uint32
 }
 
+//Particion is...
 type Particion struct {
-	part_status byte
-	part_type   byte
-	part_fit    byte
-	part_start  int
-	part_size   int
-	part_name   [16]byte
+	partStatus byte
+	partType   byte
+	partFit    byte
+	partStart  int
+	partSize   int
+	partName   [16]byte
 }
 
+//MBR is...
 type MBR struct {
-	mbr_size           int
-	mbr_fecha_creacion string
-	mbr_disk_signature int
-	disk_fit           byte
-	mbr_particion      [4]Particion
-}
-type EBR struct {
-	part_status byte
-	part_fit    byte
-	part_start  int
-	part_size   int
-	part_next   int
-	part_name   [16]byte
+	mbrSize          int
+	mbrFechaCreacion string
+	mbrDiskSignature int
+	diskFit          byte
+	mbrParticion     [4]Particion
 }
 
+//EBR is...
+type EBR struct {
+	partStatus byte
+	partFit    byte
+	partStart  int
+	partSize   int
+	partNext   int
+	partName   [16]byte
+}
+
+//MKDISK is...
 func MKDISK(size int, fit byte, unit byte, path string, name string) {
 	err := ioutil.WriteFile(path+name+".disk", []byte(""), 0755)
 	if err == nil {
@@ -48,12 +53,16 @@ func MKDISK(size int, fit byte, unit byte, path string, name string) {
 		CrearRaid(size, fit, unit, path, name)
 	}
 }
+
+//CrearRaid is ...
 func CrearRaid(size int, fit byte, unit byte, path string, name string) {
 	err := ioutil.WriteFile(path+name+"Raid.disk", []byte(""), 0755)
 	if err == nil {
 		writeFile(path+name+"Raid.disk", CalcularSize(size, unit))
 	}
 }
+
+//WriteFile is ...
 func writeFile(path string, size int) {
 	file, err := os.Create(path)
 	defer file.Close()
@@ -70,12 +79,12 @@ func writeFile(path string, size int) {
 			r.Float64(),
 			r.Uint32(),
 		}
-		var bin_buf bytes.Buffer
-		binary.Write(&bin_buf, binary.BigEndian, s)
-		//b :=bin_buf.Bytes()
+		var binBuf bytes.Buffer
+		binary.Write(&binBuf, binary.BigEndian, s)
+		//b :=binbuf.Bytes()
 		//l := len(b)
 		//fmt.Println(l)
-		writeNextBytes(file, bin_buf.Bytes())
+		writeNextBytes(file, binBuf.Bytes())
 
 	}
 }
@@ -88,6 +97,8 @@ func writeNextBytes(file *os.File, bytes []byte) {
 	}
 
 }
+
+//CalcularSize is ...
 func CalcularSize(size int, unit byte) int {
 	if unit == 'M' {
 		return 63 * size * 1000
@@ -96,6 +107,8 @@ func CalcularSize(size int, unit byte) int {
 	}
 	return 0
 }
+
+//VerificarRuta is ...
 func VerificarRuta(name string) bool {
 	if _, err := os.Stat(name); err != nil {
 		if os.IsNotExist(err) {
