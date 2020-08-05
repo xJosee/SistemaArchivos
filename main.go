@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 type Particion struct {
@@ -17,7 +19,7 @@ type Particion struct {
 }
 
 type MBR struct {
-	mbr_tamano         int
+	mbr_size           int
 	mbr_fecha_creacion string
 	mbr_disk_signature int
 	disk_fit           byte
@@ -49,9 +51,11 @@ func main() {
 func Menu() {
 	Menu := "Bienvenido a la consola de comandos\n>> "
 	fmt.Print(Menu)
-	var comando string
-	fmt.Scanln(&comando)
-	Peticion(comando)
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan() // use `for scanner.Scan()` to keep reading
+	Comando := scanner.Text()
+	//Peticion(Comando)
+	recorrerAST(Comando)
 }
 
 func Peticion(comando string) {
@@ -70,13 +74,33 @@ func Peticion(comando string) {
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
+	AST := string(body)
+	recorrerAST(AST)
+}
+func recorrerAST(ast string) {
+	comandoMKDISK(10, 'F', 'K', "/home/jose/Escritorio/test.disk")
+}
+func comandoMKDISK(size int, fit byte, unit byte, path string) {
+	var Disco MBR
+	Disco.mbr_disk_signature = 15
+	Disco.disk_fit = fit
+	Disco.mbr_size = CalcularSize(size, unit)
 }
 
-func recorrerAST() {
-
+func CalcularSize(size int, unit byte) int {
+	if unit == 'M' {
+		return size * 1024 * 1024
+	} else if unit == 'K' {
+		return size * 1024
+	}
+	return 0
 }
 
-func comandoMKDISK(size int, fit string, unit string, path string) {
-
+func VerificarRuta(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
 }
