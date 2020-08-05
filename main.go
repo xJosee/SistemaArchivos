@@ -3,11 +3,20 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io/ioutil"
-	"net/http"
+	"log"
+	"math/rand"
 	"os"
+	"time"
 )
+
+type payload struct {
+	One   float32
+	Two   float64
+	Three uint32
+}
 
 type Particion struct {
 	part_status byte
@@ -34,16 +43,6 @@ type EBR struct {
 	part_name   [16]byte
 }
 
-/*type Comando struct {
-	Nombre    string
-	Atributos []Atributo
-}
-
-type Atributo struct {
-	Nombre string
-	Valor  string
-}*/
-
 func main() {
 	Menu()
 }
@@ -54,48 +53,62 @@ func Menu() {
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan() // use `for scanner.Scan()` to keep reading
 	Comando := scanner.Text()
-	//Peticion(Comando)
-	recorrerAST(Comando)
+	fmt.Println(Comando)
+	comandoMKDISK(22, 'F', 'K', "/home/jose/Escritorio/test.disk")
 }
 
-func Peticion(comando string) {
-	url := "http://localhost:2020"
+/*
+ * FUNCIONES UTILIZADAS PARA EL COMANDO MKDISK
+ */
 
-	var jsonStr = []byte(`{"comando":"` + comando + `"}`)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-	req.Header.Set("X-Custom-Header", "myvalue")
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-	AST := string(body)
-	recorrerAST(AST)
-}
-func recorrerAST(ast string) {
-	comandoMKDISK(10, 'F', 'K', "/home/jose/Escritorio/test.disk")
-}
 func comandoMKDISK(size int, fit byte, unit byte, path string) {
-	var Disco MBR
-	Disco.mbr_disk_signature = 15
-	Disco.disk_fit = fit
-	Disco.mbr_size = CalcularSize(size, unit)
+	err := ioutil.WriteFile(path, []byte(""), 0755)
+	if err == nil {
+		writeFile(path, CalcularSize(size, unit))
+	}
 }
+func writeFile(path string, size int) {
+	file, err := os.Create(path)
+	defer file.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for i := 0; i < size; i++ {
+
+		s := &payload{
+			r.Float32(),
+			r.Float64(),
+			r.Uint32(),
+		}
+		var bin_buf bytes.Buffer
+		binary.Write(&bin_buf, binary.BigEndian, s)
+		//b :=bin_buf.Bytes()
+		//l := len(b)
+		//fmt.Println(l)
+		writeNextBytes(file, bin_buf.Bytes())
+
+	}
+}
+func writeNextBytes(file *os.File, bytes []byte) {
+
+	_, err := file.Write(bytes)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
 func CalcularSize(size int, unit byte) int {
 	if unit == 'M' {
-		return size * 1024 * 1024
+		return 63 * size * 1000
 	} else if unit == 'K' {
-		return size * 1024
+		return 63 * size
 	}
 	return 0
 }
-
 func VerificarRuta(name string) bool {
 	if _, err := os.Stat(name); err != nil {
 		if os.IsNotExist(err) {

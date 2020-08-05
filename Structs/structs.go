@@ -1,5 +1,0 @@
-package Structs
-
-func main() {
-
-}
