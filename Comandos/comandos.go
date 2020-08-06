@@ -7,7 +7,10 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"os/exec"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 type payload struct {
@@ -116,4 +119,33 @@ func VerificarRuta(name string) bool {
 		}
 	}
 	return true
+}
+
+//RMDISK is...
+func RMDISK(path string) bool {
+	if VerificarRuta(path) {
+		//Logica para eliminar el disco
+		app := "rm"
+		cmd := exec.Command(app, path)
+		cmd.Output()
+
+	} else {
+		ErrorMessage("[RMDISK] -> El disco que desea eliminar no existe")
+		return false
+	}
+	return true
+}
+
+//ErrorMessage is..
+func ErrorMessage(message string) {
+	red := color.New(color.FgRed)
+	boldRed := red.Add(color.Bold)
+	boldRed.Println(message)
+}
+
+//SuccessMessage is...
+func SuccessMessage(message string) {
+	yellow := color.New(color.FgHiYellow)
+	boldyellow := yellow.Add(color.Bold)
+	boldyellow.Println(message)
 }

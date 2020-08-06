@@ -8,11 +8,13 @@ import (
 	"github.com/fatih/color"
 )
 
-var size int
-var path string
-var fit string = "ff"
-var unit string = "k"
-var name string
+var (
+	size int
+	path string
+	fit  string = "ff"
+	unit string = "k"
+	name string
+)
 
 //Analizar is...
 func Analizar(comandos string) {
@@ -26,15 +28,28 @@ func VerificarComando(listaComandos []string) {
 	if strings.ToLower(listaComandos[0]) == "mkdisk" {
 
 		if VerificarParametros(listaComandos) {
-			comandos.MKDISK(size, fit[0], unit[0], path, name)
-			SuccessMessage("[MKDISK] -> Comando ejecutado correctamente")
+			if path == "" {
+				ErrorMessage("[MKDISK] -> Parametro -path no especificado")
+			} else if name == "" {
+				ErrorMessage("[MKDISK] -> Parametro -name no especificado")
+			} else if size == 0 {
+				ErrorMessage("[MKDISK] -> Parametro -size no especificado")
+			} else {
+				comandos.MKDISK(size, fit[0], unit[0], path, name)
+				SuccessMessage("[MKDISK] -> Comando ejecutado correctamente")
+			}
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "rmdisk" {
 
 		if VerificarParametros(listaComandos) {
-			//comandos.RMDISK(path)
-			SuccessMessage("[RMDISK] -> Comando ejecutado correctamente")
+			if path != "" {
+				if comandos.RMDISK(path) {
+					SuccessMessage("[RMDISK] -> Comando ejecutado correctamente")
+				}
+			} else {
+				ErrorMessage("[RMDISK] -> Parametro -path no especificado")
+			}
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "mount" {

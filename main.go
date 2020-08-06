@@ -20,7 +20,7 @@ func Menu() {
 	for {
 		fmt.Print(">> ")
 		scanner := bufio.NewScanner(os.Stdin)
-		scanner.Scan() // use `for scanner.Scan()` to keep reading
+		scanner.Scan()
 		Comando := scanner.Text()
 		if strings.ToLower(Comando) == "salir" {
 			break
