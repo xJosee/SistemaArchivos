@@ -73,6 +73,13 @@ func VerificarComando(listaComandos []string) {
 			SuccessMessage("[FDISK] -> Comando ejecutado correctamente")
 		}
 
+	} else if strings.ToLower(listaComandos[0]) == "exec" {
+
+		if VerificarParametros(listaComandos) {
+			//comandos.FDISK(path)
+			SuccessMessage("[EXEC] -> Comando ejecutado correctamente")
+		}
+
 	} else {
 		ErrorMessage("[CONSOLA] -> Comando [" + listaComandos[0] + "] incorrecto")
 	}

@@ -1,14 +1,9 @@
 package comandos
 
 import (
-	"bytes"
 	"encoding/binary"
-	"io/ioutil"
-	"log"
-	"math/rand"
 	"os"
 	"os/exec"
-	"time"
 
 	"github.com/fatih/color"
 )
@@ -50,63 +45,56 @@ type EBR struct {
 
 //MKDISK is...
 func MKDISK(size int, fit byte, unit byte, path string, name string) {
-	err := ioutil.WriteFile(path+name+".disk", []byte(""), 0755)
-	if err == nil {
-		writeFile(path+name+".disk", CalcularSize(size, unit))
-		CrearRaid(size, fit, unit, path, name)
+	var Disco MBR
+	Disco.mbrSize = size
+	Disco.diskFit = fit
+	Disco.mbrDiskSignature = 100
+	Disco.mbrFechaCreacion = "06/08/2020"
+	//Se inicializan las particiones en el MBR
+	for p := 0; p < 4; p++ {
+		Disco.mbrParticion[p].partStatus = '0'
+		Disco.mbrParticion[p].partType = '0'
+		Disco.mbrParticion[p].partFit = '0'
+		Disco.mbrParticion[p].partSize = 0
+		Disco.mbrParticion[p].partStart = -1
+		//strcpy(Disco.mbrParticion[p].part_name, "")
 	}
-}
-
-//CrearRaid is ...
-func CrearRaid(size int, fit byte, unit byte, path string, name string) {
-	err := ioutil.WriteFile(path+name+"Raid.disk", []byte(""), 0755)
-	if err == nil {
-		writeFile(path+name+"Raid.disk", CalcularSize(size, unit))
-	}
+	writeFile(path+name+".disk", CalcularSize(size, unit))
+	writeFile(path+name+"Raid.disk", CalcularSize(size, unit))
 }
 
 //WriteFile is ...
 func writeFile(path string, size int) {
-	file, err := os.Create(path)
-	defer file.Close()
-	if err != nil {
-		log.Fatal(err)
+	var Disco MBR
+	Disco.mbrSize = 10
+	Disco.diskFit = 'f'
+	Disco.mbrDiskSignature = 100
+	Disco.mbrFechaCreacion = "06/08/2020"
+	//Se inicializan las particiones en el MBR
+	for p := 0; p < 4; p++ {
+		Disco.mbrParticion[p].partStatus = '0'
+		Disco.mbrParticion[p].partType = '0'
+		Disco.mbrParticion[p].partFit = '0'
+		Disco.mbrParticion[p].partSize = 0
+		Disco.mbrParticion[p].partStart = -1
+		//strcpy(Disco.mbrParticion[p].part_name, "")
 	}
-
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
+	file, _ := os.Create(path)
 	for i := 0; i < size; i++ {
-
-		s := &payload{
-			r.Float32(),
-			r.Float64(),
-			r.Uint32(),
-		}
-		var binBuf bytes.Buffer
-		binary.Write(&binBuf, binary.BigEndian, s)
-		//b :=binbuf.Bytes()
-		//l := len(b)
-		//fmt.Println(l)
-		writeNextBytes(file, binBuf.Bytes())
-
+		var s uint8 = uint8(i)
+		binary.Write(file, binary.LittleEndian, s)
 	}
-}
-func writeNextBytes(file *os.File, bytes []byte) {
-
-	_, err := file.Write(bytes)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	file.Seek(0, 0)
+	binary.Write(file, binary.LittleEndian, Disco)
+	file.Close()
 }
 
 //CalcularSize is ...
 func CalcularSize(size int, unit byte) int {
 	if unit == 'M' {
-		return 63 * size * 1000
+		return size * 1024 * 1024
 	} else if unit == 'K' {
-		return 63 * size
+		return size * 1024
 	}
 	return 0
 }
@@ -128,7 +116,6 @@ func RMDISK(path string) bool {
 		app := "rm"
 		cmd := exec.Command(app, path)
 		cmd.Output()
-
 	} else {
 		ErrorMessage("[RMDISK] -> El disco que desea eliminar no existe")
 		return false
@@ -136,7 +123,7 @@ func RMDISK(path string) bool {
 	return true
 }
 
-//ErrorMessage is..
+//ErrorMessage is...
 func ErrorMessage(message string) {
 	red := color.New(color.FgRed)
 	boldRed := red.Add(color.Bold)
