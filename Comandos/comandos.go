@@ -152,6 +152,11 @@ func RMDISK(path string) bool {
 	return true
 }
 
+//FDISK is...
+func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string, name string, add bool) {
+
+}
+
 //ErrorMessage is...
 func ErrorMessage(message string) {
 	red := color.New(color.FgRed)
