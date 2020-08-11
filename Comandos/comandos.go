@@ -33,32 +33,31 @@ type MBR struct { //22
 
 //MKDISK is...
 func MKDISK(size int, fit byte, unit byte, path string, name string) {
-	writeFile(path+name+".disk", CalcularSize(size, unit))
+	Disco := MBR{}
+	Disco.Size = 50
+	Disco.DiskSignature = 10
+	Disco.DiskFit = 'F'
+	for p := 0; p < 4; p++ {
+		Disco.Particion[p].PartStatus = '0'
+		Disco.Particion[p].PartType = '0'
+		Disco.Particion[p].PartFit = '0'
+		Disco.Particion[p].PartSize = 5
+		Disco.Particion[p].PartStart = 0
+		//strcpy(Disco.Particion[p].part_name, "")
+	}
+	writeFile(path+name+".disk", CalcularSize(size, unit), Disco)
 	readFile(path + name + ".disk")
-	writeFile(path+name+"Raid.disk", CalcularSize(size, unit))
+	writeFile(path+name+"Raid.disk", CalcularSize(size, unit), Disco)
 }
 
 //writeFile is...
-func writeFile(path string, size int) {
+func writeFile(path string, size int, Disco MBR) {
 	file, err := os.Create(path)
 	defer file.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
 	//primer structsegundostruct
-
-	disco2 := MBR{}
-	disco2.Size = 50
-	disco2.DiskSignature = 10
-	disco2.DiskFit = 'F'
-	for p := 0; p < 4; p++ {
-		disco2.Particion[p].PartStatus = '0'
-		disco2.Particion[p].PartType = '0'
-		disco2.Particion[p].PartFit = '0'
-		disco2.Particion[p].PartSize = 5
-		disco2.Particion[p].PartStart = 0
-		//strcpy(disco2.Particion[p].part_name, "")
-	}
 
 	for i := 0; i < size; i++ {
 		var ii uint8 = uint8(0)
@@ -68,7 +67,7 @@ func writeFile(path string, size int) {
 		}
 	}
 	file.Seek(0, 0)
-	s1 := &disco2
+	s1 := &Disco
 	var binario2 bytes.Buffer
 	binary.Write(&binario2, binary.BigEndian, s1)
 	writeNextBytes(file, binario2.Bytes())
