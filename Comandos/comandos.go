@@ -1,9 +1,13 @@
 package comandos
 
 import (
+	"bytes"
 	"encoding/binary"
+	"fmt"
+	"log"
 	"os"
 	"os/exec"
+	"unsafe"
 
 	"github.com/fatih/color"
 )
@@ -25,68 +29,89 @@ type Particion struct {
 }
 
 //MBR is...
-type MBR struct {
-	mbrSize          int
-	mbrFechaCreacion string
-	mbrDiskSignature int
-	diskFit          byte
-	mbrParticion     [4]Particion
-}
-
-//EBR is...
-type EBR struct {
-	partStatus byte
-	partFit    byte
-	partStart  int
-	partSize   int
-	partNext   int
-	partName   [16]byte
+type MBR struct { //22
+	Size          uint8
+	FechaCreacion [20]byte
+	DiskSignature uint8
+	DiskFit       byte
+	//Particion     [4]Particion
 }
 
 //MKDISK is...
 func MKDISK(size int, fit byte, unit byte, path string, name string) {
-	var Disco MBR
-	Disco.mbrSize = size
-	Disco.diskFit = fit
-	Disco.mbrDiskSignature = 100
-	Disco.mbrFechaCreacion = "06/08/2020"
-	//Se inicializan las particiones en el MBR
-	for p := 0; p < 4; p++ {
-		Disco.mbrParticion[p].partStatus = '0'
-		Disco.mbrParticion[p].partType = '0'
-		Disco.mbrParticion[p].partFit = '0'
-		Disco.mbrParticion[p].partSize = 0
-		Disco.mbrParticion[p].partStart = -1
-		//strcpy(Disco.mbrParticion[p].part_name, "")
-	}
-	writeFile(path+name+".disk", CalcularSize(size, unit))
-	writeFile(path+name+"Raid.disk", CalcularSize(size, unit))
+	writeFile()
+	readFile()
 }
 
-//WriteFile is ...
-func writeFile(path string, size int) {
-	var Disco MBR
-	Disco.mbrSize = 10
-	Disco.diskFit = 'f'
-	Disco.mbrDiskSignature = 100
-	Disco.mbrFechaCreacion = "06/08/2020"
-	//Se inicializan las particiones en el MBR
-	for p := 0; p < 4; p++ {
-		Disco.mbrParticion[p].partStatus = '0'
-		Disco.mbrParticion[p].partType = '0'
-		Disco.mbrParticion[p].partFit = '0'
-		Disco.mbrParticion[p].partSize = 0
-		Disco.mbrParticion[p].partStart = -1
-		//strcpy(Disco.mbrParticion[p].part_name, "")
+//writeFile is...
+func writeFile() {
+	file, err := os.Create("test.bin")
+	defer file.Close()
+	if err != nil {
+		log.Fatal(err)
 	}
-	file, _ := os.Create(path)
-	for i := 0; i < size; i++ {
-		var s uint8 = uint8(i)
-		binary.Write(file, binary.LittleEndian, s)
+	//primer structsegundostruct
+
+	disco2 := MBR{}
+	disco2.Size = 50
+	disco2.DiskSignature = 10
+	disco2.DiskFit = 'F'
+
+	s1 := &disco2
+
+	var binario2 bytes.Buffer
+	binary.Write(&binario2, binary.BigEndian, s1)
+	writeNextBytes(file, binario2.Bytes())
+
+}
+
+//writeNextBytes is...
+func writeNextBytes(file *os.File, bytes []byte) {
+
+	_, err := file.Write(bytes)
+
+	if err != nil {
+		log.Fatal(err)
 	}
-	file.Seek(0, 0)
-	binary.Write(file, binary.LittleEndian, Disco)
-	file.Close()
+
+}
+
+//readFile is...
+func readFile() {
+
+	file, err := os.Open("test.bin")
+	defer file.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	m := MBR{}
+	var size int = int(unsafe.Sizeof(m))
+
+	data := readNextBytes(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	err = binary.Read(buffer, binary.BigEndian, &m)
+	if err != nil {
+		log.Fatal("binary.Read failed", err)
+	}
+
+	fmt.Println(m.Size)
+	fmt.Println(m.DiskSignature)
+	fmt.Println(string(m.DiskFit))
+
+}
+
+//readNextBytes is...
+func readNextBytes(file *os.File, number int) []byte {
+	bytes := make([]byte, number)
+
+	_, err := file.Read(bytes)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return bytes
 }
 
 //CalcularSize is ...

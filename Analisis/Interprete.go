@@ -89,7 +89,7 @@ func VerificarComando(listaComandos []string) {
 //VerificarParametros is...
 func VerificarParametros(listaComandos []string) bool {
 	for i := 1; i < len(listaComandos); i++ {
-		Paramatros := strings.Split(listaComandos[i], "=")
+		Paramatros := strings.Split(listaComandos[i], "->")
 		switch strings.ToLower(Paramatros[0]) {
 		case "-size":
 			Size, _ := strconv.Atoi(Paramatros[1]) //Convirtiendo el size a string
