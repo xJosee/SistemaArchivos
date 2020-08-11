@@ -153,7 +153,42 @@ func RMDISK(path string) bool {
 }
 
 //FDISK is...
-func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string, name string, add bool) {
+func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string, name string, add int) {
+	if Type == 'P' {
+		CrearParticionPrimaria()
+	} else if Type == 'E' {
+		CrearParticionExtendida()
+	} else if Type == 'L' {
+		CrearParticionLogica()
+	} else if delete != "" {
+		EliminarParticion()
+	} else if add != 0 {
+		AgregarQuitarEspacio()
+	}
+}
+
+//CrearParticionPrimaria is...
+func CrearParticionPrimaria() {
+
+}
+
+//CrearParticionLogica is...
+func CrearParticionLogica() {
+
+}
+
+//CrearParticionExtendida is...
+func CrearParticionExtendida() {
+
+}
+
+//EliminarParticion is...
+func EliminarParticion() {
+
+}
+
+//AgregarQuitarEspacio is...
+func AgregarQuitarEspacio() {
 
 }
 

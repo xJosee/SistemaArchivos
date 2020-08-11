@@ -9,11 +9,14 @@ import (
 )
 
 var (
-	size int
-	path string
-	fit  string = "ff"
-	unit string = "k"
-	name string
+	size   int
+	path   string
+	fit    string = "ff"
+	unit   string = "k"
+	name   string
+	tipo   byte
+	delete string
+	add    int
 )
 
 //Analizar is...
@@ -52,6 +55,21 @@ func VerificarComando(listaComandos []string) {
 			}
 		}
 
+	} else if strings.ToLower(listaComandos[0]) == "fdisk" {
+
+		if VerificarParametros(listaComandos) {
+			if size == 0 {
+				ErrorMessage("[FDISK] -> Parametro -size no especificado")
+			} else if path == "" {
+				ErrorMessage("[FDISK] -> Parametro -path no especificado")
+			} else if name == "" {
+				ErrorMessage("[FDISK] -> Parametro -name no especificado")
+			} else {
+				comandos.FDISK(size, unit[0], path, tipo, fit[0], delete, name, add)
+				SuccessMessage("[FDISK] -> Comando ejecutado correctamente")
+			}
+		}
+
 	} else if strings.ToLower(listaComandos[0]) == "mount" {
 
 		if VerificarParametros(listaComandos) {
@@ -64,13 +82,6 @@ func VerificarComando(listaComandos []string) {
 		if VerificarParametros(listaComandos) {
 			//comandos.UNMOUNT(path)
 			SuccessMessage("[UNMOUNT] -> Comando ejecutado correctamente")
-		}
-
-	} else if strings.ToLower(listaComandos[0]) == "fdisk" {
-
-		if VerificarParametros(listaComandos) {
-			//comandos.FDISK(path)
-			SuccessMessage("[FDISK] -> Comando ejecutado correctamente")
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "exec" {
@@ -102,6 +113,13 @@ func VerificarParametros(listaComandos []string) bool {
 			unit = Paramatros[1]
 		case "-name":
 			name = Paramatros[1]
+		case "-type":
+			tipo = Paramatros[1][0]
+		case "-delete":
+			delete = Paramatros[1]
+		case "-add":
+			Add, _ := strconv.Atoi(Paramatros[1]) //Convirtiendo el size a string
+			add = Add
 		default:
 			ErrorMessage("[CONSOLA] -> Parametro [" + Paramatros[0] + "] incorrecto")
 			return false
