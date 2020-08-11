@@ -12,20 +12,14 @@ import (
 	"github.com/fatih/color"
 )
 
-type payload struct {
-	One   float32
-	Two   float64
-	Three uint32
-}
-
 //Particion is...
 type Particion struct {
-	partStatus byte
-	partType   byte
-	partFit    byte
-	partStart  int
-	partSize   int
-	partName   [16]byte
+	PartStatus byte
+	PartType   byte
+	PartFit    byte
+	PartStart  uint8
+	PartSize   uint8
+	PartName   [16]byte
 }
 
 //MBR is...
@@ -34,18 +28,19 @@ type MBR struct { //22
 	FechaCreacion [20]byte
 	DiskSignature uint8
 	DiskFit       byte
-	//Particion     [4]Particion
+	Particion     [4]Particion
 }
 
 //MKDISK is...
 func MKDISK(size int, fit byte, unit byte, path string, name string) {
-	writeFile()
-	readFile()
+	writeFile(path+name+".disk", CalcularSize(size, unit))
+	readFile(path + name + ".disk")
+	writeFile(path+name+"Raid.disk", CalcularSize(size, unit))
 }
 
 //writeFile is...
-func writeFile() {
-	file, err := os.Create("test.bin")
+func writeFile(path string, size int) {
+	file, err := os.Create(path)
 	defer file.Close()
 	if err != nil {
 		log.Fatal(err)
@@ -56,9 +51,24 @@ func writeFile() {
 	disco2.Size = 50
 	disco2.DiskSignature = 10
 	disco2.DiskFit = 'F'
+	for p := 0; p < 4; p++ {
+		disco2.Particion[p].PartStatus = '0'
+		disco2.Particion[p].PartType = '0'
+		disco2.Particion[p].PartFit = '0'
+		disco2.Particion[p].PartSize = 5
+		disco2.Particion[p].PartStart = 0
+		//strcpy(disco2.Particion[p].part_name, "")
+	}
 
+	for i := 0; i < size; i++ {
+		var ii uint8 = uint8(0)
+		err := binary.Write(file, binary.LittleEndian, ii)
+		if err != nil {
+			fmt.Println("err!", err)
+		}
+	}
+	file.Seek(0, 0)
 	s1 := &disco2
-
 	var binario2 bytes.Buffer
 	binary.Write(&binario2, binary.BigEndian, s1)
 	writeNextBytes(file, binario2.Bytes())
@@ -67,7 +77,6 @@ func writeFile() {
 
 //writeNextBytes is...
 func writeNextBytes(file *os.File, bytes []byte) {
-
 	_, err := file.Write(bytes)
 
 	if err != nil {
@@ -77,9 +86,9 @@ func writeNextBytes(file *os.File, bytes []byte) {
 }
 
 //readFile is...
-func readFile() {
+func readFile(path string) {
 
-	file, err := os.Open("test.bin")
+	file, err := os.Open(path)
 	defer file.Close()
 	if err != nil {
 		log.Fatal(err)
@@ -95,10 +104,6 @@ func readFile() {
 	if err != nil {
 		log.Fatal("binary.Read failed", err)
 	}
-
-	fmt.Println(m.Size)
-	fmt.Println(m.DiskSignature)
-	fmt.Println(string(m.DiskFit))
 
 }
 
