@@ -33,7 +33,12 @@ type MBR struct { //22
 
 //EBR is...
 type EBR struct { //22
-	//TODO : Atributos EBR
+	PartStatus byte
+	PartDit    byte
+	PartStart  int32
+	PartSize   int32
+	PartNext   int32
+	PartName   [16]byte
 }
 
 //MKDISK is...
