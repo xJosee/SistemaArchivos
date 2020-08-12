@@ -14,7 +14,7 @@ var (
 	fit    string = "ff"
 	unit   string = "k"
 	name   string
-	tipo   byte
+	tipo   string
 	delete string
 	add    int
 )
@@ -56,16 +56,31 @@ func VerificarComando(listaComandos []string) {
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "fdisk" {
-
+		Bandera := true
 		if VerificarParametros(listaComandos) {
 			if size == 0 {
 				ErrorMessage("[FDISK] -> Parametro -size no especificado")
+				Bandera = false
 			} else if path == "" {
 				ErrorMessage("[FDISK] -> Parametro -path no especificado")
+				Bandera = false
 			} else if name == "" {
 				ErrorMessage("[FDISK] -> Parametro -name no especificado")
-			} else {
-				comandos.FDISK(size, unit[0], path, tipo, fit[0], delete, name, add)
+				Bandera = false
+			} else if tipo != "" {
+				if tipo != "p" && tipo != "e" && tipo != "l" {
+					ErrorMessage("[FDISK] -> Valor del parametro -type incorrecto")
+					Bandera = false
+				}
+			} else if delete != "" {
+				if delete != "full" && delete != "fast" {
+					ErrorMessage("[FDISK] -> Valor del parametro -delete incorrecto")
+					Bandera = false
+				}
+			}
+
+			if Bandera {
+				comandos.FDISK(size, unit[0], path, tipo[0], fit[0], delete, name, add)
 				SuccessMessage("[FDISK] -> Comando ejecutado correctamente")
 			}
 		}
@@ -114,9 +129,9 @@ func VerificarParametros(listaComandos []string) bool {
 		case "-name":
 			name = Paramatros[1]
 		case "-type":
-			tipo = Paramatros[1][0]
+			tipo = strings.ToLower(Paramatros[1])
 		case "-delete":
-			delete = Paramatros[1]
+			delete = strings.ToLower(Paramatros[1])
 		case "-add":
 			Add, _ := strconv.Atoi(Paramatros[1]) //Convirtiendo el size a string
 			add = Add
