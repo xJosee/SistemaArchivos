@@ -79,9 +79,20 @@ func MKDISK(size int, fit byte, unit byte, path string, name string) bool {
 	return false
 }
 
+//WriteInFileMBR is...
+func WriteInFileMBR(file *os.File, Disco MBR) {
+	file.Seek(0, 0)
+	s1 := &Disco
+	var binario2 bytes.Buffer
+	binary.Write(&binario2, binary.BigEndian, s1)
+	writeNextBytes(file, binario2.Bytes())
+}
+
 //WriteInFile is...
-func WriteInFile(path string, Disco MBR) {
-	//TODO : Crear una funcion para escribir en un disco existente
+func WriteInFile(file *os.File, s []byte) {
+	var binario2 bytes.Buffer
+	binary.Write(&binario2, binary.BigEndian, s)
+	writeNextBytes(file, binario2.Bytes())
 }
 
 //writeFile is...
@@ -260,7 +271,6 @@ func CrearParticionPrimaria(path string, size int, name string, fit byte) {
 				break
 			}
 		}
-
 		if Bandera {
 			//Verificar el espacio libre del disco
 			espacioUsado := 0
@@ -270,10 +280,8 @@ func CrearParticionPrimaria(path string, size int, name string, fit byte) {
 				}
 			}
 			EspacioLibre := (int(mbr.Size) - espacioUsado)
-
 			fmt.Println("EspacioDisponible : ", EspacioLibre)
 			fmt.Println("EspacioRequerido : ", size)
-
 			if EspacioLibre >= size {
 				if !ParticionExist(path, name) {
 					if mbr.DiskFit == 'F' || mbr.DiskFit == 'f' { //FIRST FIT
@@ -289,16 +297,14 @@ func CrearParticionPrimaria(path string, size int, name string, fit byte) {
 						mbr.Particion[num].PartStatus = '0'
 						copy(mbr.Particion[num].PartName[:], name)
 						//Se guarda de nuevo el MBR
-						File.Seek(0, 0)
-						writeFile(path, 15360, mbr)
+						WriteInFileMBR(File, mbr)
 						//Se guardan los bytes de la particion
 						File.Seek(int64(mbr.Particion[num].PartStart), 0)
 						for i := 0; i < size; i++ {
-							File.Write([]byte{1})
+							WriteInFile(File, []byte{1})
 						}
 						SuccessMessage("[FDISK] -> Particion Primaria creado correctamente")
 					}
-
 				}
 			}
 		}
