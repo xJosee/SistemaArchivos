@@ -214,7 +214,7 @@ func RMDISK(path string) bool {
 //FDISK is...
 func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string, name string, add int) {
 	if Type == 'p' {
-		CrearParticionPrimaria(path, CalcularSize(size, unit), name)
+		CrearParticionPrimaria(path, CalcularSize(size, unit), name, fit)
 	} else if Type == 'e' {
 		CrearParticionExtendida()
 	} else if Type == 'l' {
@@ -227,8 +227,8 @@ func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string,
 }
 
 //CrearParticionPrimaria is...
-func CrearParticionPrimaria(path string, size int, name string) {
-	fmt.Println("Size : ", size)
+func CrearParticionPrimaria(path string, size int, name string, fit byte) {
+	//TODO : Obtener el file
 	buffer := '1'
 	var mbr MBR
 	fmt.Println(buffer, mbr)
@@ -259,7 +259,30 @@ func CrearParticionPrimaria(path string, size int, name string) {
 			fmt.Println("EspacioRequerido : ", size)
 
 			if EspacioLibre >= size {
-				if ParticionExist(path, name) {
+				if !ParticionExist(path, name) {
+
+					if mbr.DiskFit == 'F' || mbr.DiskFit == 'f' { //FIRST FIT
+						mbr.Particion[num].PartType = 'P'
+						mbr.Particion[num].PartFit = fit
+						//start
+						if num == 0 {
+							mbr.Particion[num].PartStart = int32(unsafe.Sizeof(mbr))
+						} else {
+							mbr.Particion[num].PartStart = mbr.Particion[num-1].PartStart + mbr.Particion[num-1].PartSize
+						}
+						mbr.Particion[num].PartSize = int32(size)
+						mbr.Particion[num].PartStatus = '0'
+						copy(mbr.Particion[num].PartName[:], name)
+						//Se guarda de nuevo el MBR
+						fseek(0, 0)
+						fwrite(&mbr, sizeof(MBR), 1, fp)
+						//Se guardan los bytes de la particion
+						fseek(mbr.Particion[num].PartStart, 0)
+						for i := 0; i < size_bytes; i++ {
+							fwrite(&buffer, 1, 1, fp)
+						}
+						SuccessMessage("[FDISK] Particion Primaria creado correctamente")
+					}
 
 				}
 			}
@@ -287,7 +310,7 @@ func ParticionExist(path string, name string) bool {
 			ebrBytes := new(bytes.Buffer)
 			json.NewEncoder(ebrBytes).Encode(ebr)
 			num, _ := File.Read(ebrBytes.Bytes())
-			for num != 0 /*Agregar Mas validaciones*/ {
+			for num != 0 /*TODO : Agregar Mas validaciones*/ {
 				if fmt.Sprint(ebr.PartName) == name {
 					File.Close()
 					return true
