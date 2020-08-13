@@ -10,7 +10,12 @@ import (
 	"os/exec"
 	"unsafe"
 
+	"C"
+
 	"github.com/fatih/color"
+)
+import (
+	"io"
 )
 
 //Particion is...
@@ -229,14 +234,12 @@ func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string,
 //CrearParticionPrimaria is...
 func CrearParticionPrimaria(path string, size int, name string, fit byte) {
 	//TODO : Obtener el file
+	fmt.Println(size)
 	File := getFile(path)
-	buffer := '1'
 	var mbr MBR
-	fmt.Println(buffer, mbr)
 	if VerificarRuta(path) {
 		Bandera := false
 		num := 0
-		fmt.Println(Bandera, num)
 		mbr = readMBR(path)
 		for i := 0; i < 4; i++ {
 			if mbr.Particion[i].PartStart == -1 || (mbr.Particion[i].PartStatus == '1' && mbr.Particion[i].PartSize >= int32(size)) {
@@ -260,7 +263,9 @@ func CrearParticionPrimaria(path string, size int, name string, fit byte) {
 			fmt.Println("EspacioRequerido : ", size)
 
 			if EspacioLibre >= size {
+				fmt.Println("Si entro en el primer if")
 				if !ParticionExist(path, name) {
+					fmt.Println("Si entro en el segundo if")
 					if mbr.DiskFit == 'F' || mbr.DiskFit == 'f' { //FIRST FIT
 						mbr.Particion[num].PartType = 'P'
 						mbr.Particion[num].PartFit = fit
@@ -281,9 +286,9 @@ func CrearParticionPrimaria(path string, size int, name string, fit byte) {
 						//Se guardan los bytes de la particion
 						File.Seek(int64(mbr.Particion[num].PartStart), 0)
 						for i := 0; i < size; i++ {
-							//File.Write(&buffer) //TODO : Arreglar que el buffer que declare arriba sea un struct
+							File.Write([]byte{1})
 						}
-						SuccessMessage("[FDISK] Particion Primaria creado correctamente")
+						SuccessMessage("[FDISK] -> Particion Primaria creado correctamente")
 					}
 
 				}
@@ -312,7 +317,8 @@ func ParticionExist(path string, name string) bool {
 			ebrBytes := new(bytes.Buffer)
 			json.NewEncoder(ebrBytes).Encode(ebr)
 			num, _ := File.Read(ebrBytes.Bytes())
-			for num != 0 /*TODO : Agregar Mas validaciones*/ {
+			offset, _ := File.Seek(0, io.SeekCurrent)
+			for num != 0 && (int32(offset) < (mbr.Particion[extendida].PartSize + mbr.Particion[extendida].PartStart)) {
 				if fmt.Sprint(ebr.PartName) == name {
 					File.Close()
 					return true
@@ -324,8 +330,7 @@ func ParticionExist(path string, name string) bool {
 			}
 		}
 	}
-
-	return true
+	return false
 }
 
 //CrearParticionLogica is...
