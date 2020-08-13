@@ -3,6 +3,7 @@ package comandos
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -43,11 +44,13 @@ type EBR struct { //22
 
 //MKDISK is...
 func MKDISK(size int, fit byte, unit byte, path string, name string) {
+	//Creando una instancia del struct MBR que representa al disco
 	Disco := MBR{}
 	Disco.Size = int32(CalcularSize(size, unit))
 	Disco.DiskSignature = 10
 	Disco.DiskFit = 'F'
 	copy(Disco.FechaCreacion[:], "11/08/2020")
+	//Inicializando las particiones del Disco
 	for p := 0; p < 4; p++ {
 		Disco.Particion[p].PartStatus = '0'
 		Disco.Particion[p].PartType = '0'
@@ -56,8 +59,11 @@ func MKDISK(size int, fit byte, unit byte, path string, name string) {
 		Disco.Particion[p].PartStart = -1
 		copy(Disco.Particion[p].PartName[:], "")
 	}
+	//Metodo que escribe el disco(archivo)
 	writeFile(path+name+".dsk", CalcularSize(size, unit), Disco)
-	readFile(path + name + ".dsk")
+	//Metodo para leer el struct MBR del Disco(archivo)
+	readMBR(path + name + ".dsk")
+	//Crea una copia del disco (RAID)
 	writeFile(path+name+"_raid.dsk", CalcularSize(size, unit), Disco)
 }
 
@@ -92,8 +98,8 @@ func writeNextBytes(file *os.File, bytes []byte) {
 
 }
 
-//readFile is...
-func readFile(path string) MBR {
+//readMBR is...
+func readMBR(path string) MBR {
 
 	file, err := os.Open(path)
 	defer file.Close()
@@ -104,7 +110,7 @@ func readFile(path string) MBR {
 	m := MBR{}
 	var size int = int(unsafe.Sizeof(m))
 
-	data := readNextBytes(file, size)
+	data := readNextBytesMBR(file, size)
 	buffer := bytes.NewBuffer(data)
 
 	err = binary.Read(buffer, binary.BigEndian, &m)
@@ -116,18 +122,8 @@ func readFile(path string) MBR {
 
 }
 
-//getFile is...
-func getFile(path string) *os.File {
-	file, err := os.Open(path)
-	defer file.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return file
-}
-
-//readNextBytes is...
-func readNextBytes(file *os.File, number int) []byte {
+//readNextBytesMBR is...
+func readNextBytesMBR(file *os.File, number int) []byte {
 	bytes := make([]byte, number)
 
 	_, err := file.Read(bytes)
@@ -136,6 +132,50 @@ func readNextBytes(file *os.File, number int) []byte {
 	}
 
 	return bytes
+}
+
+//readEBR is...
+func readEBR(path string) EBR {
+	file, err := os.Open(path)
+	defer file.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	m := EBR{}
+	var size int = int(unsafe.Sizeof(m))
+
+	data := readNextBytesEBR(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	err = binary.Read(buffer, binary.BigEndian, &m)
+	if err != nil {
+		log.Fatal("binary.Read failed", err)
+	}
+
+	return m
+}
+
+//readNextBytesEBR is...
+func readNextBytesEBR(file *os.File, number int) []byte {
+	bytes := make([]byte, number)
+
+	_, err := file.Read(bytes)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return bytes
+}
+
+//getFile is...
+func getFile(path string) *os.File {
+	file, err := os.Open(path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	return file
 }
 
 //CalcularSize is ...
@@ -174,7 +214,7 @@ func RMDISK(path string) bool {
 //FDISK is...
 func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string, name string, add int) {
 	if Type == 'p' {
-		CrearParticionPrimaria(path, CalcularSize(size, unit))
+		CrearParticionPrimaria(path, CalcularSize(size, unit), name)
 	} else if Type == 'e' {
 		CrearParticionExtendida()
 	} else if Type == 'l' {
@@ -187,7 +227,7 @@ func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string,
 }
 
 //CrearParticionPrimaria is...
-func CrearParticionPrimaria(path string, size int) {
+func CrearParticionPrimaria(path string, size int, name string) {
 	fmt.Println("Size : ", size)
 	buffer := '1'
 	var mbr MBR
@@ -196,7 +236,7 @@ func CrearParticionPrimaria(path string, size int) {
 		Bandera := false
 		num := 0
 		fmt.Println(Bandera, num)
-		mbr = readFile(path)
+		mbr = readMBR(path)
 		for i := 0; i < 4; i++ {
 			if mbr.Particion[i].PartStart == -1 || (mbr.Particion[i].PartStatus == '1' && mbr.Particion[i].PartSize >= int32(size)) {
 				Bandera = true
@@ -206,7 +246,7 @@ func CrearParticionPrimaria(path string, size int) {
 		}
 
 		if Bandera {
-			//Veroficar el espacio libre del disco
+			//Verificar el espacio libre del disco
 			espacioUsado := 0
 			for i := 0; i < 4; i++ {
 				if mbr.Particion[i].PartStatus != '1' {
@@ -219,7 +259,7 @@ func CrearParticionPrimaria(path string, size int) {
 			fmt.Println("EspacioRequerido : ", size)
 
 			if EspacioLibre >= size {
-				if ParticionExist(path) {
+				if ParticionExist(path, name) {
 
 				}
 			}
@@ -229,12 +269,12 @@ func CrearParticionPrimaria(path string, size int) {
 }
 
 //ParticionExist is...
-func ParticionExist(path string) bool {
+func ParticionExist(path string, name string) bool {
 	extendida := -1
 	if VerificarRuta(path) {
-		mbr := readFile(path)
+		mbr := readMBR(path)
 		for i := 0; i < 4; i++ {
-			if fmt.Sprint(mbr.Particion[i].PartName) == "Name" {
+			if fmt.Sprint(mbr.Particion[i].PartName) == name {
 				return true
 			} else if mbr.Particion[i].PartType == 'E' {
 				extendida = i
@@ -243,7 +283,20 @@ func ParticionExist(path string) bool {
 		if extendida != -1 {
 			File := getFile(path)
 			File.Seek(int64(mbr.Particion[extendida].PartStart), 0)
-			//TODO : Seguir con la parte de particion exist
+			ebr := EBR{}
+			ebrBytes := new(bytes.Buffer)
+			json.NewEncoder(ebrBytes).Encode(ebr)
+			num, _ := File.Read(ebrBytes.Bytes())
+			for num != 0 /*Agregar Mas validaciones*/ {
+				if fmt.Sprint(ebr.PartName) == name {
+					File.Close()
+					return true
+				}
+				if ebr.PartNext == -1 {
+					File.Close()
+					return false
+				}
+			}
 		}
 	}
 
