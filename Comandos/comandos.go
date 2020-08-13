@@ -49,6 +49,7 @@ type EBR struct { //22
 
 //MKDISK is...
 func MKDISK(size int, fit byte, unit byte, path string, name string) {
+	//TODO : Ponerle todas las validaciones posibles
 	//Creando una instancia del struct MBR que representa al disco
 	Disco := MBR{}
 	Disco.Size = int32(CalcularSize(size, unit))
@@ -122,7 +123,6 @@ func readMBR(path string) MBR {
 	if err != nil {
 		log.Fatal("binary.Read failed", err)
 	}
-
 	return m
 
 }
@@ -220,6 +220,7 @@ func RMDISK(path string) bool {
 func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string, name string, add int) {
 	if Type == 'p' {
 		CrearParticionPrimaria(path, CalcularSize(size, unit), name, fit)
+		readMBR(path)
 	} else if Type == 'e' {
 		CrearParticionExtendida()
 	} else if Type == 'l' {
@@ -234,7 +235,7 @@ func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string,
 //CrearParticionPrimaria is...
 func CrearParticionPrimaria(path string, size int, name string, fit byte) {
 	//TODO : Obtener el file
-	fmt.Println(size)
+	//TODO : Optimizar y hacer varias pruebas
 	File := getFile(path)
 	var mbr MBR
 	if VerificarRuta(path) {
@@ -263,9 +264,7 @@ func CrearParticionPrimaria(path string, size int, name string, fit byte) {
 			fmt.Println("EspacioRequerido : ", size)
 
 			if EspacioLibre >= size {
-				fmt.Println("Si entro en el primer if")
 				if !ParticionExist(path, name) {
-					fmt.Println("Si entro en el segundo if")
 					if mbr.DiskFit == 'F' || mbr.DiskFit == 'f' { //FIRST FIT
 						mbr.Particion[num].PartType = 'P'
 						mbr.Particion[num].PartFit = fit
@@ -280,9 +279,7 @@ func CrearParticionPrimaria(path string, size int, name string, fit byte) {
 						copy(mbr.Particion[num].PartName[:], name)
 						//Se guarda de nuevo el MBR
 						File.Seek(0, 0)
-						ebrBytes := new(bytes.Buffer)
-						json.NewEncoder(ebrBytes).Encode(mbr)
-						File.Write(ebrBytes.Bytes())
+						writeFile(path, 15360, mbr)
 						//Se guardan los bytes de la particion
 						File.Seek(int64(mbr.Particion[num].PartStart), 0)
 						for i := 0; i < size; i++ {
