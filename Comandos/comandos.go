@@ -48,8 +48,7 @@ type EBR struct { //22
 }
 
 //MKDISK is...
-func MKDISK(size int, fit byte, unit byte, path string, name string) {
-	//TODO : Ponerle todas las validaciones posibles
+func MKDISK(size int, fit byte, unit byte, path string, name string) bool {
 	//Creando una instancia del struct MBR que representa al disco
 	Disco := MBR{}
 	Disco.Size = int32(CalcularSize(size, unit))
@@ -65,12 +64,19 @@ func MKDISK(size int, fit byte, unit byte, path string, name string) {
 		Disco.Particion[p].PartStart = -1
 		copy(Disco.Particion[p].PartName[:], "")
 	}
-	//Metodo que escribe el disco(archivo)
-	writeFile(path+name+".dsk", CalcularSize(size, unit), Disco)
-	//Metodo para leer el struct MBR del Disco(archivo)
-	readMBR(path + name + ".dsk")
-	//Crea una copia del disco (RAID)
-	writeFile(path+name+"_raid.dsk", CalcularSize(size, unit), Disco)
+	if !VerificarRuta(path + name + ".dsk") {
+		//Metodo que escribe el disco(archivo)
+		writeFile(path+name+".dsk", CalcularSize(size, unit), Disco)
+		//Metodo para leer el struct MBR del Disco(archivo)
+		readMBR(path + name + ".dsk")
+		//Crea una copia del disco (RAID)
+		writeFile(path+name+"_raid.dsk", CalcularSize(size, unit), Disco)
+
+		return true
+
+	}
+
+	return false
 }
 
 //WriteInFile is...

@@ -38,8 +38,11 @@ func VerificarComando(listaComandos []string) {
 			} else if size == 0 {
 				ErrorMessage("[MKDISK] -> Parametro -size no especificado")
 			} else {
-				comandos.MKDISK(size, fit[0], unit[0], path, name)
-				SuccessMessage("[MKDISK] -> Comando ejecutado correctamente")
+				if comandos.MKDISK(size, fit[0], unit[0], path, name) {
+					SuccessMessage("[MKDISK] -> Comando ejecutado correctamente")
+				} else {
+					ErrorMessage("[MKDISK] -> Ya existe un disco con ese nombre")
+				}
 			}
 		}
 

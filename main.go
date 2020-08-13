@@ -11,7 +11,9 @@ import (
 )
 
 func main() {
-	color.HiCyan("Bienvenido a la consola de comandos")
+	blue := color.New(color.FgCyan)
+	boldblue := blue.Add(color.Bold)
+	boldblue.Println("Bienvenido a la consola de comandos")
 	Menu()
 }
 
