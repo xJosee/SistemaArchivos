@@ -73,6 +73,11 @@ func MKDISK(size int, fit byte, unit byte, path string, name string) {
 	writeFile(path+name+"_raid.dsk", CalcularSize(size, unit), Disco)
 }
 
+//WriteInFile is...
+func WriteInFile(path string, Disco MBR) {
+	//TODO : Crear una funcion para escribir en un disco existente
+}
+
 //writeFile is...
 func writeFile(path string, size int, Disco MBR) {
 	file, err := os.Create(path)
