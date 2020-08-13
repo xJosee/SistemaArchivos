@@ -83,8 +83,9 @@ func VerificarComando(listaComandos []string) {
 			}
 
 			if Bandera {
-				comandos.FDISK(size, unit[0], path, tipo[0], fit[0], delete, name, add)
-				SuccessMessage("[FDISK] -> Comando ejecutado correctamente")
+				if comandos.FDISK(size, unit[0], path, tipo[0], fit[0], delete, name, add) {
+					SuccessMessage("[FDISK] -> Comando ejecutado correctamente")
+				}
 			}
 		}
 
