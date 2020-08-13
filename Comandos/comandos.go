@@ -229,6 +229,7 @@ func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string,
 //CrearParticionPrimaria is...
 func CrearParticionPrimaria(path string, size int, name string, fit byte) {
 	//TODO : Obtener el file
+	File := getFile(path)
 	buffer := '1'
 	var mbr MBR
 	fmt.Println(buffer, mbr)
@@ -260,7 +261,6 @@ func CrearParticionPrimaria(path string, size int, name string, fit byte) {
 
 			if EspacioLibre >= size {
 				if !ParticionExist(path, name) {
-
 					if mbr.DiskFit == 'F' || mbr.DiskFit == 'f' { //FIRST FIT
 						mbr.Particion[num].PartType = 'P'
 						mbr.Particion[num].PartFit = fit
@@ -274,12 +274,14 @@ func CrearParticionPrimaria(path string, size int, name string, fit byte) {
 						mbr.Particion[num].PartStatus = '0'
 						copy(mbr.Particion[num].PartName[:], name)
 						//Se guarda de nuevo el MBR
-						fseek(0, 0)
-						fwrite(&mbr, sizeof(MBR), 1, fp)
+						File.Seek(0, 0)
+						ebrBytes := new(bytes.Buffer)
+						json.NewEncoder(ebrBytes).Encode(mbr)
+						File.Write(ebrBytes.Bytes())
 						//Se guardan los bytes de la particion
-						fseek(mbr.Particion[num].PartStart, 0)
-						for i := 0; i < size_bytes; i++ {
-							fwrite(&buffer, 1, 1, fp)
+						File.Seek(int64(mbr.Particion[num].PartStart), 0)
+						for i := 0; i < size; i++ {
+							//File.Write(&buffer) //TODO : Arreglar que el buffer que declare arriba sea un struct
 						}
 						SuccessMessage("[FDISK] Particion Primaria creado correctamente")
 					}
