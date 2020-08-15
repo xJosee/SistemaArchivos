@@ -44,6 +44,8 @@ func VerificarComando(listaComandos []string) {
 					ErrorMessage("[MKDISK] -> Ya existe un disco con ese nombre")
 				}
 			}
+		} else {
+			ErrorMessage("[MKDISK] -> Algo anda mal con un parametro")
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "rmdisk" {
@@ -56,6 +58,8 @@ func VerificarComando(listaComandos []string) {
 			} else {
 				ErrorMessage("[RMDISK] -> Parametro -path no especificado")
 			}
+		} else {
+			ErrorMessage("[MKDISK] -> Algo anda mal con un parametro")
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "fdisk" {
@@ -87,6 +91,8 @@ func VerificarComando(listaComandos []string) {
 					SuccessMessage("[FDISK] -> Comando ejecutado correctamente")
 				}
 			}
+		} else {
+			ErrorMessage("[MKDISK] -> Algo anda mal con un parametro")
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "mount" {
@@ -123,6 +129,9 @@ func VerificarParametros(listaComandos []string) bool {
 		switch strings.ToLower(Paramatros[0]) {
 		case "-size":
 			Size, _ := strconv.Atoi(Paramatros[1]) //Convirtiendo el size a string
+			if Size < 0 {
+				return false
+			}
 			size = Size
 		case "-path":
 			path = Paramatros[1]

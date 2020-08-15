@@ -5,18 +5,16 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
+	"strings"
+	"time"
 	"unsafe"
 
-	"C"
-
 	"github.com/fatih/color"
-)
-import (
-	"io"
-	"strings"
 )
 
 //Particion is...
@@ -32,7 +30,7 @@ type Particion struct {
 //MBR is...
 type MBR struct { //22
 	Size          int32
-	FechaCreacion [10]byte
+	FechaCreacion [20]byte
 	DiskSignature int32
 	DiskFit       byte
 	Particion     [4]Particion
@@ -41,7 +39,7 @@ type MBR struct { //22
 //EBR is...
 type EBR struct { //22
 	PartStatus byte
-	PartDit    byte
+	PartFit    byte
 	PartStart  int32
 	PartSize   int32
 	PartNext   int32
@@ -51,9 +49,12 @@ type EBR struct { //22
 //MKDISK is...
 func MKDISK(size int, fit byte, unit byte, path string, name string) bool {
 	//Creando una instancia del struct MBR que representa al disco
+	dt := time.Now()
+	fecha := dt.Format("01-02-2006 15:04:05")
 	Disco := MBR{}
 	Disco.Size = int32(CalcularSize(size, unit))
-	Disco.DiskSignature = 10
+	copy(Disco.FechaCreacion[:], fecha)
+	Disco.DiskSignature = int32(rand.Int())
 	Disco.DiskFit = 'F'
 	copy(Disco.FechaCreacion[:], "11/08/2020")
 	//Inicializando las particiones del Disco
@@ -88,8 +89,8 @@ func writeFile(path string, size int, Disco MBR) {
 		log.Fatal(err)
 	}
 	for i := 0; i < size; i++ {
-		var num int8 = int8(0)
-		err := binary.Write(file, binary.LittleEndian, num)
+		var numParticion int8 = int8(0)
+		err := binary.Write(file, binary.LittleEndian, numParticion)
 		if err != nil {
 			fmt.Println("err!", err)
 		}
@@ -104,6 +105,14 @@ func writeFile(path string, size int, Disco MBR) {
 //reWriteMBR is...
 func reWriteMBR(file *os.File, Disco MBR) {
 	file.Seek(0, 0)
+	s1 := &Disco
+	var binario2 bytes.Buffer
+	binary.Write(&binario2, binary.BigEndian, s1)
+	writeNextBytes(file, binario2.Bytes())
+}
+
+//reWriteEBR is...
+func reWriteEBR(file *os.File, Disco EBR) {
 	s1 := &Disco
 	var binario2 bytes.Buffer
 	binary.Write(&binario2, binary.BigEndian, s1)
@@ -138,6 +147,10 @@ func readMBR(path string) MBR {
 	err = binary.Read(buffer, binary.BigEndian, &m)
 	if err != nil {
 		log.Fatal("binary.Read failed", err)
+	}
+	for i := 0; i < 4; i++ {
+		fmt.Println("Tipo", m.Particion[i].PartType)
+		fmt.Println("Size", m.Particion[i].PartSize)
 	}
 	return m
 
@@ -239,7 +252,8 @@ func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string,
 			return true
 		}
 	} else if Type == 'e' {
-		CrearParticionExtendida()
+		CrearParticionExtendida(path, CalcularSize(size, unit), name, fit)
+		readMBR(path)
 	} else if Type == 'l' {
 		CrearParticionLogica()
 	} else if delete != "" {
@@ -253,17 +267,17 @@ func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string,
 
 //CrearParticionPrimaria is...
 func CrearParticionPrimaria(path string, size int, name string, fit byte) bool {
-	//TODO : Optimizar y hacer varias pruebas
 	File := getFile(path)
 	var mbr MBR
 	if VerificarRuta(path) {
 		Bandera := false
-		num := 0
+		numParticion := 0
+		File.Seek(0, 0)
 		mbr = readMBR(path)
 		for i := 0; i < 4; i++ {
 			if mbr.Particion[i].PartStart == -1 || (mbr.Particion[i].PartStatus == '1' && mbr.Particion[i].PartSize >= int32(size)) {
 				Bandera = true
-				num = i
+				numParticion = i
 				break
 			}
 		}
@@ -282,21 +296,21 @@ func CrearParticionPrimaria(path string, size int, name string, fit byte) bool {
 			if EspacioLibre >= size {
 				if !ParticionExist(path, name) {
 					if mbr.DiskFit == 'F' || mbr.DiskFit == 'f' { //FIRST FIT
-						mbr.Particion[num].PartType = 'P'
-						mbr.Particion[num].PartFit = fit
+						mbr.Particion[numParticion].PartType = 'P'
+						mbr.Particion[numParticion].PartFit = fit
 						//start
-						if num == 0 {
-							mbr.Particion[num].PartStart = int32(unsafe.Sizeof(mbr))
+						if numParticion == 0 {
+							mbr.Particion[numParticion].PartStart = int32(unsafe.Sizeof(mbr))
 						} else {
-							mbr.Particion[num].PartStart = mbr.Particion[num-1].PartStart + mbr.Particion[num-1].PartSize
+							mbr.Particion[numParticion].PartStart = mbr.Particion[numParticion-1].PartStart + mbr.Particion[numParticion-1].PartSize
 						}
-						mbr.Particion[num].PartSize = int32(size)
-						mbr.Particion[num].PartStatus = '0'
-						copy(mbr.Particion[num].PartName[:], name)
+						mbr.Particion[numParticion].PartSize = int32(size)
+						mbr.Particion[numParticion].PartStatus = '0'
+						copy(mbr.Particion[numParticion].PartName[:], name)
 						//Se guarda de nuevo el MBR
 						reWriteMBR(File, mbr)
 						//Se guardan los bytes de la particion
-						File.Seek(int64(mbr.Particion[num].PartStart), 0)
+						File.Seek(int64(mbr.Particion[numParticion].PartStart), 0)
 						for i := 0; i < size; i++ {
 							File.Write([]byte{1})
 						}
@@ -310,7 +324,7 @@ func CrearParticionPrimaria(path string, size int, name string, fit byte) bool {
 				ErrorMessage("[FDISK] -> La particion a crear excede el size del disco")
 			}
 		} else {
-			ErrorMessage("[FDISK] -> El disco contiene ya 4 particiones")
+			ErrorMessage("[FDISK] -> El disco ya cuenta con 4 particiones")
 		}
 		File.Close()
 	} else {
@@ -342,10 +356,14 @@ func ParticionExist(path string, name string) bool {
 			ebr := EBR{}
 			ebrBytes := new(bytes.Buffer)
 			json.NewEncoder(ebrBytes).Encode(ebr)
-			num, _ := File.Read(ebrBytes.Bytes())
+			numParticion, _ := File.Read(ebrBytes.Bytes())
 			offset, _ := File.Seek(0, io.SeekCurrent)
-			for num != 0 && (int32(offset) < (mbr.Particion[extendida].PartSize + mbr.Particion[extendida].PartStart)) {
-				if string(ebr.PartName[:len(ebr.PartName)]) == name {
+
+			for numParticion != 0 && (int32(offset) < (mbr.Particion[extendida].PartSize + mbr.Particion[extendida].PartStart)) {
+				numParticion, _ = File.Read(ebrBytes.Bytes())
+				offset, _ = File.Seek(0, io.SeekCurrent)
+				nameParticionString := string(ebr.PartName[:])
+				if nameParticionString == name {
 					File.Close()
 					return true
 				}
@@ -361,22 +379,104 @@ func ParticionExist(path string, name string) bool {
 
 //CrearParticionLogica is...
 func CrearParticionLogica() {
-
+	//TODO : Crear particion logica
 }
 
 //CrearParticionExtendida is...
-func CrearParticionExtendida() {
+func CrearParticionExtendida(path string, size int, name string, fit byte) {
 
+	File := getFile(path)
+	var mbr MBR
+	if VerificarRuta(path) {
+		var flagParticion bool = false
+		var flagExtendida bool = false
+		var numParticion int = 0
+		File.Seek(0, 0)
+		mbr = readMBR(path)
+		for i := 0; i < 4; i++ {
+			if mbr.Particion[i].PartType == 'E' || mbr.Particion[i].PartType == 'e' {
+				flagExtendida = true
+				break
+			}
+		}
+		if !flagExtendida {
+			//Verificar si existe una particion disponible
+			for i := 0; i < 4; i++ {
+				if mbr.Particion[i].PartStart == -1 || (mbr.Particion[i].PartStatus == '1' && mbr.Particion[i].PartSize >= int32(size)) {
+					flagParticion = true
+					numParticion = i
+					break
+				}
+			}
+			if flagParticion {
+				//Verificar el espacio libre del disco
+				var espacioUsado int = 0
+				for i := 0; i < 4; i++ {
+					if mbr.Particion[i].PartStatus != '1' {
+						espacioUsado += int(mbr.Particion[i].PartSize)
+					}
+				}
+				EspacioDisponible := mbr.Size - int32(espacioUsado)
+				if EspacioDisponible >= int32(size) {
+					if !ParticionExist(path, name) {
+						if mbr.DiskFit == 'F' || mbr.DiskFit == 'f' {
+							mbr.Particion[numParticion].PartType = 'E'
+							mbr.Particion[numParticion].PartFit = fit
+							//start
+							if numParticion == 0 {
+								mbr.Particion[numParticion].PartStart = int32(unsafe.Sizeof(mbr))
+							} else {
+								mbr.Particion[numParticion].PartStart = mbr.Particion[numParticion-1].PartStart + mbr.Particion[numParticion-1].PartSize
+							}
+							mbr.Particion[numParticion].PartSize = int32(size)
+							mbr.Particion[numParticion].PartStatus = '0'
+							copy(mbr.Particion[numParticion].PartName[:], name)
+							//Se guarda de nuevo el MBR
+							reWriteMBR(File, mbr)
+							//Se guardan los bytes de la particion
+							File.Seek(int64(mbr.Particion[numParticion].PartStart), 0)
+
+							var EB EBR
+							EB.PartFit = fit
+							EB.PartStatus = '0'
+							EB.PartStart = mbr.Particion[numParticion].PartStart
+							EB.PartSize = 0
+							EB.PartNext = -1
+							copy(EB.PartName[:], "")
+
+							reWriteEBR(File, EB)
+
+							for i := 0; i < size-int(unsafe.Sizeof(EB)); i++ {
+								File.Write([]byte{1})
+							}
+							SuccessMessage("[FDISK] -> Particion extendida creada correctamente")
+						}
+					} else {
+						ErrorMessage("[FDISK] -> Ya existe una particion con ese nombre")
+					}
+				} else {
+					ErrorMessage("[FDISK] -> La particion a crear es mayor al espacio libre del disco")
+				}
+			} else {
+				ErrorMessage("[FDISK] -> El disco ya cuenta con 4 particiones")
+			}
+		} else {
+			ErrorMessage("[FDISK] -> El disco ya cuenta con una particion extendida")
+		}
+		File.Close()
+	} else {
+		ErrorMessage("[FDISK] -> No existe el disco")
+	}
 }
 
 //EliminarParticion is...
 func EliminarParticion() {
-
+	//TODO : Eliminar Particion
 }
 
 //AgregarQuitarEspacio is...
 func AgregarQuitarEspacio() {
-
+	//TODO : Agregar o Quitar espacio
 }
 
 //ErrorMessage is...
