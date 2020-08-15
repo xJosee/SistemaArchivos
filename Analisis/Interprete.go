@@ -1,6 +1,9 @@
 package analisis
 
 import (
+	"bufio"
+	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -112,7 +115,7 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "exec" {
 
 		if VerificarParametros(listaComandos) {
-			//comandos.FDISK(path)
+			EXEC(path)
 			SuccessMessage("[EXEC] -> Comando ejecutado correctamente")
 		}
 
@@ -155,6 +158,24 @@ func VerificarParametros(listaComandos []string) bool {
 	}
 
 	return true
+}
+
+//EXEC is...
+func EXEC(path string) {
+	file, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		Analizar(scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 //ErrorMessage is..

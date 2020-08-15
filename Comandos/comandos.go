@@ -148,10 +148,10 @@ func readMBR(path string) MBR {
 	if err != nil {
 		log.Fatal("binary.Read failed", err)
 	}
-	for i := 0; i < 4; i++ {
+	/*for i := 0; i < 4; i++ {
 		fmt.Println("Tipo", m.Particion[i].PartType)
 		fmt.Println("Size", m.Particion[i].PartSize)
-	}
+	}*/
 	return m
 
 }
