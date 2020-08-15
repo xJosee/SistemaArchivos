@@ -24,8 +24,10 @@ var (
 
 //Analizar is...
 func Analizar(comandos string) {
-	Comandos := strings.Split(comandos, " ")
-	VerificarComando(Comandos)
+	if comandos != "" {
+		Comandos := strings.Split(comandos, " ")
+		VerificarComando(Comandos)
+	}
 }
 
 //VerificarComando is...
@@ -42,7 +44,7 @@ func VerificarComando(listaComandos []string) {
 				ErrorMessage("[MKDISK] -> Parametro -size no especificado")
 			} else {
 				if comandos.MKDISK(size, fit[0], unit[0], path, name) {
-					SuccessMessage("[MKDISK] -> Comando ejecutado correctamente")
+					SuccessMessage("[MKDISK] -> Disco creado correctamente")
 				} else {
 					ErrorMessage("[MKDISK] -> Ya existe un disco con ese nombre")
 				}
@@ -91,7 +93,7 @@ func VerificarComando(listaComandos []string) {
 
 			if Bandera {
 				if comandos.FDISK(size, unit[0], path, tipo[0], fit[0], delete, name, add) {
-					SuccessMessage("[FDISK] -> Comando ejecutado correctamente")
+					//SuccessMessage("[FDISK] -> Comando ejecutado correctamente")
 				}
 			}
 		} else {
@@ -116,7 +118,7 @@ func VerificarComando(listaComandos []string) {
 
 		if VerificarParametros(listaComandos) {
 			EXEC(path)
-			SuccessMessage("[EXEC] -> Comando ejecutado correctamente")
+			//SuccessMessage("[EXEC] -> Comando ejecutado correctamente")
 		}
 
 	} else {
@@ -170,7 +172,10 @@ func EXEC(path string) {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		Analizar(scanner.Text())
+		if scanner.Text() != "" {
+			Comando("[CONSOLA] -> " + scanner.Text())
+			Analizar(scanner.Text())
+		}
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -190,4 +195,11 @@ func SuccessMessage(message string) {
 	yellow := color.New(color.FgHiYellow)
 	boldyellow := yellow.Add(color.Bold)
 	boldyellow.Println(message)
+}
+
+//Comando is...
+func Comando(message string) {
+	green := color.New(color.FgHiGreen)
+	boldgreen := green.Add(color.Bold)
+	boldgreen.Println(message)
 }

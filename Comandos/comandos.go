@@ -291,8 +291,8 @@ func CrearParticionPrimaria(path string, size int, name string, fit byte) bool {
 				}
 			}
 			EspacioLibre := (int(mbr.Size) - espacioUsado)
-			fmt.Println("EspacioDisponible : ", EspacioLibre)
-			fmt.Println("EspacioRequerido : ", size)
+			//fmt.Println("EspacioDisponible : ", EspacioLibre)
+			//fmt.Println("EspacioRequerido : ", size)
 			if EspacioLibre >= size {
 				if !ParticionExist(path, name) {
 					if mbr.DiskFit == 'F' || mbr.DiskFit == 'f' { //FIRST FIT
@@ -343,7 +343,7 @@ func ParticionExist(path string, name string) bool {
 		for i := 0; i < 4; i++ {
 
 			nameParticionString := string(mbr.Particion[i].PartName[:])
-
+			//TODO : Ver bien la comparacion de nombres
 			if strings.Compare(nameParticionString, name) == 1 {
 				return true
 			} else if mbr.Particion[i].PartType == 'E' {
