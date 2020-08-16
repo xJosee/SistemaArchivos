@@ -26,7 +26,7 @@ var (
 //Analizar is...
 func Analizar(comandos string) {
 	if comandos != "" {
-		if strings.HasPrefix(comandos, "#") {
+		if !strings.HasPrefix(comandos, "#") {
 			Comandos := strings.Split(comandos, " ")
 			VerificarComando(Comandos)
 		} else {
