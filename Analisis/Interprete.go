@@ -26,8 +26,12 @@ var (
 //Analizar is...
 func Analizar(comandos string) {
 	if comandos != "" {
-		Comandos := strings.Split(comandos, " ")
-		VerificarComando(Comandos)
+		if strings.HasPrefix(comandos, "#") {
+			Comandos := strings.Split(comandos, " ")
+			VerificarComando(Comandos)
+		} else {
+			Comentario(comandos)
+		}
 	}
 }
 
@@ -209,4 +213,11 @@ func Comando(message string) {
 	green := color.New(color.FgHiGreen)
 	boldgreen := green.Add(color.Bold)
 	boldgreen.Println(message)
+}
+
+//Comentario is...
+func Comentario(message string) {
+	white := color.New(color.FgHiGreen)
+	boldwhite := white.Add(color.Bold)
+	boldwhite.Println("[COMENTARIO] -> ", message)
 }
