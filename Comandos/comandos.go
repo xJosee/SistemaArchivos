@@ -148,10 +148,12 @@ func readMBR(path string) MBR {
 	if err != nil {
 		log.Fatal("binary.Read failed", err)
 	}
-	/*for i := 0; i < 4; i++ {
+	for i := 0; i < 4; i++ {
+		fmt.Println("Particion", i)
 		fmt.Println("Tipo", m.Particion[i].PartType)
 		fmt.Println("Size", m.Particion[i].PartSize)
-	}*/
+		fmt.Println("Start", m.Particion[i].PartStart)
+	}
 	return m
 
 }
@@ -186,6 +188,8 @@ func readEBR(path string) EBR {
 	if err != nil {
 		log.Fatal("binary.Read failed", err)
 	}
+
+	fmt.Println("Start ebr", m.PartStart)
 
 	return m
 }
@@ -248,12 +252,12 @@ func RMDISK(path string) bool {
 func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string, name string, add int) bool {
 	if Type == 'p' {
 		if CrearParticionPrimaria(path, CalcularSize(size, unit), name, fit) {
-			readMBR(path)
+
 			return true
 		}
 	} else if Type == 'e' {
 		CrearParticionExtendida(path, CalcularSize(size, unit), name, fit)
-		readMBR(path)
+
 	} else if Type == 'l' {
 		CrearParticionLogica()
 	} else if delete != "" {

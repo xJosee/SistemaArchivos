@@ -2,6 +2,7 @@ package analisis
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -120,6 +121,12 @@ func VerificarComando(listaComandos []string) {
 			EXEC(path)
 			//SuccessMessage("[EXEC] -> Comando ejecutado correctamente")
 		}
+
+	} else if strings.ToLower(listaComandos[0]) == "pause" {
+
+		fmt.Println("[CONSOLA] -> Presiona enter para continuar")
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
 
 	} else {
 		ErrorMessage("[CONSOLA] -> Comando [" + listaComandos[0] + "] incorrecto")
