@@ -217,7 +217,7 @@ func Comando(message string) {
 
 //Comentario is...
 func Comentario(message string) {
-	white := color.New(color.FgHiGreen)
+	white := color.New(color.FgWhite)
 	boldwhite := white.Add(color.Bold)
 	boldwhite.Println("[COMENTARIO] -> ", message)
 }
