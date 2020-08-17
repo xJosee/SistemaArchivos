@@ -77,14 +77,14 @@ func (Lista *Lista) BuscarLetra(direccion string, nombre string) int {
 	for aux != nil {
 		if (direccion == aux.Direccion) && (nombre == aux.Nombre) {
 			return -1
-		} else {
-
-			if direccion == aux.Direccion {
-				return int(aux.Letra)
-			} else if retorno == int(aux.Letra) {
-				retorno++
-			}
 		}
+
+		if direccion == aux.Direccion {
+			return int(aux.Letra)
+		} else if retorno == int(aux.Letra) {
+			retorno++
+		}
+
 		aux = aux.Siguiente
 	}
 
