@@ -15,9 +15,14 @@ type Lista struct {
 	Primero  *Nodo
 }
 
+//Constructor is...
+func (Lista *Lista) Constructor() {
+	Lista.Contador = 0
+	Lista.Primero = nil
+}
+
 //Insertar is...
 func (Lista *Lista) Insertar(Nodo *Nodo) {
-
 	Lista.Contador++
 	aux := Lista.Primero
 	if Lista.Primero == nil {
@@ -28,5 +33,4 @@ func (Lista *Lista) Insertar(Nodo *Nodo) {
 		}
 		aux.Siguiente = Nodo
 	}
-
 }
