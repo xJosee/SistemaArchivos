@@ -70,21 +70,63 @@ func (Lista *Lista) EliminarNodo(ID string) int {
 }
 
 //BuscarLetra is...
-func (Lista *Lista) BuscarLetra(direccion string , nombre string) byte {
-    aux := primero;
-    retorno := 'a';
-    while(aux!=nil){
-        if (direccion == aux.Direccion) && (nombre == aux.Nombre) {
-            return -1;
-        }else{
-            if(direccion == aux.Direccion){
-                return aux.Letra;
-            }else if(retorno <= aux.Letra){
-                retorno++;
-            }
-        }
-        aux = aux.Siguiente;
-    }
-    return retorno;
+func (Lista *Lista) BuscarLetra(direccion string, nombre string) int {
+	aux := Lista.Primero
+	var retorno int = 'a'
+
+	for aux != nil {
+		if (direccion == aux.Direccion) && (nombre == aux.Nombre) {
+			return -1
+		} else {
+
+			if direccion == aux.Direccion {
+				return int(aux.Letra)
+			} else if retorno == int(aux.Letra) {
+				retorno++
+			}
+		}
+		aux = aux.Siguiente
+	}
+
+	return retorno
 }
 
+//BuscarNumero is...
+func (Lista *Lista) BuscarNumero(direccion string, nombres string) int {
+	var retorno int = 1
+	aux := Lista.Primero
+	for aux != nil {
+		if (direccion == aux.Direccion) && (retorno == aux.Num) {
+			retorno++
+		}
+		aux = aux.Siguiente
+	}
+	return retorno
+}
+
+//getDireccion is...
+func (Lista *Lista) getDireccion(id string) string {
+	aux := Lista.Primero
+	for aux != nil {
+		tempID := "vd"
+		tempID += string(aux.Letra)
+		tempID += string(aux.Num)
+		if id == tempID {
+			return aux.Direccion
+		}
+		aux = aux.Siguiente
+	}
+	return "null"
+}
+
+//BuscarNodo is...
+func (Lista *Lista) BuscarNodo(direccion string, nombre string) bool {
+	aux := Lista.Primero
+	for aux != nil {
+		if (aux.Direccion == direccion) && (aux.Nombre == nombre) {
+			return true
+		}
+		aux = aux.Siguiente
+	}
+	return false
+}
