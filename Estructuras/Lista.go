@@ -68,3 +68,23 @@ func (Lista *Lista) EliminarNodo(ID string) int {
 	}
 	return 0
 }
+
+//BuscarLetra is...
+func (Lista *Lista) BuscarLetra(direccion string , nombre string) byte {
+    aux := primero;
+    retorno := 'a';
+    while(aux!=nil){
+        if (direccion == aux.Direccion) && (nombre == aux.Nombre) {
+            return -1;
+        }else{
+            if(direccion == aux.Direccion){
+                return aux.Letra;
+            }else if(retorno <= aux.Letra){
+                retorno++;
+            }
+        }
+        aux = aux.Siguiente;
+    }
+    return retorno;
+}
+
