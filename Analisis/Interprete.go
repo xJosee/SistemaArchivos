@@ -21,6 +21,7 @@ var (
 	tipo   string
 	delete string
 	add    int
+	id     string
 )
 
 //Analizar is...
@@ -122,8 +123,12 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "unmount" {
 
 		if VerificarParametros(listaComandos) {
-			//comandos.UNMOUNT(path)
-			SuccessMessage("[UNMOUNT] -> Comando ejecutado correctamente")
+			if id == "" {
+				ErrorMessage("[MOUNT] -> Parametro -id no especificado")
+			} else {
+				comandos.UNMOUNT(id)
+				SuccessMessage("[UNMOUNT] -> Comando ejecutado correctamente")
+			}
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "exec" {
@@ -171,6 +176,8 @@ func VerificarParametros(listaComandos []string) bool {
 		case "-add":
 			Add, _ := strconv.Atoi(Paramatros[1]) //Convirtiendo el size a string
 			add = Add
+		case "-id":
+			id = Paramatros[1]
 		default:
 			ErrorMessage("[CONSOLA] -> Parametro [" + Paramatros[0] + "] incorrecto")
 			return false
