@@ -3,6 +3,7 @@ package comandos
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -44,6 +45,12 @@ type EBR struct { //22
 	PartSize   int32
 	PartNext   int32
 	PartName   [16]byte
+}
+
+//TODO : Declarar lista de particiones
+var listaParticiones = Estructuras.Lista{
+	Contador: 0,
+	Primero:  nil,
 }
 
 //MKDISK is...
@@ -563,14 +570,133 @@ func AgregarQuitarEspacio() {
 }
 
 //MOUNT is...
-func MOUNT() {
+func MOUNT(path string, name string) {
 	//TODO : Crear comando mount
-	List := &Estructuras.Lista{
-		Contador: 0,
-		Primero:  nil,
+	indexP := ParticionLogicaExist(path, name)
+	if indexP != -1 {
+		File := getFile(path)
+
+		if VerificarRuta(path) {
+			var masterboot MBR
+			File.Seek(0, 0)
+
+			masterboot = readMBR(File)
+
+			masterboot.Particion[indexP].PartStatus = '2'
+
+			File.Seek(0, 0)
+			reWriteMBR(File, masterboot)
+			File.Close()
+
+			letra := listaParticiones.BuscarLetra(path, name)
+
+			if letra == -1 {
+				ErrorMessage("[MOUNT] -> La particion ya se encuentra montada")
+			} else {
+				num := listaParticiones.BuscarNumero(path, name)
+				auxLetra := byte(letra)
+				id := "vd"
+				id += string(auxLetra) + string(num)
+
+				n := Estructuras.Nodo{
+					Direccion: path,
+					Nombre:    name,
+					Letra:     auxLetra,
+					Num:       num,
+					Siguiente: nil,
+				}
+
+				listaParticiones.Insertar(&n)
+
+				SuccessMessage("[MOUNT] -> Particion montada correctamente")
+
+			}
+		} else {
+			ErrorMessage("[MOUNT] -> El disco no existe")
+		}
+	} else {
+
+		indexP := ParticionLogicaExist(path, name)
+		if indexP != -1 {
+
+			File := getFile(path)
+
+			if VerificarRuta(path) {
+
+				var extendedBoot EBR
+				File.Seek(int64(indexP), 0)
+				extendedBoot = readEBR(File)
+				extendedBoot.PartStatus = '2'
+				File.Seek(int64(indexP), 0)
+				reWriteEBR(File, extendedBoot)
+				File.Close()
+
+				letra := listaParticiones.BuscarLetra(path, name)
+
+				if letra == -1 {
+					ErrorMessage("[MOUNT:ERROR] : La particion ya se encuentra montada")
+				} else {
+					num := listaParticiones.BuscarNumero(path, name)
+					auxLetra := byte(letra)
+					id := "vd"
+					id += string(auxLetra) + string(num)
+
+					n := Estructuras.Nodo{
+						Direccion: path,
+						Nombre:    name,
+						Letra:     auxLetra,
+						Num:       num,
+						Siguiente: nil,
+					}
+
+					listaParticiones.Insertar(&n)
+					SuccessMessage("[MOUNT] -> Particion montada correctamente")
+
+				}
+			} else {
+				ErrorMessage("[MOUNT] -> El disco no existe")
+			}
+		} else {
+			ErrorMessage("[MOUNT] -> La particion no se encuentra")
+		}
 	}
-	Nodo := &Estructuras.Nodo{}
-	List.Insertar(Nodo)
+
+}
+
+//ParticionLogicaExist is...
+func ParticionLogicaExist(path string, name string) int {
+	if VerificarRuta(path) {
+		File := getFile(path)
+		var extendida int = -1
+		var masterboot MBR
+		File.Seek(0, 0)
+		masterboot = readMBR(File)
+
+		for i := 0; i < 4; i++ {
+			if masterboot.Particion[i].PartType == 'E' {
+				extendida = i
+				break
+			}
+		}
+		if extendida != -1 {
+			File.Seek(int64(masterboot.Particion[extendida].PartStart), 0)
+			ebr := EBR{}
+			ebrBytes := new(bytes.Buffer)
+			json.NewEncoder(ebrBytes).Encode(ebr)
+			numParticion, _ := File.Read(ebrBytes.Bytes())
+			offset, _ := File.Seek(0, io.SeekCurrent)
+
+			for numParticion != 0 && (offset < int64(masterboot.Particion[extendida].PartStart+masterboot.Particion[extendida].PartSize)) {
+				numParticion, _ = File.Read(ebrBytes.Bytes())
+				offset, _ = File.Seek(0, io.SeekCurrent)
+				if copy(ebr.PartName[:], name) == 0 {
+					return int((offset - int64(unsafe.Sizeof(ebr))))
+				}
+			}
+		}
+		File.Close()
+	}
+	return -1
 }
 
 //ErrorMessage is...
