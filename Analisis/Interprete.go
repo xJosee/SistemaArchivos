@@ -108,8 +108,15 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "mount" {
 
 		if VerificarParametros(listaComandos) {
-			//comandos.MOUNT()
-			SuccessMessage("[MOUNT] -> Comando ejecutado correctamente")
+			if path == "" {
+				ErrorMessage("[MOUNT] -> Parametro -path no especificado")
+			} else if name == "" {
+				ErrorMessage("[MOUNT] -> Parametro -name no especificado")
+			} else {
+				comandos.MOUNT(path, name)
+				SuccessMessage("[MOUNT] -> Comando ejecutado correctamente")
+			}
+
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "unmount" {

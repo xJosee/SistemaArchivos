@@ -10,7 +10,6 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 	"unsafe"
 
@@ -339,9 +338,10 @@ func ParticionExist(path string, name string) bool {
 		mbr := readMBR(File)
 		for i := 0; i < 4; i++ {
 
-			nameParticionString := string(mbr.Particion[i].PartName[:])
-			//TODO : Ver bien la comparacion de nombres
-			if strings.Compare(nameParticionString, name) == 1 {
+			var nameByte [16]byte
+			copy(nameByte[:], name)
+
+			if bytes.Compare(nameByte[:], mbr.Particion[i].PartName[:]) == 0 {
 				return true
 			} else if mbr.Particion[i].PartType == 'E' {
 				//extendida = i
@@ -572,7 +572,8 @@ func AgregarQuitarEspacio() {
 //MOUNT is...
 func MOUNT(path string, name string) {
 	//TODO : Crear comando mount
-	indexP := ParticionLogicaExist(path, name)
+	indexP := ParticionExtendidaExist(path, name)
+
 	if indexP != -1 {
 		File := getFile(path)
 
@@ -663,6 +664,33 @@ func MOUNT(path string, name string) {
 
 }
 
+//ParticionExtendidaExist is...
+func ParticionExtendidaExist(path string, name string) int {
+
+	if VerificarRuta(path) {
+		File := getFile(path)
+		var masterboot MBR
+		File.Seek(0, 0)
+		masterboot = readMBR(File)
+		for i := 0; i < 4; i++ {
+			if masterboot.Particion[i].PartStatus != '1' {
+
+				//TODO : ver bien lo del string.Compare()
+				var nameByte [16]byte
+				copy(nameByte[:], name)
+				fmt.Println("Extendida Exist", bytes.Compare(nameByte[:], masterboot.Particion[i].PartName[:]))
+				if bytes.Compare(nameByte[:], masterboot.Particion[i].PartName[:]) == 0 {
+
+					return i
+				}
+
+			}
+		}
+
+	}
+	return -1
+}
+
 //ParticionLogicaExist is...
 func ParticionLogicaExist(path string, name string) int {
 	if VerificarRuta(path) {
@@ -689,7 +717,10 @@ func ParticionLogicaExist(path string, name string) int {
 			for numParticion != 0 && (offset < int64(masterboot.Particion[extendida].PartStart+masterboot.Particion[extendida].PartSize)) {
 				numParticion, _ = File.Read(ebrBytes.Bytes())
 				offset, _ = File.Seek(0, io.SeekCurrent)
-				if copy(ebr.PartName[:], name) == 0 {
+				var nameByte [16]byte
+				copy(nameByte[:], name)
+				fmt.Println("Extendida Logica", bytes.Compare(ebr.PartName[:], nameByte[:]))
+				if bytes.Compare(ebr.PartName[:], nameByte[:]) == 0 {
 					return int((offset - int64(unsafe.Sizeof(ebr))))
 				}
 			}
