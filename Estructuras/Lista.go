@@ -40,9 +40,9 @@ func (Lista *Lista) GetSize() int {
 func (Lista *Lista) EliminarNodo(ID string) int {
 	Lista.Contador--
 	aux := Lista.Primero
-	tempID := "vd"
+	var tempID string = "vd"
 	tempID += string(aux.Letra)
-	tempID += string(aux.Num)
+	tempID = fmt.Sprint(tempID, aux.Num)
 
 	if ID == tempID {
 		Lista.Primero = aux.Siguiente
@@ -53,7 +53,7 @@ func (Lista *Lista) EliminarNodo(ID string) int {
 	for aux != nil {
 		tempID = "vd"
 		tempID += string(aux.Letra)
-		tempID += string(aux.Num)
+		tempID = fmt.Sprint(tempID, aux.Num)
 		if ID == tempID {
 			aux2.Siguiente = aux.Siguiente
 			return 1
