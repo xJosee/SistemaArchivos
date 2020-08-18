@@ -99,7 +99,6 @@ func VerificarComando(listaComandos []string) {
 
 			if Bandera {
 				if comandos.FDISK(size, unit[0], path, tipo[0], fit[0], delete, name, add) {
-					//SuccessMessage("[FDISK] -> Comando ejecutado correctamente")
 				}
 			}
 		} else {
@@ -115,7 +114,6 @@ func VerificarComando(listaComandos []string) {
 				ErrorMessage("[MOUNT] -> Parametro -name no especificado")
 			} else {
 				comandos.MOUNT(path, name)
-				SuccessMessage("[MOUNT] -> Comando ejecutado correctamente")
 			}
 
 		}
@@ -127,7 +125,6 @@ func VerificarComando(listaComandos []string) {
 				ErrorMessage("[MOUNT] -> Parametro -id no especificado")
 			} else {
 				comandos.UNMOUNT(id)
-				SuccessMessage("[UNMOUNT] -> Comando ejecutado correctamente")
 			}
 		}
 
