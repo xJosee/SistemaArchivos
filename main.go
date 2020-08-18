@@ -11,9 +11,14 @@ import (
 )
 
 func main() {
+
 	blue := color.New(color.FgCyan)
 	boldblue := blue.Add(color.Bold)
-	boldblue.Println("Bienvenido a la consola de comandos")
+	boldblue.Println("========================================")
+	boldblue.Println("          B I E N V E N I D O")
+	boldblue.Println("========================================")
+	boldblue.Println("1. Comandos Disponibles")
+	fmt.Println("")
 	Menu()
 }
 

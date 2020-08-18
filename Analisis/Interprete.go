@@ -141,6 +141,18 @@ func VerificarComando(listaComandos []string) {
 		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan()
 
+	} else if strings.ToLower(listaComandos[0]) == "1" {
+
+		fmt.Println("")
+		fmt.Println(" - mkdisk")
+		fmt.Println(" - rmdisk")
+		fmt.Println(" - fdisk")
+		fmt.Println(" - mount")
+		fmt.Println(" - unmount")
+		fmt.Println(" - exec")
+		fmt.Println(" - rep")
+		fmt.Println("")
+
 	} else {
 		ErrorMessage("[CONSOLA] -> Comando [" + listaComandos[0] + "] incorrecto")
 	}
