@@ -13,6 +13,7 @@ import (
 	"time"
 	"unsafe"
 
+	Estructuras "../Estructuras"
 	"github.com/fatih/color"
 )
 
@@ -76,7 +77,6 @@ func MKDISK(size int, fit byte, unit byte, path string, name string) bool {
 		return true
 
 	}
-
 	return false
 }
 
@@ -560,6 +560,17 @@ func EliminarParticion() {
 //AgregarQuitarEspacio is...
 func AgregarQuitarEspacio() {
 	//TODO : Agregar o Quitar espacio
+}
+
+//MOUNT is...
+func MOUNT() {
+	//TODO : Crear comando mount
+	List := &Estructuras.Lista{
+		Contador: 0,
+		Primero:  nil,
+	}
+	Nodo := &Estructuras.Nodo{}
+	List.Insertar(Nodo)
 }
 
 //ErrorMessage is...

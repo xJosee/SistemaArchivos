@@ -15,12 +15,6 @@ type Lista struct {
 	Primero  *Nodo
 }
 
-//Constructor is...
-func (Lista *Lista) Constructor() {
-	Lista.Contador = 0
-	Lista.Primero = nil
-}
-
 //Insertar is...
 func (Lista *Lista) Insertar(Nodo *Nodo) {
 	Lista.Contador++
@@ -35,8 +29,8 @@ func (Lista *Lista) Insertar(Nodo *Nodo) {
 	}
 }
 
-//getSize is...
-func (Lista *Lista) getSize() int {
+//GetSize is...
+func (Lista *Lista) GetSize() int {
 	return Lista.Contador
 }
 
@@ -50,22 +44,22 @@ func (Lista *Lista) EliminarNodo(ID string) int {
 
 	if ID == tempID {
 		Lista.Primero = aux.Siguiente
-		//free(aux)
-		//return 1
-	} else {
-		var aux2 *Nodo = nil
-		for aux != nil {
-			tempID = "vd"
-			tempID += string(aux.Letra)
-			tempID += string(aux.Num)
-			if ID == tempID {
-				aux2.Siguiente = aux.Siguiente
-				return 1
-			}
-			aux2 = aux
-			aux = aux.Siguiente
-		}
+		//unsafe.Pointer(aux)
+		return 1
 	}
+	var aux2 *Nodo = nil
+	for aux != nil {
+		tempID = "vd"
+		tempID += string(aux.Letra)
+		tempID += string(aux.Num)
+		if ID == tempID {
+			aux2.Siguiente = aux.Siguiente
+			return 1
+		}
+		aux2 = aux
+		aux = aux.Siguiente
+	}
+
 	return 0
 }
 
@@ -104,8 +98,8 @@ func (Lista *Lista) BuscarNumero(direccion string, nombres string) int {
 	return retorno
 }
 
-//getDireccion is...
-func (Lista *Lista) getDireccion(id string) string {
+//GetDireccion is...
+func (Lista *Lista) GetDireccion(id string) string {
 	aux := Lista.Primero
 	for aux != nil {
 		tempID := "vd"
