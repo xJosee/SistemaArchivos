@@ -667,6 +667,18 @@ func MOUNT(path string, name string) {
 
 }
 
+//UNMOUNT is...
+func UNMOUNT(id string) {
+	var eliminado int = listaParticiones.EliminarNodo(id)
+	if eliminado == 1 {
+		SuccessMessage("[UNMOUNT] -> Particion desmontada correctamente")
+		listaParticiones.Listar()
+	} else {
+		ErrorMessage("[UNMOUNT] ->  La particion a desmontar no se encuentra")
+	}
+
+}
+
 //ParticionExtendidaExist is...
 func ParticionExtendidaExist(path string, name string) int {
 
