@@ -340,8 +340,10 @@ func ParticionExist(path string, name string) bool {
 
 			var nameByte [16]byte
 			copy(nameByte[:], name)
-
+			//fmt.Println("ParticionExisit", string(nameByte[:]), string(mbr.Particion[i].PartName[:]), bytes.Compare(nameByte[:], mbr.Particion[i].PartName[:]))
 			if bytes.Compare(nameByte[:], mbr.Particion[i].PartName[:]) == 0 {
+				fmt.Println("Si son iguales")
+				File.Close()
 				return true
 			} else if mbr.Particion[i].PartType == 'E' {
 				//extendida = i
@@ -380,10 +382,9 @@ func ParticionExist(path string, name string) bool {
 
 //CrearParticionLogica is...
 func CrearParticionLogica(path string, name string, size int, fit byte) {
-	//TODO : Crear particion logica
-	File := getFile(path)
 	var mbr MBR
 	if VerificarRuta(path) {
+		File := getFile(path)
 		var numExtendida int = -1
 		File.Seek(0, 0)
 		mbr = readMBR(File)
@@ -394,7 +395,7 @@ func CrearParticionLogica(path string, name string, size int, fit byte) {
 			}
 		}
 
-		if ParticionExist(path, name) {
+		if !ParticionExist(path, name) {
 			if numExtendida != -1 {
 				var EB EBR
 				cont := mbr.Particion[numExtendida].PartStart
@@ -608,6 +609,7 @@ func MOUNT(path string, name string) {
 				}
 
 				listaParticiones.Insertar(&n)
+				listaParticiones.Listar()
 
 				SuccessMessage("[MOUNT] -> Particion montada correctamente")
 
@@ -651,6 +653,7 @@ func MOUNT(path string, name string) {
 					}
 
 					listaParticiones.Insertar(&n)
+					listaParticiones.Listar()
 					SuccessMessage("[MOUNT] -> Particion montada correctamente")
 
 				}
@@ -674,16 +677,12 @@ func ParticionExtendidaExist(path string, name string) int {
 		masterboot = readMBR(File)
 		for i := 0; i < 4; i++ {
 			if masterboot.Particion[i].PartStatus != '1' {
-
-				//TODO : ver bien lo del string.Compare()
 				var nameByte [16]byte
 				copy(nameByte[:], name)
-				fmt.Println("Extendida Exist", bytes.Compare(nameByte[:], masterboot.Particion[i].PartName[:]))
 				if bytes.Compare(nameByte[:], masterboot.Particion[i].PartName[:]) == 0 {
 
 					return i
 				}
-
 			}
 		}
 
@@ -719,7 +718,6 @@ func ParticionLogicaExist(path string, name string) int {
 				offset, _ = File.Seek(0, io.SeekCurrent)
 				var nameByte [16]byte
 				copy(nameByte[:], name)
-				fmt.Println("Extendida Logica", bytes.Compare(ebr.PartName[:], nameByte[:]))
 				if bytes.Compare(ebr.PartName[:], nameByte[:]) == 0 {
 					return int((offset - int64(unsafe.Sizeof(ebr))))
 				}

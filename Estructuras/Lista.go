@@ -1,5 +1,7 @@
 package estructuras
 
+import "fmt"
+
 //Nodo is...
 type Nodo struct {
 	Direccion string
@@ -123,4 +125,13 @@ func (Lista *Lista) BuscarNodo(direccion string, nombre string) bool {
 		aux = aux.Siguiente
 	}
 	return false
+}
+
+//Listar is...
+func (Lista *Lista) Listar() {
+	aux := Lista.Primero
+	for aux != nil {
+		fmt.Println("NOMBRE : ", aux.Nombre, " <----> ", "ID : vd", string(aux.Letra), aux.Num)
+		aux = aux.Siguiente
+	}
 }
