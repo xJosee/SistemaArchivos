@@ -975,6 +975,115 @@ func ParticionLogicaExist(path string, name string) int {
 	return -1
 }
 
+//ReporteEBR is...
+func ReporteEBR(path string) {
+
+	if VerificarRuta(path) {
+		File := getFile(path)
+		graphDot := getFile("Reportes/grafica.dot")
+
+		fmt.Fprintf(graphDot, "digraph G{ \n")
+		fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
+		fmt.Fprintf(graphDot, "tbl[\nlabel=<\n")
+		fmt.Fprintf(graphDot, "<table border='0' cellborder='1' cellspacing='0' width='300'  height='200' >\n")
+		fmt.Fprintf(graphDot, " <tr ><td bgcolor= 'lightblue' ><b><font color='blue'>MBR</font></b></td></tr>")
+		fmt.Fprintf(graphDot, "<tr>  <td width='150'> <b>Nombre</b> </td> <td width='150'> <b>Valor</b> </td>  </tr>\n")
+
+		var MB MBR
+		File.Seek(0, 0)
+		MB = readMBR(File)
+
+		var tamano int = int(MB.Size)
+
+		fmt.Fprintf(graphDot, "<tr>  <td><b>mbr_tamaño</b></td><td>%d</td>  </tr>\n", tamano)
+
+		//Obteniendo la fehca
+		dt := time.Now()
+		fecha := dt.Format("01-02-2006 15:04:05")
+
+		fmt.Fprintf(graphDot, "<tr>  <td>mbr_fecha_creacion</td> <td>%s</td>  </tr>\n", fecha)
+		fmt.Fprintf(graphDot, "<tr>  <td>mbr_disk_signature</td> <td>%d</td>  </tr>\n", MB.DiskSignature)
+		fmt.Fprintf(graphDot, "<tr>  <td>Disk_fit</td> <td>%c</td>  </tr>\n", MB.DiskFit)
+
+		var posExtendida int = -1
+
+		for i := 0; i < 4; i++ {
+
+			if MB.Particion[i].PartStart != -1 && MB.Particion[i].PartStatus != '1' {
+				if MB.Particion[i].PartType == 'E' {
+					posExtendida = i
+				}
+				var status [3]byte
+				if MB.Particion[i].PartStatus == '0' {
+					copy(status[:], "0")
+				} else if MB.Particion[i].PartStatus == '2' {
+					copy(status[:], "2")
+				}
+				fmt.Fprintf(graphDot, "<tr>  <td>part_status_%d</td> <td>%s</td>  </tr>\n", (i + 1), status)
+				fmt.Fprintf(graphDot, "<tr>  <td>part_type_%d</td> <td>%c</td>  </tr>\n", (i + 1), MB.Particion[i].PartType)
+				fmt.Fprintf(graphDot, "<tr>  <td>part_fit_%d</td> <td>%c</td>  </tr>\n", (i + 1), MB.Particion[i].PartFit)
+				fmt.Fprintf(graphDot, "<tr>  <td>part_start_%d</td> <td>%d</td>  </tr>\n", (i + 1), MB.Particion[i].PartStart)
+				fmt.Fprintf(graphDot, "<tr>  <td>part_size_%d</td> <td>%d</td>  </tr>\n", (i + 1), MB.Particion[i].PartSize)
+				fmt.Fprintf(graphDot, "<tr>  <td>part_name_%d</td> <td>%s</td>  </tr>\n", (i + 1), MB.Particion[i].PartName)
+			}
+		}
+
+		fmt.Fprintf(graphDot, "</table>\n")
+		fmt.Fprintf(graphDot, ">];\n")
+
+		if posExtendida != -1 {
+			var posEBR int = 1
+			var extendedBoot EBR
+			File.Seek(0, 0)
+			extendedBoot = readEBR(File, int64(MB.Particion[posExtendida].PartStart))
+
+			for extendedBoot.PartNext != -1 && (extendedBoot.PartNext < MB.Particion[posExtendida].PartStart+MB.Particion[posExtendida].PartSize) {
+				if extendedBoot.PartStatus != '1' {
+
+					fmt.Fprintf(graphDot, "\ntbl_%d[\nlabel=<\n ", posEBR)
+					fmt.Fprintf(graphDot, "<table border='0' cellborder='1' cellspacing='0'  width='300' height='160' >\n ")
+					fmt.Fprintf(graphDot, "<tr ><td bgcolor= 'lightblue' ><b><font color='blue'>EBR_</font></b></td></tr>")
+					fmt.Fprintf(graphDot, "<tr ><td width='150'><b>Nombre</b></td> <td width='150'><b>Valor</b></td>  </tr>\n")
+					var status [3]byte
+					if extendedBoot.PartStatus == '0' {
+						copy(status[:], "0")
+					} else if extendedBoot.PartStatus == '2' {
+						copy(status[:], "2")
+					}
+
+					fmt.Fprintf(graphDot, "<tr>  <td><b>part_status_1</b></td> <td>%s</td>  </tr>\n", status)
+					fmt.Fprintf(graphDot, "<tr>  <td><b>part_fit_1</b></td> <td>%c</td>  </tr>\n", extendedBoot.PartFit)
+					fmt.Fprintf(graphDot, "<tr>  <td><b>part_start_1</b></td> <td>%d</td>  </tr>\n", extendedBoot.PartStart)
+					fmt.Fprintf(graphDot, "<tr>  <td><b>part_size_1</b></td> <td>%d</td>  </tr>\n", extendedBoot.PartSize)
+					fmt.Fprintf(graphDot, "<tr>  <td><b>part_next_1</b></td> <td>%d</td>  </tr>\n", extendedBoot.PartNext)
+					fmt.Fprintf(graphDot, "<tr>  <td><b>part_name_1</b></td> <td>%d</td>  </tr>\n", extendedBoot.PartNext)
+					fmt.Fprintf(graphDot, "</table>\n")
+					fmt.Fprintf(graphDot, ">];\n")
+
+					posEBR++
+
+				}
+				if extendedBoot.PartNext == -1 {
+				} else {
+					extendedBoot = readEBR(File, int64(extendedBoot.PartNext))
+				}
+
+			}
+
+		}
+
+		fmt.Fprintf(graphDot, "}\n")
+		graphDot.Close()
+		File.Close()
+		var comando string = "dot -T" + "png" + " grafica.dot -o " + "/home/jose/Escritorio/"
+		cmd := exec.Command(comando)
+		cmd.Output()
+		SuccessMessage("[REP] -> Reporte del disco generado correctamente")
+
+	}
+
+}
+
 //ErrorMessage is...
 func ErrorMessage(message string) {
 	red := color.New(color.FgRed)
