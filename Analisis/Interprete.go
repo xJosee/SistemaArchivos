@@ -99,6 +99,7 @@ func VerificarComando(listaComandos []string) {
 
 			if Bandera {
 				if comandos.FDISK(size, unit[0], path, tipo[0], fit[0], delete, name, add) {
+
 				}
 			}
 		} else {
@@ -132,6 +133,13 @@ func VerificarComando(listaComandos []string) {
 
 		if VerificarParametros(listaComandos) {
 			EXEC(path)
+			//SuccessMessage("[EXEC] -> Comando ejecutado correctamente")
+		}
+
+	} else if strings.ToLower(listaComandos[0]) == "rep" {
+
+		if VerificarParametros(listaComandos) {
+			comandos.ReporteDisco(path, "", "")
 			//SuccessMessage("[EXEC] -> Comando ejecutado correctamente")
 		}
 

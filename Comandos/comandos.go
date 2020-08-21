@@ -3,13 +3,12 @@ package comandos
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"math/rand"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 	"unsafe"
 
@@ -74,6 +73,7 @@ func MKDISK(size int, fit byte, unit byte, path string, name string) bool {
 	}
 	if !VerificarRuta(path + name + ".dsk") {
 		//Metodo que escribe el disco(archivo)
+		os.MkdirAll(path, os.ModePerm)
 		writeFile(path+name+".dsk", CalcularSize(size, unit), Disco)
 		//Metodo para leer el struct MBR del Disco(archivo)
 		//readMBR(path + name + ".dsk")
@@ -117,7 +117,8 @@ func reWriteMBR(file *os.File, Disco MBR) {
 }
 
 //reWriteEBR is...
-func reWriteEBR(file *os.File, Disco EBR) {
+func reWriteEBR(file *os.File, Disco EBR, seek int64) {
+	file.Seek(seek, 0)
 	s1 := &Disco
 	var binario2 bytes.Buffer
 	binary.Write(&binario2, binary.BigEndian, s1)
@@ -146,10 +147,6 @@ func readMBR(file *os.File) MBR {
 	if err != nil {
 		log.Fatal("binary.Read failed", err)
 	}
-	/*for i := 0; i < 4; i++ {
-		fmt.Println("Tipo", m.Particion[i].PartType)
-		fmt.Println("Size", m.Particion[i].PartSize)
-	}*/
 	return m
 
 }
@@ -167,7 +164,8 @@ func readNextBytesMBR(file *os.File, number int) []byte {
 }
 
 //readEBR is...
-func readEBR(file *os.File) EBR {
+func readEBR(file *os.File, seek int64) EBR {
+	file.Seek(seek, 0)
 	m := EBR{}
 	var size int = int(unsafe.Sizeof(m))
 
@@ -178,7 +176,13 @@ func readEBR(file *os.File) EBR {
 	if err != nil {
 		log.Fatal("binary.Read failed", err)
 	}
-	fmt.Println("Part Start", m.PartStart)
+	/*fmt.Println("Part Start", m.PartStart)
+	fmt.Println("Part Size", m.PartSize)
+	fmt.Println("Part Fit", string(m.PartFit))
+	fmt.Println("Part Name", string(m.PartName[:]))
+	fmt.Println("Part Next", m.PartNext)
+	fmt.Println("Part Status", string(m.PartStatus))
+	fmt.Println("")*/
 	return m
 }
 
@@ -238,18 +242,20 @@ func RMDISK(path string) bool {
 
 //FDISK is...
 func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string, name string, add int) bool {
-	if Type == 'p' {
+
+	if delete != "" {
+
+		EliminarParticion(path, name, delete)
+	} else if Type == 'p' {
 		if CrearParticionPrimaria(path, CalcularSize(size, unit), name, fit) {
-			//readMBR(path)
 			return true
 		}
 	} else if Type == 'e' {
 		CrearParticionExtendida(path, CalcularSize(size, unit), name, fit)
-		//readMBR(path)
 	} else if Type == 'l' {
 		CrearParticionLogica(path, name, CalcularSize(size, unit), fit)
 	} else if delete != "" {
-		EliminarParticion()
+
 	} else if add != 0 {
 		AgregarQuitarEspacio()
 	}
@@ -275,7 +281,7 @@ func CrearParticionPrimaria(path string, size int, name string, fit byte) bool {
 		}
 		//Bandera -> Indica si tiene espacio para crear la particion
 		if Bandera {
-			//Verificar el espacio libre del disco
+			//Verificar el LIBRE del disco
 			espacioUsado := 0
 			for i := 0; i < 4; i++ {
 				if mbr.Particion[i].PartStatus != '1' {
@@ -336,6 +342,7 @@ func ParticionExist(path string, name string) bool {
 	if VerificarRuta(path) {
 		File := getFile(path)
 		mbr := readMBR(File)
+		extendida := -1
 		for i := 0; i < 4; i++ {
 
 			var nameByte [16]byte
@@ -346,36 +353,35 @@ func ParticionExist(path string, name string) bool {
 				File.Close()
 				return true
 			} else if mbr.Particion[i].PartType == 'E' {
-				//extendida = i
+				extendida = i
 			}
 		}
 
-		/*if extendida != -1 {
-			fmt.Println("2")
-			File := getFile(path)
-			File.Seek(int64(mbr.Particion[extendida].PartStart), 0)
-			ebr := EBR{}
-			ebrBytes := new(bytes.Buffer)
-			json.NewEncoder(ebrBytes).Encode(ebr)
-			numParticion, _ := File.Read(ebrBytes.Bytes())
-			offset, _ := File.Seek(0, io.SeekCurrent)
+		if extendida != -1 {
 
-			for numParticion != 0 && (int32(offset) < (mbr.Particion[extendida].PartSize + mbr.Particion[extendida].PartStart)) {
-				numParticion, _ = File.Read(ebrBytes.Bytes())
-				offset, _ = File.Seek(0, io.SeekCurrent)
-				nameParticionString := string(ebr.PartName[:])
-				if nameParticionString == name {
-					fmt.Println("3")
+			ebr := EBR{
+				PartNext: -2,
+			}
+
+			for ebr.PartNext != -1 && (ebr.PartNext < (mbr.Particion[extendida].PartSize + mbr.Particion[extendida].PartStart)) {
+				if ebr.PartNext == -2 {
+					ebr = readEBR(File, int64(mbr.Particion[extendida].PartStart))
+				} else {
+					ebr = readEBR(File, int64(ebr.PartNext))
+				}
+				var nameByte [16]byte
+				copy(nameByte[:], name)
+
+				if bytes.Compare(nameByte[:], ebr.PartName[:]) == 0 {
 					File.Close()
 					return true
 				}
 				if ebr.PartNext == -1 {
-					fmt.Println("4")
 					File.Close()
 					return false
 				}
 			}
-		}*/
+		}
 	}
 	return false
 }
@@ -399,57 +405,39 @@ func CrearParticionLogica(path string, name string, size int, fit byte) {
 			if numExtendida != -1 {
 				var EB EBR
 				cont := mbr.Particion[numExtendida].PartStart
-				File.Seek(int64(cont), 0)
-				EB = readEBR(File)
-				if EB.PartSize == 0 {
-					if mbr.Particion[numExtendida].PartSize < int32(size) {
-						ErrorMessage("[FDISK] -> La particion logica que desea crear excede en size a la extendida")
-					} else {
-						offset, _ := File.Seek(0, io.SeekCurrent)
-						EB.PartStatus = '0'
-						EB.PartFit = fit
-						EB.PartStart = int32(offset - int64((unsafe.Sizeof(EB))))
-						EB.PartSize = int32(size)
-						EB.PartNext = -1
-						copy(EB.PartName[:], name)
-						File.Seek(int64(mbr.Particion[numExtendida].PartStart), 0)
-						reWriteEBR(File, EB)
-						SuccessMessage("[FDISK] -> Particion logica creada correctamente")
-					}
-				} else {
-					//TODO : Seguir con la logica
-					offset, _ := File.Seek(0, io.SeekCurrent)
+				EB = readEBR(File, int64(cont))
 
-					for (EB.PartNext != -1) && (offset < int64((mbr.Particion[numExtendida].PartSize + mbr.Particion[numExtendida].PartStart))) {
-						offset, _ = File.Seek(0, io.SeekCurrent)
-						File.Seek(int64(EB.PartNext), 0)
-						EB = readEBR(File)
+				if mbr.Particion[numExtendida].PartSize < int32(size) {
+					ErrorMessage("[FDISK] -> La particion logica que desea crear excede en size a la extendida")
+				} else {
+					for (EB.PartNext != -1) && (EB.PartNext < (mbr.Particion[numExtendida].PartSize + mbr.Particion[numExtendida].PartStart)) {
+						EB = readEBR(File, int64(EB.PartNext))
 					}
+
 					espacioNecesario := EB.PartStart + EB.PartSize + int32(size)
+
 					if espacioNecesario <= (mbr.Particion[numExtendida].PartSize + mbr.Particion[numExtendida].PartStart) {
-						EB.PartNext = EB.PartStart + EB.PartSize
-						//Escribimos el next del ultimo EBR
-						offset, _ = File.Seek(0, io.SeekCurrent)
-						File.Seek(offset, 0)
-						reWriteEBR(File, EB)
+
+						EB.PartNext = EB.PartStart + int32(size) + int32(unsafe.Sizeof(EB))
+						EB.PartSize = int32(size)
+						reWriteEBR(File, EB, int64(EB.PartStart))
+
 						//Escribimos el nuevo EBR
-						File.Seek(int64(EB.PartStart+EB.PartSize), 0)
 						EB.PartStatus = 0
 						EB.PartFit = fit
-						offset, _ = File.Seek(0, io.SeekCurrent)
-						EB.PartStart = int32(offset)
-						EB.PartSize = int32(size)
+						EB.PartStart = EB.PartNext
+						EB.PartSize = 0
 						EB.PartNext = -1
 						copy(EB.PartName[:], name)
-						reWriteEBR(File, EB)
 
+						reWriteEBR(File, EB, int64(EB.PartStart))
 						SuccessMessage("[FDISK] -> Particion logica creada correctamente")
 
 					} else {
 						ErrorMessage("[FDISK] -> La particion logica es mas grande que la extendida")
 					}
-
 				}
+
 			} else {
 				ErrorMessage("[FDISK] -> Para crear una particion logica debe existir una extendida")
 			}
@@ -490,7 +478,7 @@ func CrearParticionExtendida(path string, size int, name string, fit byte) {
 				}
 			}
 			if flagParticion {
-				//Verificar el espacio libre del disco
+				//Verificar el LIBRE del disco
 				var espacioUsado int = 0
 				for i := 0; i < 4; i++ {
 					if mbr.Particion[i].PartStatus != '1' {
@@ -515,7 +503,6 @@ func CrearParticionExtendida(path string, size int, name string, fit byte) {
 							//Se guarda de nuevo el MBR
 							reWriteMBR(File, mbr)
 							//Se guardan los bytes de la particion
-							File.Seek(int64(mbr.Particion[numParticion].PartStart), 0)
 
 							var EB EBR
 							EB.PartFit = fit
@@ -525,9 +512,7 @@ func CrearParticionExtendida(path string, size int, name string, fit byte) {
 							EB.PartNext = -1
 							copy(EB.PartName[:], "")
 
-							reWriteEBR(File, EB)
-							File.Seek(int64(mbr.Particion[numParticion].PartStart), 0)
-							readEBR(File)
+							reWriteEBR(File, EB, int64(mbr.Particion[numParticion].PartStart))
 
 							for i := 0; i < size-int(unsafe.Sizeof(EB)); i++ {
 								var x byte = 1
@@ -541,7 +526,7 @@ func CrearParticionExtendida(path string, size int, name string, fit byte) {
 						ErrorMessage("[FDISK] -> Ya existe una particion con ese nombre")
 					}
 				} else {
-					ErrorMessage("[FDISK] -> La particion a crear es mayor al espacio libre del disco")
+					ErrorMessage("[FDISK] -> La particion a crear es mayor al LIBRE del disco")
 				}
 			} else {
 				ErrorMessage("[FDISK] -> El disco ya cuenta con 4 particiones")
@@ -556,23 +541,279 @@ func CrearParticionExtendida(path string, size int, name string, fit byte) {
 }
 
 //ReporteDisco is...
-func ReporteDisco() {
+func ReporteDisco(direccion string, destino string, extension string) {
 
+	//TODO : Reporte del disco
+
+	var auxDir string = direccion
+
+	if VerificarRuta(auxDir) {
+		fp := getFile(auxDir)
+		os.Create("Reportes/grafica.dot")
+		graphDot := getFile("Reportes/grafica.dot")
+
+		fmt.Fprintf(graphDot, "digraph G{\n")
+		fmt.Fprintf(graphDot, "  tbl [\n    shape=box\n    label=<\n")
+		fmt.Fprintf(graphDot, "     <table border='0' cellborder='1' width='600' height='200' color='coral'>\n")
+		fmt.Fprintf(graphDot, "     <tr>\n")
+		fmt.Fprintf(graphDot, "     <td height='200' width='100'> MBR </td>\n")
+
+		var masterboot MBR
+		fp.Seek(0, 0)
+		masterboot = readMBR(fp)
+
+		var total int = int(masterboot.Size)
+		var espacioUsado int = 0
+
+		for i := 0; i < 4; i++ {
+			var parcial int = int(masterboot.Particion[i].PartSize)
+			if masterboot.Particion[i].PartStart != -1 {
+				var porcentajeReal int = (parcial * 100) / total
+				var porcentajeAux int = (porcentajeReal * 500) / 100
+				espacioUsado += porcentajeReal
+
+				if masterboot.Particion[i].PartStatus != '1' {
+
+					if masterboot.Particion[i].PartType == 'P' { //Verificar Primaria
+
+						fmt.Fprintf(graphDot, "     <td height='200' width='%.1f'>PRIMARIA <br/>  %.1f%c</td>\n", float32(porcentajeAux), float32(porcentajeReal), '%')
+
+						if i != 3 {
+							var p1 int = int(masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)
+							var p2 int = int(masterboot.Particion[i+1].PartStart)
+
+							if masterboot.Particion[i+1].PartStart != -1 {
+
+								if (p2 - p1) != 0 { //Verficiar Si hay fragmentacion
+									var fragmentacion int = p2 - p1
+									var porcentajeReal int = (fragmentacion * 100) / total
+									var porcentajeAux int = (porcentajeReal * 500) / 100
+
+									fmt.Fprintf(graphDot, "     <td height='200' width='%.1f'>LIBRE<br/>  %.1f%c</td>\n", float32(porcentajeAux), float32(porcentajeReal), '%')
+								}
+							}
+
+						} else {
+							var p1 int = int(masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)
+							var mbrTamano int = total + int(unsafe.Sizeof(masterboot))
+
+							if (mbrTamano - p1) != 0 { // LIBRE
+								var libre int = (mbrTamano - p1) + int(unsafe.Sizeof(masterboot))
+								var porcentajeReal int = (libre * 100) / total
+								var porcentajeAux int = (porcentajeReal * 500) / 100
+
+								fmt.Fprintf(graphDot, "     <td height='200' width='%.1f'>LIBRE<br/>  %.1f%c</td>\n", float32(porcentajeAux), float32(porcentajeReal), '%')
+							}
+						}
+
+					} else {
+						//Particion Extendida
+						extendedBoot := EBR{
+							PartNext: -2,
+						}
+						fmt.Fprintf(graphDot, "     <td  height='200' width='%.1f'>\n     <table border='0'  height='200' WIDTH='%.1f' cellborder='1'>\n", float32(porcentajeReal), float32(porcentajeReal))
+						fmt.Fprintf(graphDot, "     <tr>  <td height='60' colspan='15'>EXTENDIDA</td>  </tr>\n     <tr>\n")
+
+						extendedBoot = readEBR(fp, int64(masterboot.Particion[i].PartStart))
+
+						if extendedBoot.PartSize != 0 { //Si hay mas de alguna logica
+
+							for extendedBoot.PartNext != -1 && (extendedBoot.PartNext < (masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)) {
+
+								if extendedBoot.PartNext == -2 {
+									extendedBoot = readEBR(fp, int64(masterboot.Particion[i].PartStart))
+								} else {
+									extendedBoot = readEBR(fp, int64(extendedBoot.PartNext))
+								}
+								parcial = int(extendedBoot.PartSize)
+								porcentajeReal = (parcial * 100) / total
+
+								if porcentajeReal != 0 {
+
+									if extendedBoot.PartStatus != '1' {
+										fmt.Fprintf(graphDot, "     <td height='140'>EBR</td>\n")
+										fmt.Fprintf(graphDot, "     <td height='140'>LOGICA<br/> %.1f%c</td>\n", float32(porcentajeReal), '%')
+									} else { //Espacio no asignado
+										fmt.Fprintf(graphDot, "      <td height='150'>LIBRE<br/>  %.1f%c</td>\n", float32(porcentajeReal), '%')
+									}
+									if extendedBoot.PartNext == -1 {
+										parcial = int((masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize) - (extendedBoot.PartStart + extendedBoot.PartSize))
+										porcentajeReal = (parcial * 100) / total
+										if porcentajeReal != 0 {
+											fmt.Fprintf(graphDot, "     <td height='150'>LIBRE<br/>  %.1f%c </td>\n", float32(porcentajeReal), '%')
+										}
+										break
+									}
+
+								}
+							}
+						} else {
+							fmt.Fprintf(graphDot, "     <td height='140'>  %.1f%c</td>", float32(porcentajeReal), '%')
+						}
+
+						fmt.Fprintf(graphDot, "     </tr>\n     </table>\n     </td>\n")
+
+						if i != 3 {
+							var p1 int = int(masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)
+							var p2 int = int(masterboot.Particion[i+1].PartStart)
+
+							if masterboot.Particion[i+1].PartStart != -1 {
+
+								if (p2 - p1) != 0 { //Hay fragmentacion
+									var fragmentacion int = p2 - p1
+									var porcentajeReal int = (fragmentacion * 100) / total
+									var porcentajeAux int = (porcentajeReal * 500) / 100
+									fmt.Fprintf(graphDot, "     <td height='200' width='%.1f'>LIBRE<br/>  %.1f%c</td>\n", float32(porcentajeAux), float32(porcentajeReal), '%')
+								}
+
+							}
+						} else {
+							var p1 int = int(masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)
+							var mbrTamano int = total + int(unsafe.Sizeof(masterboot))
+
+							if (mbrTamano - p1) != 0 { //Libre
+
+								var libre int = (mbrTamano - p1) + int(unsafe.Sizeof(masterboot))
+								var porcentajeReal int = (libre * 100) / total
+								var porcentajeAux int = (porcentajeReal * 500) / 100
+
+								fmt.Fprintf(graphDot, "     <td height='200' width='%.1f'>LIBRE<br/>  %.1f%c</td>\n", float32(porcentajeAux), float32(porcentajeReal), '%')
+							}
+						}
+
+					}
+
+				} else {
+					fmt.Fprintf(graphDot, "     <td height='200' width='%.1f'>LIBRE <br/>  %.1f%c</td>\n", float32(porcentajeAux), float32(porcentajeReal), '%')
+				}
+			}
+		}
+
+		fmt.Fprintf(graphDot, "     <td height='200'> LIBRE %.1f%c\n     </td>", float32((100 - espacioUsado)), '%')
+
+		fmt.Fprintf(graphDot, "     </tr> \n     </table>        \n>];\n\n}")
+		graphDot.Close()
+		fp.Close()
+
+		var comando string = "dot -T" + "png" + " grafica.dot -o " + "/home/jose/Escritorio/"
+		cmd := exec.Command(comando)
+		cmd.Output()
+		SuccessMessage("[REP] -> Reporte del disco generado correctamente")
+	} else {
+		ErrorMessage("[REP] -> No se encuentra el disco")
+	}
 }
 
 //EliminarParticion is...
-func EliminarParticion() {
+func EliminarParticion(path string, name string, delete string) {
 	//TODO : Eliminar Particion
+
+	if VerificarRuta(path) {
+		File := getFile(path)
+
+		var mount bool = listaParticiones.BuscarNodo(path, name)
+
+		if !mount {
+
+			var masterboot MBR
+			File.Seek(0, 0)
+			masterboot = readMBR(File)
+			var index int = -1
+			var flagExtendida bool = false
+			//int index_Extendida = -1
+
+			for i := 0; i < 4; i++ {
+				var nameByte [16]byte
+				copy(nameByte[:], name)
+
+				if bytes.Compare(nameByte[:], masterboot.Particion[i].PartName[:]) == 0 {
+					index = i
+					if masterboot.Particion[i].PartType == 'E' {
+						flagExtendida = true
+					}
+					break
+				} else if masterboot.Particion[i].PartType == 'E' {
+					//index_Extendida = i
+				}
+			}
+
+			/*fmt.Println("[FDISK] -> Seguro que desea eliminar la particion? (S/N)")
+			scanner := bufio.NewScanner(os.Stdin)
+			scanner.Scan()*/
+
+			if index != -1 {
+				if !flagExtendida {
+					if strings.ToLower(delete) == "fast" {
+
+						masterboot.Particion[index].PartStatus = '1'
+						masterboot.Particion[index].PartType = '0'
+						masterboot.Particion[index].PartFit = '0'
+						masterboot.Particion[index].PartSize = 0
+						masterboot.Particion[index].PartStart = -1
+						copy(masterboot.Particion[index].PartName[:], "")
+
+						reWriteMBR(File, masterboot)
+						SuccessMessage("[FDISK] -> Particion eliminada correctamente")
+					} else {
+						masterboot.Particion[index].PartStatus = '1'
+						masterboot.Particion[index].PartType = '0'
+						masterboot.Particion[index].PartFit = '0'
+						masterboot.Particion[index].PartSize = 0
+						masterboot.Particion[index].PartStart = -1
+						copy(masterboot.Particion[index].PartName[:], "")
+						reWriteMBR(File, masterboot)
+						File.Seek(int64(masterboot.Particion[index].PartStart), 0)
+						for i := 0; i < int(masterboot.Particion[index].PartSize); i++ {
+							File.Write([]byte{0})
+						}
+						SuccessMessage("[FDISK] -> Particion eliminada correctamente")
+					}
+				} else {
+					if strings.ToLower(delete) == "fast" {
+
+						masterboot.Particion[index].PartStatus = '1'
+						masterboot.Particion[index].PartType = '0'
+						masterboot.Particion[index].PartFit = '0'
+						masterboot.Particion[index].PartSize = 0
+						masterboot.Particion[index].PartStart = -1
+						copy(masterboot.Particion[index].PartName[:], "")
+						reWriteMBR(File, masterboot)
+						SuccessMessage("[FDISK] -> Particion eliminada correctamente")
+
+					} else if strings.ToLower(delete) == "full" {
+						masterboot.Particion[index].PartStatus = '1'
+						masterboot.Particion[index].PartType = '0'
+						masterboot.Particion[index].PartFit = '0'
+						masterboot.Particion[index].PartSize = 0
+						masterboot.Particion[index].PartStart = -1
+						copy(masterboot.Particion[index].PartName[:], "")
+						reWriteMBR(File, masterboot)
+						File.Seek(int64(masterboot.Particion[index].PartStart), 0)
+						for i := 0; i < int(masterboot.Particion[index].PartSize); i++ {
+							File.Write([]byte{0})
+						}
+						SuccessMessage("[FDISK] -> Particion eliminada correctamente")
+					}
+
+				}
+			}
+
+		} else {
+			ErrorMessage("[FDISK] -> No se puede eliminar una particion montada")
+		}
+
+	}
 }
 
 //AgregarQuitarEspacio is...
 func AgregarQuitarEspacio() {
 	//TODO : Agregar o Quitar espacio
+
 }
 
 //MOUNT is...
 func MOUNT(path string, name string) {
-	//TODO : Crear comando mount
+
 	indexP := ParticionExtendidaExist(path, name)
 
 	if indexP != -1 {
@@ -586,7 +827,6 @@ func MOUNT(path string, name string) {
 
 			masterboot.Particion[indexP].PartStatus = '2'
 
-			File.Seek(0, 0)
 			reWriteMBR(File, masterboot)
 			File.Close()
 
@@ -618,7 +858,6 @@ func MOUNT(path string, name string) {
 			ErrorMessage("[MOUNT] -> El disco no existe")
 		}
 	} else {
-
 		indexP := ParticionLogicaExist(path, name)
 		if indexP != -1 {
 
@@ -627,11 +866,9 @@ func MOUNT(path string, name string) {
 			if VerificarRuta(path) {
 
 				var extendedBoot EBR
-				File.Seek(int64(indexP), 0)
-				extendedBoot = readEBR(File)
+				extendedBoot = readEBR(File, int64(indexP))
 				extendedBoot.PartStatus = '2'
-				File.Seek(int64(indexP), 0)
-				reWriteEBR(File, extendedBoot)
+				reWriteEBR(File, extendedBoot, int64(indexP))
 				File.Close()
 
 				letra := listaParticiones.BuscarLetra(path, name)
@@ -681,7 +918,6 @@ func UNMOUNT(id string) bool {
 
 //ParticionExtendidaExist is...
 func ParticionExtendidaExist(path string, name string) int {
-
 	if VerificarRuta(path) {
 		File := getFile(path)
 		var masterboot MBR
@@ -692,7 +928,6 @@ func ParticionExtendidaExist(path string, name string) int {
 				var nameByte [16]byte
 				copy(nameByte[:], name)
 				if bytes.Compare(nameByte[:], masterboot.Particion[i].PartName[:]) == 0 {
-
 					return i
 				}
 			}
@@ -718,20 +953,20 @@ func ParticionLogicaExist(path string, name string) int {
 			}
 		}
 		if extendida != -1 {
-			File.Seek(int64(masterboot.Particion[extendida].PartStart), 0)
-			ebr := EBR{}
-			ebrBytes := new(bytes.Buffer)
-			json.NewEncoder(ebrBytes).Encode(ebr)
-			numParticion, _ := File.Read(ebrBytes.Bytes())
-			offset, _ := File.Seek(0, io.SeekCurrent)
 
-			for numParticion != 0 && (offset < int64(masterboot.Particion[extendida].PartStart+masterboot.Particion[extendida].PartSize)) {
-				numParticion, _ = File.Read(ebrBytes.Bytes())
-				offset, _ = File.Seek(0, io.SeekCurrent)
+			ebr := EBR{
+				PartNext: -2,
+			}
+			for ebr.PartNext != -1 && (ebr.PartNext < masterboot.Particion[extendida].PartStart+masterboot.Particion[extendida].PartSize) {
+				if ebr.PartNext == -2 {
+					ebr = readEBR(File, int64(masterboot.Particion[extendida].PartStart))
+				} else {
+					ebr = readEBR(File, int64(ebr.PartNext))
+				}
 				var nameByte [16]byte
 				copy(nameByte[:], name)
 				if bytes.Compare(ebr.PartName[:], nameByte[:]) == 0 {
-					return int((offset - int64(unsafe.Sizeof(ebr))))
+					return int((ebr.PartNext - int32(unsafe.Sizeof(ebr))))
 				}
 			}
 		}
