@@ -420,6 +420,7 @@ func CrearParticionLogica(path string, name string, size int, fit byte) {
 
 						EB.PartNext = EB.PartStart + int32(size) + int32(unsafe.Sizeof(EB))
 						EB.PartSize = int32(size)
+						copy(EB.PartName[:], name)
 						reWriteEBR(File, EB, int64(EB.PartStart))
 
 						//Escribimos el nuevo EBR
@@ -428,7 +429,6 @@ func CrearParticionLogica(path string, name string, size int, fit byte) {
 						EB.PartStart = EB.PartNext
 						EB.PartSize = 0
 						EB.PartNext = -1
-						copy(EB.PartName[:], name)
 
 						reWriteEBR(File, EB, int64(EB.PartStart))
 						SuccessMessage("[FDISK] -> Particion logica creada correctamente")
@@ -979,6 +979,7 @@ func ParticionLogicaExist(path string, name string) int {
 func ReporteEBR(path string) {
 
 	if VerificarRuta(path) {
+
 		File := getFile(path)
 		graphDot := getFile("Reportes/grafica.dot")
 
@@ -995,15 +996,15 @@ func ReporteEBR(path string) {
 
 		var tamano int = int(MB.Size)
 
-		fmt.Fprintf(graphDot, "<tr>  <td><b>mbr_tamaño</b></td><td>%d</td>  </tr>\n", tamano)
+		fmt.Fprintf(graphDot, "<tr>  <td><b>Size</b></td><td>%d</td>  </tr>\n", tamano)
 
 		//Obteniendo la fehca
 		dt := time.Now()
 		fecha := dt.Format("01-02-2006 15:04:05")
 
-		fmt.Fprintf(graphDot, "<tr>  <td>mbr_fecha_creacion</td> <td>%s</td>  </tr>\n", fecha)
-		fmt.Fprintf(graphDot, "<tr>  <td>mbr_disk_signature</td> <td>%d</td>  </tr>\n", MB.DiskSignature)
-		fmt.Fprintf(graphDot, "<tr>  <td>Disk_fit</td> <td>%c</td>  </tr>\n", MB.DiskFit)
+		fmt.Fprintf(graphDot, "<tr>  <td>Fecha</td> <td>%s</td>  </tr>\n", string(fecha))
+		fmt.Fprintf(graphDot, "<tr>  <td>Signature</td> <td>%d</td>  </tr>\n", MB.DiskSignature)
+		fmt.Fprintf(graphDot, "<tr>  <td>Fit</td> <td>%c</td>  </tr>\n", MB.DiskFit)
 
 		var posExtendida int = -1
 
@@ -1019,12 +1020,14 @@ func ReporteEBR(path string) {
 				} else if MB.Particion[i].PartStatus == '2' {
 					copy(status[:], "2")
 				}
-				fmt.Fprintf(graphDot, "<tr>  <td>part_status_%d</td> <td>%s</td>  </tr>\n", (i + 1), status)
-				fmt.Fprintf(graphDot, "<tr>  <td>part_type_%d</td> <td>%c</td>  </tr>\n", (i + 1), MB.Particion[i].PartType)
-				fmt.Fprintf(graphDot, "<tr>  <td>part_fit_%d</td> <td>%c</td>  </tr>\n", (i + 1), MB.Particion[i].PartFit)
-				fmt.Fprintf(graphDot, "<tr>  <td>part_start_%d</td> <td>%d</td>  </tr>\n", (i + 1), MB.Particion[i].PartStart)
-				fmt.Fprintf(graphDot, "<tr>  <td>part_size_%d</td> <td>%d</td>  </tr>\n", (i + 1), MB.Particion[i].PartSize)
-				fmt.Fprintf(graphDot, "<tr>  <td>part_name_%d</td> <td>%s</td>  </tr>\n", (i + 1), MB.Particion[i].PartName)
+
+				fmt.Fprintf(graphDot, "<tr ><td bgcolor= 'lightblue' ><b><font color='blue'>Particion%d</font></b></td></tr>\n", (i + 1))
+				fmt.Fprintf(graphDot, "<tr>  <td>Status</td> <td>%s</td>  </tr>\n", string(status[:]))
+				fmt.Fprintf(graphDot, "<tr>  <td>Type</td> <td>%c</td>  </tr>\n", MB.Particion[i].PartType)
+				fmt.Fprintf(graphDot, "<tr>  <td>Fit</td> <td>%c</td>  </tr>\n", MB.Particion[i].PartFit)
+				fmt.Fprintf(graphDot, "<tr>  <td>Start</td> <td>%d</td>  </tr>\n", MB.Particion[i].PartStart)
+				fmt.Fprintf(graphDot, "<tr>  <td>Size</td> <td>%d</td>  </tr>\n", MB.Particion[i].PartSize)
+				fmt.Fprintf(graphDot, "<tr>  <td>Name</td> <td>%s</td>  </tr>\n", string(MB.Particion[i].PartName[:]))
 			}
 		}
 
@@ -1032,6 +1035,7 @@ func ReporteEBR(path string) {
 		fmt.Fprintf(graphDot, ">];\n")
 
 		if posExtendida != -1 {
+
 			var posEBR int = 1
 			var extendedBoot EBR
 			File.Seek(0, 0)
@@ -1042,7 +1046,7 @@ func ReporteEBR(path string) {
 
 					fmt.Fprintf(graphDot, "\ntbl_%d[\nlabel=<\n ", posEBR)
 					fmt.Fprintf(graphDot, "<table border='0' cellborder='1' cellspacing='0'  width='300' height='160' >\n ")
-					fmt.Fprintf(graphDot, "<tr ><td bgcolor= 'lightblue' ><b><font color='blue'>EBR_</font></b></td></tr>")
+					fmt.Fprintf(graphDot, "<tr ><td bgcolor= 'lightblue' ><b><font color='blue'>EBR</font></b></td></tr>")
 					fmt.Fprintf(graphDot, "<tr ><td width='150'><b>Nombre</b></td> <td width='150'><b>Valor</b></td>  </tr>\n")
 					var status [3]byte
 					if extendedBoot.PartStatus == '0' {
@@ -1051,12 +1055,12 @@ func ReporteEBR(path string) {
 						copy(status[:], "2")
 					}
 
-					fmt.Fprintf(graphDot, "<tr>  <td><b>part_status_1</b></td> <td>%s</td>  </tr>\n", status)
+					fmt.Fprintf(graphDot, "<tr>  <td><b>part_status_1</b></td> <td>%s</td>  </tr>\n", string(status[:]))
 					fmt.Fprintf(graphDot, "<tr>  <td><b>part_fit_1</b></td> <td>%c</td>  </tr>\n", extendedBoot.PartFit)
 					fmt.Fprintf(graphDot, "<tr>  <td><b>part_start_1</b></td> <td>%d</td>  </tr>\n", extendedBoot.PartStart)
 					fmt.Fprintf(graphDot, "<tr>  <td><b>part_size_1</b></td> <td>%d</td>  </tr>\n", extendedBoot.PartSize)
 					fmt.Fprintf(graphDot, "<tr>  <td><b>part_next_1</b></td> <td>%d</td>  </tr>\n", extendedBoot.PartNext)
-					fmt.Fprintf(graphDot, "<tr>  <td><b>part_name_1</b></td> <td>%d</td>  </tr>\n", extendedBoot.PartNext)
+					fmt.Fprintf(graphDot, "<tr>  <td><b>part_name_1</b></td> <td>%s</td>  </tr>\n", string(extendedBoot.PartName[:]))
 					fmt.Fprintf(graphDot, "</table>\n")
 					fmt.Fprintf(graphDot, ">];\n")
 

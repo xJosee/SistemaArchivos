@@ -139,7 +139,7 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "rep" {
 
 		if VerificarParametros(listaComandos) {
-			comandos.ReporteDisco(path, "", "")
+			//comandos.ReporteDisco(path, "", "")
 			//SuccessMessage("[EXEC] -> Comando ejecutado correctamente")
 		}
 
