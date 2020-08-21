@@ -608,23 +608,18 @@ func ReporteDisco(direccion string, destino string, extension string) {
 
 					} else {
 						//Particion Extendida
-						extendedBoot := EBR{
-							PartNext: -2,
-						}
+
 						fmt.Fprintf(graphDot, "     <td  height='200' width='%.1f'>\n     <table border='0'  height='200' WIDTH='%.1f' cellborder='1'>\n", float32(porcentajeReal), float32(porcentajeReal))
 						fmt.Fprintf(graphDot, "     <tr>  <td height='60' colspan='15'>EXTENDIDA</td>  </tr>\n     <tr>\n")
 
+						var extendedBoot EBR
+						fp.Seek(0, 0)
 						extendedBoot = readEBR(fp, int64(masterboot.Particion[i].PartStart))
 
 						if extendedBoot.PartSize != 0 { //Si hay mas de alguna logica
 
 							for extendedBoot.PartNext != -1 && (extendedBoot.PartNext < (masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)) {
 
-								if extendedBoot.PartNext == -2 {
-									extendedBoot = readEBR(fp, int64(masterboot.Particion[i].PartStart))
-								} else {
-									extendedBoot = readEBR(fp, int64(extendedBoot.PartNext))
-								}
 								parcial = int(extendedBoot.PartSize)
 								porcentajeReal = (parcial * 100) / total
 
@@ -645,6 +640,11 @@ func ReporteDisco(direccion string, destino string, extension string) {
 										break
 									}
 
+								}
+								if extendedBoot.PartNext == -1 {
+
+								} else {
+									extendedBoot = readEBR(fp, int64(extendedBoot.PartNext))
 								}
 							}
 						} else {
