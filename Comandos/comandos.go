@@ -16,6 +16,10 @@ import (
 	"github.com/fatih/color"
 )
 
+/*
+ *   S T R U C T S
+ */
+
 //Particion is...
 type Particion struct {
 	PartStatus byte
@@ -27,7 +31,7 @@ type Particion struct {
 }
 
 //MBR is...
-type MBR struct { //22
+type MBR struct {
 	Size          int32
 	FechaCreacion [20]byte
 	DiskSignature int32
@@ -36,7 +40,7 @@ type MBR struct { //22
 }
 
 //EBR is...
-type EBR struct { //22
+type EBR struct {
 	PartStatus byte
 	PartFit    byte
 	PartStart  int32
@@ -45,11 +49,18 @@ type EBR struct { //22
 	PartName   [16]byte
 }
 
-//TODO : Declarar lista de particiones
+/*
+ *  L I S T A   P A R T I C I O N E S   M O N T A D A S
+ */
+
 var listaParticiones = Estructuras.Lista{
 	Contador: 0,
 	Primero:  nil,
 }
+
+/*
+ *  C O M A N D O S
+ */
 
 //MKDISK is...
 func MKDISK(size int, fit byte, unit byte, path string, name string) bool {
@@ -104,7 +115,8 @@ func writeFile(path string, size int, Disco MBR) {
 	s1 := &Disco
 	var binario2 bytes.Buffer
 	binary.Write(&binario2, binary.BigEndian, s1)
-	writeNextBytes(file, binario2.Bytes())
+	file.Write(binario2.Bytes())
+
 }
 
 //reWriteMBR is...
@@ -113,7 +125,7 @@ func reWriteMBR(file *os.File, Disco MBR) {
 	s1 := &Disco
 	var binario2 bytes.Buffer
 	binary.Write(&binario2, binary.BigEndian, s1)
-	writeNextBytes(file, binario2.Bytes())
+	file.Write(binario2.Bytes())
 }
 
 //reWriteEBR is...
@@ -122,17 +134,7 @@ func reWriteEBR(file *os.File, Disco EBR, seek int64) {
 	s1 := &Disco
 	var binario2 bytes.Buffer
 	binary.Write(&binario2, binary.BigEndian, s1)
-	writeNextBytes(file, binario2.Bytes())
-}
-
-//writeNextBytes is...
-func writeNextBytes(file *os.File, bytes []byte) {
-	_, err := file.Write(bytes)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	file.Write(binario2.Bytes())
 }
 
 //readMBR is...
