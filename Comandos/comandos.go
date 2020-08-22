@@ -595,6 +595,7 @@ func AgregarQuitarEspacio(path string, name string, add int, size int) {
 
 							var extendedBoot EBR
 							extendedBoot = readEBR(File, int64(logica))
+							_ = extendedBoot
 
 						} else {
 
