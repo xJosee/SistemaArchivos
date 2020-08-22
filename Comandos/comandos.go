@@ -259,7 +259,7 @@ func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string,
 	} else if delete != "" {
 
 	} else if add != 0 {
-		AgregarQuitarEspacio()
+		//AgregarQuitarEspacio()
 	}
 
 	return false
@@ -417,9 +417,210 @@ func EliminarParticion(path string, name string, delete string) {
 }
 
 //AgregarQuitarEspacio is...
-func AgregarQuitarEspacio() {
+func AgregarQuitarEspacio(path string, name string, add int, size int) {
 	//TODO : Agregar o Quitar espacio
 
+	var tipo string = ""
+
+	if add > 0 {
+		tipo = "add"
+	}
+
+	if tipo != "add" {
+		add = add * -1
+	}
+
+	if VerificarRuta(path) {
+		File := getFile(path)
+		var mount bool = listaParticiones.BuscarNodo(path, name)
+
+		if !mount {
+			var masterboot MBR
+			File.Seek(0, 0)
+			masterboot = readMBR(File)
+			var index int = -1
+			var indexExtendida int = -1
+			var flagExtendida bool = false
+
+			for i := 0; i < 4; i++ {
+				var nameByte [16]byte
+				copy(nameByte[:], name)
+
+				if bytes.Compare(masterboot.Particion[i].PartName[:], nameByte[:]) == 0 {
+					index = i
+					if masterboot.Particion[i].PartType == 'E' {
+						flagExtendida = true
+					}
+					break
+				} else if masterboot.Particion[i].PartType == 'E' {
+					indexExtendida = i
+				}
+			}
+
+			if index != -1 {
+				if !flagExtendida {
+					if tipo == "add" {
+						if index != 3 {
+							var p1 int = int(masterboot.Particion[index].PartStart + masterboot.Particion[index].PartSize)
+							var p2 int = int(masterboot.Particion[index+1].PartStart)
+							if (p2 - p1) != 0 {
+								var fragmentacion int = p2 - p1
+								if fragmentacion >= size {
+									masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
+									File.Seek(0, 0)
+									reWriteMBR(File, masterboot)
+									SuccessMessage("[FDISK] -> Espacio agregado correctamente")
+
+								} else {
+									ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+								}
+							} else {
+								if masterboot.Particion[index+1].PartStatus != '1' {
+									if masterboot.Particion[index+1].PartSize >= int32(size) {
+										masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
+										masterboot.Particion[index+1].PartSize = (masterboot.Particion[index+1].PartSize - int32(size))
+										masterboot.Particion[index+1].PartSize = masterboot.Particion[index+1].PartStart + int32(size)
+										File.Seek(0, 0)
+										reWriteMBR(File, masterboot)
+										SuccessMessage("[FDISK] -> Espacio agregado correctamente")
+									} else {
+										ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+									}
+								}
+							}
+						} else {
+							var p int = int(masterboot.Particion[index].PartStart + masterboot.Particion[index].PartSize)
+							var total int = int(masterboot.Size + int32(unsafe.Sizeof(masterboot)))
+							if (total - p) != 0 {
+								var fragmentacion int = total - p
+								if fragmentacion >= size {
+									masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
+									File.Seek(0, 0)
+									reWriteMBR(File, masterboot)
+									SuccessMessage("[FDISK] -> Espacio agregado correctamente")
+								} else {
+									ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+								}
+							} else {
+								ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+							}
+						}
+					} else {
+						if int32(size) >= masterboot.Particion[index].PartSize {
+							ErrorMessage("[FDISK] -> No se puede disminuir esa cantidad de espacio")
+						} else {
+							masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize - int32(size)
+							File.Seek(0, 0)
+							reWriteMBR(File, masterboot)
+							SuccessMessage("[FDISK] -> Espacio reducido correctamente")
+						}
+					}
+
+				} else {
+					if tipo == "add" {
+						if index != 3 {
+							var p1 int = int(masterboot.Particion[index].PartStart + masterboot.Particion[index].PartSize)
+							var p2 int = int(masterboot.Particion[index+1].PartStart)
+							if (p2 - p1) != 0 {
+								var fragmentacion int = p2 - p1
+								if fragmentacion >= size {
+									masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
+									File.Seek(0, 0)
+									reWriteMBR(File, masterboot)
+									SuccessMessage("[FDISK] -> Espacio agregado correctamente")
+
+								} else {
+									ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+								}
+							} else {
+								if masterboot.Particion[index+1].PartStatus != '1' {
+									if masterboot.Particion[index+1].PartSize >= int32(size) {
+										masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
+										masterboot.Particion[index+1].PartSize = (masterboot.Particion[index+1].PartSize - int32(size))
+										masterboot.Particion[index+1].PartStart = masterboot.Particion[index+1].PartStart + int32(size)
+										File.Seek(0, 0)
+										reWriteMBR(File, masterboot)
+										SuccessMessage("[FDISK] -> Espacio agregado correctamente")
+									} else {
+										ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+									}
+								}
+							}
+						} else {
+							var p int = int(masterboot.Particion[index].PartStart + masterboot.Particion[index].PartSize)
+							var total int = int(masterboot.Size + int32(unsafe.Sizeof(masterboot)))
+							if (total - p) != 0 {
+								var fragmentacion int = total - p
+
+								if fragmentacion >= size {
+									masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
+									File.Seek(0, 0)
+									reWriteMBR(File, masterboot)
+									SuccessMessage("[FDISK] -> Espacio agregado correctamente")
+								} else {
+									ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+								}
+							} else {
+								ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+							}
+						}
+					} else {
+						if int32(size) >= masterboot.Particion[indexExtendida].PartSize {
+							ErrorMessage("[FDISK] -> No es posible reducir esa cantidad de espacio")
+						} else {
+							var extendedBoot EBR
+							extendedBoot = readEBR(File, int64(masterboot.Particion[indexExtendida].PartStart))
+
+							for (extendedBoot.PartNext != -1) && (extendedBoot.PartNext < (masterboot.Particion[indexExtendida].PartSize + masterboot.Particion[indexExtendida].PartStart)) {
+								extendedBoot = readEBR(File, int64(extendedBoot.PartNext))
+							}
+							var ultimaLogica int = int(extendedBoot.PartStart + extendedBoot.PartSize)
+							var aux int = int((masterboot.Particion[indexExtendida].PartStart + masterboot.Particion[indexExtendida].PartSize) - int32(size))
+							if aux > ultimaLogica { //No toca ninguna logica
+								masterboot.Particion[indexExtendida].PartSize = masterboot.Particion[indexExtendida].PartSize - int32(size)
+								File.Seek(0, 0)
+								reWriteMBR(File, masterboot)
+								SuccessMessage("[FDISK] -> Espacio reducido correctamente")
+							} else {
+								ErrorMessage("[FDISk] -> No se puede reducir esa cantidad de espacio")
+							}
+						}
+					}
+				}
+			} else {
+				if indexExtendida != -1 {
+					var logica int = ParticionLogicaExist(path, name)
+					if logica != -1 {
+						if tipo == "add" {
+
+							var extendedBoot EBR
+							extendedBoot = readEBR(File, int64(logica))
+
+						} else {
+
+							var extendedBoot EBR
+							extendedBoot = readEBR(File, int64(logica))
+
+							if int32(size) >= extendedBoot.PartSize {
+								ErrorMessage("[FDISk] -> No se puede reducir esa cantidad de espacio")
+							} else {
+								extendedBoot.PartSize = extendedBoot.PartSize - int32(size)
+								reWriteEBR(File, extendedBoot, int64(logica))
+								SuccessMessage("[FDISK] -> Espacio reducido correctamente")
+							}
+						}
+					} else {
+						ErrorMessage("[FDISK] -> No se encuentra la particion")
+					}
+				} else {
+					ErrorMessage("[FDISK] -> No se encuentra la particion")
+				}
+			}
+
+		} else {
+			ErrorMessage("[FDISK] -> No se puede editar una particion montada")
+		}
+	}
 }
 
 //MOUNT is...
