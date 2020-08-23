@@ -50,6 +50,99 @@ type EBR struct {
 }
 
 /*
+ *	S T R U C T   F A S E   2
+ */
+
+//SuperBloque is...
+type SuperBloque struct {
+	FilesystemType  int      //Guarda el numero que identifica al sistea de archivos utilizados
+	InodesCount     int      //Guarda el numero total de inodos
+	BlocksCount     int      //Guarda el numero total de bloques
+	FreeBlocksCount int      //Contiene el numero de bloques libres
+	FreeInodesCount int      //Contiene el numero inodos libres
+	Mtime           [20]byte //Ultima fecha en el que el sistema fue montado
+	Umtime          [20]byte //Ultima fecha en que el sistema fue desmontado
+	MntCount        int      //Indica cuantas veces se ha montado el sistema
+	Magic           int      //Valor que identifica al sistema de archivos 0xEF53
+	InodeSize       int      //Tamano del inodo
+	BlockSize       int      //Tamano del bloque
+	FirstIno        int      //Primer inodo libre
+	FirstBlo        int      //Primero bloque libre
+	BmInodeStart    int      //Guardara el inicio del bitmap de inodos
+	BmBlockStart    int      //Guardara el inicio del bitmap de bloques
+	InodeStart      int      //Guarada el inicio de la tabla de inodos
+	BlockStart      int      //Guardara el inicio de la tabla de bloques
+}
+
+//InodeTable is...
+type InodeTable struct {
+	UID   int      //UID del usuario propiertario del archivo/carpeta
+	Gid   int      //GID del grupo al que pertenece el archivo/carpeta
+	Size  int      //Tamano del archivo en bytes
+	Block [15]int  //Array de bloques
+	Type  byte     //Indica si es archivo o carpeta
+	Perm  int      //Guarada los permisos del archivo/carpeta
+	Atime [20]byte //Ultima fecha en que se leyo el inodo sin modificarlo
+	Ctime [20]byte //Fecha en que se creo el el inodo
+	Mtime [20]byte //Ultima fecha en la que se modifco
+}
+
+//Content is...
+type Content struct {
+	Name  [12]byte //Nombre carpeta/archivo
+	Inodo int      //Apuntador hacia un inodo asociado al archivo o carpeta
+}
+
+//BloqueCarpeta is...
+type BloqueCarpeta struct {
+	Content [4]Content //Array con el contenido de la carpeta
+}
+
+//BloqueArchivo is...
+type BloqueArchivo struct {
+	Content [64]byte
+}
+
+//BloqueApuntadores is...
+type BloqueApuntadores struct {
+	Pointer [16]int //Array con los apuntadores hacia bloques
+}
+
+//Journal is...
+//Struct para guardar un registro de las operaciones que se hacen el sistema
+//de archivos ejemplo: creacion de carpetas o archivos
+type Journal struct {
+	JournalOperationType [10]byte
+	JournalType          int //Archivo/Carpeta
+	JournalName          [100]byte
+	JournalContent       [100]byte
+	JournalDate          [20]byte
+	JournalOwner         int
+	JournalPermissions   int
+}
+
+//Sesion is...
+/*Struct para guardar los datos del usuario loggeado*/
+type Sesion struct {
+	IDUser        int
+	IDGroup       int
+	InicioSuper   int
+	InicioJournal int
+	TipoSistema   int
+	Direccion     string
+	fit           byte
+}
+
+//Usuario is...
+type Usuario struct {
+	IDUsuario int
+	IDGrupo   int
+	UserName  [12]byte
+	Password  [12]byte
+	Group     [12]byte
+}
+
+/*
  *  L I S T A   P A R T I C I O N E S   M O N T A D A S
  */
 
@@ -246,8 +339,9 @@ func RMDISK(path string) bool {
 func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string, name string, add int) bool {
 
 	if delete != "" {
-
 		EliminarParticion(path, name, delete)
+	} else if add != 0 {
+		AgregarQuitarEspacio(path, name, add, unit)
 	} else if Type == 'p' {
 		if CrearParticionPrimaria(path, CalcularSize(size, unit), name, fit) {
 			return true
@@ -256,11 +350,16 @@ func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string,
 		CrearParticionExtendida(path, CalcularSize(size, unit), name, fit)
 	} else if Type == 'l' {
 		CrearParticionLogica(path, name, CalcularSize(size, unit), fit)
-	} else if delete != "" {
-
-	} else if add != 0 {
-		//AgregarQuitarEspacio()
 	}
+
+	size = 0
+	unit = 0
+	path = ""
+	Type = 0
+	fit = 0
+	delete = ""
+	name = ""
+	add = 0
 
 	return false
 }
@@ -417,7 +516,7 @@ func EliminarParticion(path string, name string, delete string) {
 }
 
 //AgregarQuitarEspacio is...
-func AgregarQuitarEspacio(path string, name string, add int, size int) {
+func AgregarQuitarEspacio(path string, name string, add int, unit byte) {
 	//TODO : Agregar o Quitar espacio
 
 	var tipo string = ""
@@ -429,6 +528,8 @@ func AgregarQuitarEspacio(path string, name string, add int, size int) {
 	if tipo != "add" {
 		add = add * -1
 	}
+
+	var size int = CalcularSize(add, unit)
 
 	if VerificarRuta(path) {
 		File := getFile(path)
@@ -1302,6 +1403,15 @@ func ReporteDisco(direccion string, destino string, extension string) {
 	} else {
 		ErrorMessage("[REP] -> No se encuentra el disco")
 	}
+}
+
+/*
+ *	C O M A N D O S   F A S E   2
+ */
+
+//MKFS is...
+func MKFS() {
+
 }
 
 /*

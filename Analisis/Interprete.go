@@ -101,6 +101,14 @@ func VerificarComando(listaComandos []string) {
 				if comandos.FDISK(size, unit[0], path, tipo[0], fit[0], delete, name, add) {
 
 				}
+				/*size = 0
+				unit = ""
+				path = ""
+				tipo = ""
+				fit = ""
+				delete = ""
+				name = ""
+				add = 0*/
 			}
 		} else {
 			ErrorMessage("[MKDISK] -> Algo anda mal con un parametro")
