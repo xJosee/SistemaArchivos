@@ -157,6 +157,10 @@ func VerificarComando(listaComandos []string) {
 		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan()
 
+	} else if strings.ToLower(listaComandos[0]) == "mkfs" {
+
+		comandos.MKFS(id, tipo, add, unit[0])
+
 	} else if strings.ToLower(listaComandos[0]) == "1" {
 
 		fmt.Println("")

@@ -55,23 +55,34 @@ type EBR struct {
 
 //SuperBloque is...
 type SuperBloque struct {
-	FilesystemType  int      //Guarda el numero que identifica al sistea de archivos utilizados
-	InodesCount     int      //Guarda el numero total de inodos
-	BlocksCount     int      //Guarda el numero total de bloques
-	FreeBlocksCount int      //Contiene el numero de bloques libres
-	FreeInodesCount int      //Contiene el numero inodos libres
-	Mtime           [20]byte //Ultima fecha en el que el sistema fue montado
-	Umtime          [20]byte //Ultima fecha en que el sistema fue desmontado
-	MntCount        int      //Indica cuantas veces se ha montado el sistema
-	Magic           int      //Valor que identifica al sistema de archivos 0xEF53
-	InodeSize       int      //Tamano del inodo
-	BlockSize       int      //Tamano del bloque
-	FirstIno        int      //Primer inodo libre
-	FirstBlo        int      //Primero bloque libre
-	BmInodeStart    int      //Guardara el inicio del bitmap de inodos
-	BmBlockStart    int      //Guardara el inicio del bitmap de bloques
-	InodeStart      int      //Guarada el inicio de la tabla de inodos
-	BlockStart      int      //Guardara el inicio de la tabla de bloques
+	Nombre                 [20]byte
+	ArbolVirtualCont       int32
+	DetalleDirectorioCount int32
+	InodosCount            int32
+	BloquesCount           int32
+	ArbolVirtualFree       int32
+	DetalleDirectorioFree  int32
+	InodosFree             int32
+	BloquesFree            int32
+	FechaCreacion          [20]byte
+	FechaUltimoMontaje     [20]byte
+	MontajesCount          int32
+	BmArbol                int32
+	ApArbol                int32
+	BmDetalle              int32
+	ApInodo                int32
+	BmInodo                int32
+	BmBloques              int32
+	ApBloques              int32
+	ApLog                  int32
+	SizeArbol              int32
+	SizeDetalle            int32
+	SizeInodo              int32
+	SizeBloque             int32
+	BitArbol               int32
+	BitTabla               int32
+	BitBloques             int32
+	MagicNum               int32
 }
 
 //InodeTable is...
@@ -1410,8 +1421,13 @@ func ReporteDisco(direccion string, destino string, extension string) {
  */
 
 //MKFS is...
-func MKFS() {
+func MKFS(id string, tipo string, add int, unit byte) {
+	Formatear()
+}
 
+//Formatear is...
+func Formatear() {
+	//TODO : Formatear LWH
 }
 
 /*
