@@ -950,6 +950,7 @@ func CrearParticionLogica(path string, name string, size int, fit byte) {
 
 					if espacioNecesario <= (mbr.Particion[numExtendida].PartSize + mbr.Particion[numExtendida].PartStart) {
 
+						// Escribimos el EBR anterior
 						EB.PartNext = EB.PartStart + int32(size) + int32(unsafe.Sizeof(EB))
 						EB.PartSize = int32(size)
 						copy(EB.PartName[:], name)
@@ -1243,9 +1244,7 @@ func ReporteEBR(path string) {
 		fmt.Fprintf(graphDot, "}\n")
 		graphDot.Close()
 		File.Close()
-		var comando string = "dot -T" + "png" + " grafica.dot -o " + "/home/jose/Escritorio/"
-		cmd := exec.Command(comando)
-		cmd.Output()
+		exec.Command("dot", "-Tpng", "grafica.dot", "-o", "/home/jose/Escritorio/grafica.png").Output()
 		SuccessMessage("[REP] -> Reporte del disco generado correctamente")
 
 	}
@@ -1261,7 +1260,7 @@ func ReporteDisco(direccion string, destino string, extension string) {
 
 	if VerificarRuta(auxDir) {
 		fp := getFile(auxDir)
-		os.Create("Reportes/grafica.dot")
+		os.Create("grafica.dot")
 		graphDot := getFile("Reportes/grafica.dot")
 
 		fmt.Fprintf(graphDot, "digraph G{\n")
@@ -1407,9 +1406,8 @@ func ReporteDisco(direccion string, destino string, extension string) {
 		graphDot.Close()
 		fp.Close()
 
-		var comando string = "dot -T" + "png" + " grafica.dot -o " + "/home/jose/Escritorio/"
-		cmd := exec.Command(comando)
-		cmd.Output()
+		exec.Command("dot", "-Tpng", "grafica.dot", "-o", "/home/jose/Escritorio/grafica.png").Output()
+
 		SuccessMessage("[REP] -> Reporte del disco generado correctamente")
 	} else {
 		ErrorMessage("[REP] -> No se encuentra el disco")

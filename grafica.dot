@@ -6,7 +6,6 @@ digraph G{
      <tr>
      <td height='200' width='100'> MBR </td>
      <td height='200' width='25.0'>PRIMARIA <br/>  5.0%</td>
-     <td height='200' width='25.0'>PRIMARIA <br/>  5.0%</td>
      <td  height='200' width='50.0'>
      <table border='0'  height='200' WIDTH='50.0' cellborder='1'>
      <tr>  <td height='60' colspan='15'>EXTENDIDA</td>  </tr>
@@ -28,7 +27,7 @@ digraph G{
      </td>
      <td height='200' width='25.0'>PRIMARIA <br/>  5.0%</td>
      <td height='200' width='175.0'>LIBRE<br/>  35.0%</td>
-     <td height='200'> LIBRE 35.0%
+     <td height='200'> LIBRE 40.0%
      </td>     </tr> 
      </table>        
 >];
