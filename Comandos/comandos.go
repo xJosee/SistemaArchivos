@@ -55,102 +55,84 @@ type EBR struct {
 
 //SuperBloque is...
 type SuperBloque struct {
-	Nombre                 [20]byte
-	ArbolVirtualCont       int32
-	DetalleDirectorioCount int32
-	InodosCount            int32
-	BloquesCount           int32
-	ArbolVirtualFree       int32
-	DetalleDirectorioFree  int32
-	InodosFree             int32
-	BloquesFree            int32
-	FechaCreacion          [20]byte
-	FechaUltimoMontaje     [20]byte
-	MontajesCount          int32
-	BmArbol                int32
-	ApArbol                int32
-	BmDetalle              int32
-	ApInodo                int32
-	BmInodo                int32
-	BmBloques              int32
-	ApBloques              int32
-	ApLog                  int32
-	SizeArbol              int32
-	SizeDetalle            int32
-	SizeInodo              int32
-	SizeBloque             int32
-	BitArbol               int32
-	BitTabla               int32
-	BitBloques             int32
-	MagicNum               int32
+	NombreHD                 [16]byte
+	ArbolVirtualCount        int
+	DetalleDirectorioCount   int
+	InodosCount              int
+	BloquesCount             int
+	ArbolVirtualFree         int
+	DetalleDirectorioFree    int
+	InodosFree               int
+	BloquesFree              int
+	DateCreacion             [20]byte
+	DateUltimoMontaje        [20]byte
+	MontajesCount            int
+	StartBmArbolDirectorio   int
+	StartArbolDirectorio     int
+	StartBmDetalleDirectorio int
+	StartDetalleDirectorio   int
+	StartBmInodos            int
+	StartInodos              int
+	StartBmBloques           int
+	StartBloques             int
+	StartLog                 int //Bitacora.
+	SizeStructAvd            int // = sizeof(arbolVirtual);
+	SizeStructDd             int // sizeof(detalleDirectorio);
+	SizeStructInodo          int // sizeof(InodoArchivo);
+	SizeStructBloque         int // sizeof(bloqueDatos);
+	FirstFreeAvd             int
+	FirstFreeDd              int
+	FirstFreeInodo           int
+	FirstFreeBloque          int
+	MagicNum                 int //= 201701023;
 }
 
-//InodeTable is...
-type InodeTable struct {
-	UID   int      //UID del usuario propiertario del archivo/carpeta
-	Gid   int      //GID del grupo al que pertenece el archivo/carpeta
-	Size  int      //Tamano del archivo en bytes
-	Block [15]int  //Array de bloques
-	Type  byte     //Indica si es archivo o carpeta
-	Perm  int      //Guarada los permisos del archivo/carpeta
-	Atime [20]byte //Ultima fecha en que se leyo el inodo sin modificarlo
-	Ctime [20]byte //Fecha en que se creo el el inodo
-	Mtime [20]byte //Ultima fecha en la que se modifco
+//Bloque is...
+type Bloque struct {
+	Texto [25]byte
 }
 
-//Content is...
-type Content struct {
-	Name  [12]byte //Nombre carpeta/archivo
-	Inodo int      //Apuntador hacia un inodo asociado al archivo o carpeta
+//Bitacora is...
+type Bitacora struct {
+	TipoOp    [20]byte
+	Tipo      byte
+	Nombre    [20]byte
+	Contenido [20]byte
+	Fecha     [10]byte
 }
 
-//BloqueCarpeta is...
-type BloqueCarpeta struct {
-	Content [4]Content //Array con el contenido de la carpeta
+//TablaInodo is...
+type TablaInodo struct {
+	ICountInodo            uint8
+	ISizeArchivo           uint32
+	ICountBloquesAsignados uint8
+	IArrayBloques          [4]Bloque
+	IApIndirecto           uint32
+	IIDProper              uint32
 }
 
-//BloqueArchivo is...
-type BloqueArchivo struct {
-	Content [64]byte
+//DetalleDirectorio is...
+type DetalleDirectorio struct {
+	DDArrayFiles          [5]File
+	DDApDetalleDirectorio uint32
 }
 
-//BloqueApuntadores is...
-type BloqueApuntadores struct {
-	Pointer [16]int //Array con los apuntadores hacia bloques
+//File is...
+type File struct {
+	DDFileNombre           [10]byte
+	DDFileApInodo          uint8
+	DDFileDateCreacion     [10]byte
+	DDFileDateModificacion [10]byte
 }
 
-//Journal is...
-//Struct para guardar un registro de las operaciones que se hacen el sistema
-//de archivos ejemplo: creacion de carpetas o archivos
-type Journal struct {
-	JournalOperationType [10]byte
-	JournalType          int //Archivo/Carpeta
-	JournalName          [100]byte
-	JournalContent       [100]byte
-	JournalDate          [20]byte
-	JournalOwner         int
-	JournalPermissions   int
-}
-
-//Sesion is...
-/*Struct para guardar los datos del usuario loggeado*/
-type Sesion struct {
-	IDUser        int
-	IDGroup       int
-	InicioSuper   int
-	InicioJournal int
-	TipoSistema   int
-	Direccion     string
-	fit           byte
-}
-
-//Usuario is...
-type Usuario struct {
-	IDUsuario int
-	IDGrupo   int
-	UserName  [12]byte
-	Password  [12]byte
-	Group     [12]byte
+//Arbol is...
+type Arbol struct {
+	AVDFechaCreacion    [10]byte
+	AVDNombreDirectorio string
+	Subirectorios       [6]uint8
+	Detalle             DetalleDirectorio
+	VirtualDirectorio   uint8
+	AVDProper           uint32
 }
 
 /*
@@ -344,35 +326,6 @@ func RMDISK(path string) bool {
 		return false
 	}
 	return true
-}
-
-//FDISK is...
-func FDISK(size int, unit byte, path string, Type byte, fit byte, delete string, name string, add int) bool {
-
-	if delete != "" {
-		EliminarParticion(path, name, delete)
-	} else if add != 0 {
-		AgregarQuitarEspacio(path, name, add, unit)
-	} else if Type == 'p' {
-		if CrearParticionPrimaria(path, CalcularSize(size, unit), name, fit) {
-			return true
-		}
-	} else if Type == 'e' {
-		CrearParticionExtendida(path, CalcularSize(size, unit), name, fit)
-	} else if Type == 'l' {
-		CrearParticionLogica(path, name, CalcularSize(size, unit), fit)
-	}
-
-	size = 0
-	unit = 0
-	path = ""
-	Type = 0
-	fit = 0
-	delete = ""
-	name = ""
-	add = 0
-
-	return false
 }
 
 //ParticionExist is...
@@ -1146,7 +1099,8 @@ func ReporteEBR(path string) {
 	if VerificarRuta(path) {
 
 		File := getFile(path)
-		graphDot := getFile("Reportes/grafica.dot")
+		os.Create("graficaEBR.dot")
+		graphDot := getFile("graficaEBR.dot")
 
 		fmt.Fprintf(graphDot, "digraph G{ \n")
 		fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
@@ -1244,7 +1198,7 @@ func ReporteEBR(path string) {
 		fmt.Fprintf(graphDot, "}\n")
 		graphDot.Close()
 		File.Close()
-		exec.Command("dot", "-Tpng", "grafica.dot", "-o", "/home/jose/Escritorio/grafica.png").Output()
+		exec.Command("dot", "-Tpng", "graficaEBR.dot", "-o", "/home/jose/Escritorio/grafica.png").Output()
 		SuccessMessage("[REP] -> Reporte del disco generado correctamente")
 
 	}
@@ -1260,8 +1214,8 @@ func ReporteDisco(direccion string, destino string, extension string) {
 
 	if VerificarRuta(auxDir) {
 		fp := getFile(auxDir)
-		os.Create("grafica.dot")
-		graphDot := getFile("Reportes/grafica.dot")
+		os.Create("graficaDisco.dot")
+		graphDot := getFile("graficaDisco.dot")
 
 		fmt.Fprintf(graphDot, "digraph G{\n")
 		fmt.Fprintf(graphDot, "  tbl [\n    shape=box\n    label=<\n")
@@ -1406,7 +1360,7 @@ func ReporteDisco(direccion string, destino string, extension string) {
 		graphDot.Close()
 		fp.Close()
 
-		exec.Command("dot", "-Tpng", "grafica.dot", "-o", "/home/jose/Escritorio/grafica.png").Output()
+		exec.Command("dot", "-Tpng", "graficaDisco.dot", "-o", "/home/jose/Escritorio/grafica.png").Output()
 
 		SuccessMessage("[REP] -> Reporte del disco generado correctamente")
 	} else {
@@ -1420,12 +1374,28 @@ func ReporteDisco(direccion string, destino string, extension string) {
 
 //MKFS is...
 func MKFS(id string, tipo string, add int, unit byte) {
-	Formatear()
+	Formatear(id)
 }
 
 //Formatear is...
-func Formatear() {
+func Formatear(id string) {
 	//TODO : Formatear LWH
+	//var nEstructuras int = -1
+	var pathD string = ""
+	//var sizeParticion int
+	//var startParticion int
+	//var nombreParticion string
+
+	pathD = listaParticiones.GetDireccion(id)
+
+	if pathD != "null" {
+
+		var pathDisco [100]byte
+		copy(pathDisco[:], pathD)
+
+	} else {
+		ErrorMessage("[MKFS] -> La particion no se encuentra montada")
+	}
 }
 
 /*

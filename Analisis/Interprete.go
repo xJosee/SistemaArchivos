@@ -13,15 +13,15 @@ import (
 )
 
 var (
-	size   int
-	path   string
+	size   int    = 0
+	path   string = ""
 	fit    string = "ff"
 	unit   string = "k"
-	name   string
-	tipo   string
-	delete string
-	add    int
-	id     string
+	name   string = ""
+	tipo   string = ""
+	delete string = ""
+	add    int    = 0
+	id     string = ""
 )
 
 //Analizar is...
@@ -34,6 +34,15 @@ func Analizar(comandos string) {
 			Comentario(comandos)
 		}
 	}
+	size = 0
+	path = ""
+	fit = "ff"
+	unit = "k"
+	name = ""
+	tipo = ""
+	delete = ""
+	add = 0
+	id = ""
 }
 
 //VerificarComando is...
@@ -74,42 +83,25 @@ func VerificarComando(listaComandos []string) {
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "fdisk" {
-		Bandera := true
 		if VerificarParametros(listaComandos) {
-			if size == 0 {
-				ErrorMessage("[FDISK] -> Parametro -size no especificado")
-				Bandera = false
-			} else if path == "" {
-				ErrorMessage("[FDISK] -> Parametro -path no especificado")
-				Bandera = false
-			} else if name == "" {
-				ErrorMessage("[FDISK] -> Parametro -name no especificado")
-				Bandera = false
-			} else if tipo != "" {
-				if tipo != "p" && tipo != "e" && tipo != "l" {
-					ErrorMessage("[FDISK] -> Valor del parametro -type incorrecto")
-					Bandera = false
-				}
-			} else if delete != "" {
-				if delete != "full" && delete != "fast" {
-					ErrorMessage("[FDISK] -> Valor del parametro -delete incorrecto")
-					Bandera = false
-				}
+
+			if strings.ToLower(tipo) == "p" {
+				//CrearParicionPrimaria
+				comandos.CrearParticionPrimaria(path, CalcularSize(size, unit[0]), name, fit[0])
+			} else if strings.ToLower(tipo) == "e" {
+				//CrearParticionExtendida
+				comandos.CrearParticionExtendida(path, CalcularSize(size, unit[0]), name, fit[0])
+			} else if strings.ToLower(tipo) == "l" {
+				//CrearParticionLogica
+				comandos.CrearParticionLogica(path, name, CalcularSize(size, unit[0]), fit[0])
+			} else if strings.ToLower(delete) == "fast" || strings.ToLower(delete) == "full" {
+				//EliminarParticion
+				comandos.EliminarParticion(path, name, delete)
+			} else if add != 0 {
+				//AgregarQuitarEspacio
+				comandos.AgregarQuitarEspacio(path, name, add, unit[0])
 			}
 
-			if Bandera {
-				if comandos.FDISK(size, unit[0], path, tipo[0], fit[0], delete, name, add) {
-
-				}
-				/*size = 0
-				unit = ""
-				path = ""
-				tipo = ""
-				fit = ""
-				delete = ""
-				name = ""
-				add = 0*/
-			}
 		} else {
 			ErrorMessage("[MKDISK] -> Algo anda mal con un parametro")
 		}
@@ -148,6 +140,7 @@ func VerificarComando(listaComandos []string) {
 
 		if VerificarParametros(listaComandos) {
 			comandos.ReporteDisco(path, "", "")
+			comandos.ReporteEBR(path)
 			//SuccessMessage("[EXEC] -> Comando ejecutado correctamente")
 		}
 
@@ -191,7 +184,11 @@ func VerificarParametros(listaComandos []string) bool {
 			}
 			size = Size
 		case "-path":
-			path = Paramatros[1]
+			if strings.Contains(Paramatros[1], "\"") {
+				path = strings.ReplaceAll(Paramatros[1], "\"", "")
+			} else {
+				path = Paramatros[1]
+			}
 		case "-fit":
 			fit = Paramatros[1]
 		case "-unit":
@@ -235,6 +232,16 @@ func EXEC(path string) {
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+//CalcularSize is ...
+func CalcularSize(size int, unit byte) int {
+	if unit == 'M' || unit == 'm' {
+		return size * 1024 * 1024
+	} else if unit == 'K' || unit == 'k' {
+		return size * 1024
+	}
+	return 0
 }
 
 //ErrorMessage is..
