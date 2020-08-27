@@ -151,9 +151,9 @@ func VerificarComando(listaComandos []string) {
 		scanner.Scan()
 
 	} else if strings.ToLower(listaComandos[0]) == "mkfs" {
-
-		comandos.MKFS(id, tipo, add, unit[0])
-
+		if VerificarParametros(listaComandos) {
+			comandos.MKFS(id, tipo)
+		}
 	} else if strings.ToLower(listaComandos[0]) == "1" {
 
 		fmt.Println("")

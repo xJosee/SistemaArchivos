@@ -106,9 +106,24 @@ func (Lista *Lista) GetDireccion(id string) string {
 	for aux != nil {
 		tempID := "vd"
 		tempID += string(aux.Letra)
-		tempID += string(aux.Num)
+		tempID = fmt.Sprint(tempID, aux.Num)
 		if id == tempID {
 			return aux.Direccion
+		}
+		aux = aux.Siguiente
+	}
+	return "null"
+}
+
+//GetPartName is...
+func (Lista *Lista) GetPartName(id string) string {
+	aux := Lista.Primero
+	for aux != nil {
+		tempID := "vd"
+		tempID += string(aux.Letra)
+		tempID = fmt.Sprint(tempID, aux.Num)
+		if id == tempID {
+			return aux.Nombre
 		}
 		aux = aux.Siguiente
 	}

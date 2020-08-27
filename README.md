@@ -1,5 +1,5 @@
-# Sistema de archivos
-### Comandos    
+ Sistema de archivos
+ Comandos    
 
 | Comando | Descripcion |
 | ------ | ------ |
@@ -8,4 +8,5 @@
 | fdisk  | Crear particiones |
 | mount | Montar particiones |
 | unmount | Desmontar particiones |
+| mkfs | Make File System |
 | rep | Ver reportes |

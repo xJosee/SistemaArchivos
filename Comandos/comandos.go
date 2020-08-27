@@ -53,38 +53,38 @@ type EBR struct {
  *	S T R U C T   F A S E   2
  */
 
-//SuperBloque is...
-type SuperBloque struct {
+//SB is...
+type SB struct {
 	NombreHD                 [16]byte
-	ArbolVirtualCount        int
-	DetalleDirectorioCount   int
-	InodosCount              int
-	BloquesCount             int
-	ArbolVirtualFree         int
-	DetalleDirectorioFree    int
-	InodosFree               int
-	BloquesFree              int
+	ArbolVirtualCount        int32
+	DetalleDirectorioCount   int32
+	InodosCount              int32
+	BloquesCount             int32
+	ArbolVirtualFree         int32
+	DetalleDirectorioFree    int32
+	InodosFree               int32
+	BloquesFree              int32
 	DateCreacion             [20]byte
 	DateUltimoMontaje        [20]byte
-	MontajesCount            int
-	StartBmArbolDirectorio   int
-	StartArbolDirectorio     int
-	StartBmDetalleDirectorio int
-	StartDetalleDirectorio   int
-	StartBmInodos            int
-	StartInodos              int
-	StartBmBloques           int
-	StartBloques             int
-	StartLog                 int //Bitacora.
-	SizeStructAvd            int // = sizeof(arbolVirtual);
-	SizeStructDd             int // sizeof(detalleDirectorio);
-	SizeStructInodo          int // sizeof(InodoArchivo);
-	SizeStructBloque         int // sizeof(bloqueDatos);
-	FirstFreeAvd             int
-	FirstFreeDd              int
-	FirstFreeInodo           int
-	FirstFreeBloque          int
-	MagicNum                 int //= 201701023;
+	MontajesCount            int32
+	StartBmArbolDirectorio   int32
+	StartArbolDirectorio     int32
+	StartBmDetalleDirectorio int32
+	StartDetalleDirectorio   int32
+	StartBmInodos            int32
+	StartInodos              int32
+	StartBmBloques           int32
+	StartBloques             int32
+	StartLog                 int32 //Bitacora.
+	SizeStructAvd            int32 // = sizeof(arbolVirtual);
+	SizeStructDd             int32 // sizeof(detalleDirectorio);
+	SizeStructInodo          int32 // sizeof(InodoArchivo);
+	SizeStructBloque         int32 // sizeof(bloqueDatos);
+	FirstFreeAvd             int32
+	FirstFreeDd              int32
+	FirstFreeInodo           int32
+	FirstFreeBloque          int32
+	MagicNum                 int32 //= 201701023;
 }
 
 //Bloque is...
@@ -103,24 +103,24 @@ type Bitacora struct {
 
 //TablaInodo is...
 type TablaInodo struct {
-	ICountInodo            uint8
-	ISizeArchivo           uint32
-	ICountBloquesAsignados uint8
+	ICountInodo            int32
+	ISizeArchivo           int32
+	ICountBloquesAsignados int32
 	IArrayBloques          [4]Bloque
-	IApIndirecto           uint32
-	IIDProper              uint32
+	IApIndirecto           int32
+	IIDProper              int32
 }
 
 //DetalleDirectorio is...
 type DetalleDirectorio struct {
 	DDArrayFiles          [5]File
-	DDApDetalleDirectorio uint32
+	DDApDetalleDirectorio int32
 }
 
 //File is...
 type File struct {
 	DDFileNombre           [10]byte
-	DDFileApInodo          uint8
+	DDFileApInodo          int32
 	DDFileDateCreacion     [10]byte
 	DDFileDateModificacion [10]byte
 }
@@ -129,10 +129,10 @@ type File struct {
 type Arbol struct {
 	AVDFechaCreacion    [10]byte
 	AVDNombreDirectorio string
-	Subirectorios       [6]uint8
+	Subirectorios       [6]int32
 	Detalle             DetalleDirectorio
-	VirtualDirectorio   uint8
-	AVDProper           uint32
+	VirtualDirectorio   int32
+	AVDProper           int32
 }
 
 /*
@@ -218,6 +218,14 @@ func reWriteMBR(file *os.File, Disco MBR) {
 func reWriteEBR(file *os.File, Disco EBR, seek int64) {
 	file.Seek(seek, 0)
 	s1 := &Disco
+	var binario2 bytes.Buffer
+	binary.Write(&binario2, binary.BigEndian, s1)
+	file.Write(binario2.Bytes())
+}
+
+func reWriteSuperBloque(file *os.File, SuperB SB, seek int64) {
+	file.Seek(seek, 0)
+	s1 := &SuperB
 	var binario2 bytes.Buffer
 	binary.Write(&binario2, binary.BigEndian, s1)
 	file.Write(binario2.Bytes())
@@ -380,7 +388,7 @@ func ParticionExist(path string, name string) bool {
 
 //EliminarParticion is...
 func EliminarParticion(path string, name string, delete string) {
-	//TODO : Eliminar Particion
+	//TODO : Eliminar Particion Logica
 
 	if VerificarRuta(path) {
 		File := getFile(path)
@@ -481,8 +489,6 @@ func EliminarParticion(path string, name string, delete string) {
 
 //AgregarQuitarEspacio is...
 func AgregarQuitarEspacio(path string, name string, add int, unit byte) {
-	//TODO : Agregar o Quitar espacio
-
 	var tipo string = ""
 
 	if add > 0 {
@@ -1208,8 +1214,6 @@ func ReporteEBR(path string) {
 //ReporteDisco is...
 func ReporteDisco(direccion string, destino string, extension string) {
 
-	//TODO : Reporte del disco
-
 	var auxDir string = direccion
 
 	if VerificarRuta(auxDir) {
@@ -1373,29 +1377,178 @@ func ReporteDisco(direccion string, destino string, extension string) {
  */
 
 //MKFS is...
-func MKFS(id string, tipo string, add int, unit byte) {
+func MKFS(id string) {
 	Formatear(id)
 }
 
 //Formatear is...
 func Formatear(id string) {
 	//TODO : Formatear LWH
-	//var nEstructuras int = -1
-	var pathD string = ""
-	//var sizeParticion int
-	//var startParticion int
-	//var nombreParticion string
 
-	pathD = listaParticiones.GetDireccion(id)
+	pathD := listaParticiones.GetDireccion(id) //Obtenemos la direccion del disco
 
 	if pathD != "null" {
 
-		var pathDisco [100]byte
-		copy(pathDisco[:], pathD)
+		File := getFile(pathD)                       //Obtenemos el disco
+		MBR := readMBR(File)                         // Leemos el MBR
+		PartName := listaParticiones.GetPartName(id) // Obtenemos el PartName
+		PartSize := ObtenerPartSize(MBR, PartName)   // Obtenemos el PartSize
+		PartStart := ObtenerPartStart(MBR, PartName)
+		//TODO : Recorrer EBR tambien
+		//Utilizando Formula
+		SB := SB{}
+		AVD := Arbol{}
+		DD := DetalleDirectorio{}
+		Inodo := TablaInodo{}
+		Bloque := Bloque{}
+		Bitacora := Bitacora{}
+		//Size
+		SBSize := int(unsafe.Sizeof(SB))
+		AVDSize := int(unsafe.Sizeof(AVD))
+		DDSize := int(unsafe.Sizeof(DD))
+		InodoSize := int(unsafe.Sizeof(Inodo))
+		BloqueSize := int(unsafe.Sizeof(Bloque))
+		BitacoraSize := int(unsafe.Sizeof(Bitacora))
+
+		//Formula de Cantidad de estructuras
+		var CantidadEstructuras int = (PartSize - (2 * SBSize)) /
+			(27 + AVDSize + DDSize + (5*InodoSize + (20 * BloqueSize) + BitacoraSize))
+		fmt.Println(CantidadEstructuras)
+
+		var CantidadAVD int = CantidadEstructuras
+		var CantidadDD int = CantidadEstructuras
+		var CantidadInodos int = 5 * CantidadEstructuras
+		var CantidadBloques int = 20 * CantidadEstructuras
+		var CantidadBitacora int = CantidadEstructuras
+
+		//Setearlo los valorea al SB
+		copy(SB.NombreHD[:], PartName) //Seteandole el nombre
+		SB.ArbolVirtualCount = int32(CantidadAVD)
+		SB.DetalleDirectorioCount = int32(CantidadDD)
+		SB.InodosCount = int32(CantidadInodos)
+		SB.BloquesCount = int32(CantidadBloques)
+		SB.ArbolVirtualFree = int32(CantidadAVD)     //Se crea carpeta raiz.
+		SB.DetalleDirectorioFree = int32(CantidadDD) //Detalle de directorio de la carpeta raiz
+		SB.InodosFree = int32(CantidadInodos)
+		SB.BloquesFree = int32(CantidadBloques)
+		//Obtenemos fecha actual
+		dt := time.Now()
+		fecha := dt.Format("01-02-2006 15:04:05")
+		copy(SB.DateCreacion[:], fecha)
+		copy(SB.DateUltimoMontaje[:], fecha)
+		SB.MontajesCount = 0
+		SB.StartBmArbolDirectorio = int32(PartStart + int(unsafe.Sizeof(SB)))
+		SB.StartArbolDirectorio = SB.StartBmArbolDirectorio + int32(CantidadEstructuras)
+		SB.StartBmDetalleDirectorio = SB.StartArbolDirectorio + int32((CantidadEstructuras * int(unsafe.Sizeof(SB))))
+		SB.StartDetalleDirectorio = SB.StartBmDetalleDirectorio + int32(CantidadEstructuras)
+		SB.StartBmInodos = SB.StartDetalleDirectorio + int32((CantidadEstructuras * int(unsafe.Sizeof(DD))))
+		SB.StartInodos = SB.StartBmInodos + int32((5 * CantidadEstructuras))
+		SB.StartBmBloques = SB.StartInodos + int32((5 * CantidadEstructuras * int(unsafe.Sizeof(Inodo))))
+		SB.StartBloques = SB.StartBmBloques + int32((20 * CantidadEstructuras))
+		SB.StartLog = SB.StartBloques + int32((20 * CantidadEstructuras * int(unsafe.Sizeof(Bloque)))) //Bitacora.
+		SB.FirstFreeAvd = 0
+		SB.FirstFreeDd = 0
+		SB.FirstFreeInodo = 0
+		SB.FirstFreeBloque = 0
+
+		reWriteSuperBloque(File, SB, int64(PartStart))
+
+		//BitMap AVD
+		for i := 0; i < CantidadEstructuras; i++ {
+			File.Seek(int64((SB.StartBmArbolDirectorio + int32(i))), 0)
+			File.Write([]byte("0"))
+		}
+
+		//AVD = Arbol
+		for i := 0; i < CantidadEstructuras; i++ {
+			File.Seek(int64((SB.StartArbolDirectorio + int32((i * int(unsafe.Sizeof(AVD)))))), 0)
+			s1 := &AVD
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
+		}
+
+		//BitMap DD
+		for i := 0; i < CantidadEstructuras; i++ {
+			File.Seek(int64(SB.StartBmDetalleDirectorio+int32(i)), 0)
+			File.Write([]byte("0"))
+		}
+
+		//DD
+		for i := 0; i < CantidadEstructuras; i++ {
+			File.Seek(int64(SB.StartDetalleDirectorio+int32((i*int(unsafe.Sizeof(DD))))), 0)
+			s1 := &DD
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
+		}
+
+		//BitMap Inodo
+		for i := 0; i < (5 * CantidadEstructuras); i++ {
+			File.Seek(int64(SB.StartBmInodos+int32(i)), 0)
+			File.Write([]byte("0"))
+		}
+
+		//Inodo
+		for i := 0; i < (5 * CantidadEstructuras); i++ {
+			File.Seek(int64(SB.StartInodos+int32((i*int(unsafe.Sizeof(Inodo))))), 0)
+			s1 := &Inodo
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
+		}
+
+		//BitMap Bloque
+		for i := 0; i < (20 * CantidadEstructuras); i++ {
+			File.Seek(int64(SB.StartBmBloques+int32(i)), 0)
+			File.Write([]byte("0"))
+		}
+
+		//Bloque
+		for i := 0; i < (20 * CantidadEstructuras); i++ {
+			File.Seek(int64(SB.StartBloques+int32((i*int(unsafe.Sizeof(Bloque))))), 0)
+			s1 := &Bloque
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
+		}
+
+		//Bitacora
+		for i := 0; i < CantidadEstructuras; i++ {
+			File.Seek(int64(SB.StartLog+int32((i*int(unsafe.Sizeof(Bitacora))))), 0)
+			s1 := &Bitacora
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
+		}
 
 	} else {
 		ErrorMessage("[MKFS] -> La particion no se encuentra montada")
 	}
+}
+
+//ObtenerPartSize is...
+func ObtenerPartSize(mbr MBR, name string) int {
+	for i := 0; i < 4; i++ {
+		var nameByte [16]byte
+		copy(nameByte[:], name)
+		if bytes.Compare(nameByte[:], mbr.Particion[i].PartName[:]) == 0 {
+			return int(mbr.Particion[i].PartSize)
+		}
+	}
+	return -1
+}
+
+//ObtenerPartStart is...
+func ObtenerPartStart(mbr MBR, name string) int {
+	for i := 0; i < 4; i++ {
+		var nameByte [16]byte
+		copy(nameByte[:], name)
+		if bytes.Compare(nameByte[:], mbr.Particion[i].PartName[:]) == 0 {
+			return int(mbr.Particion[i].PartStart)
+		}
+	}
+	return -1
 }
 
 /*
