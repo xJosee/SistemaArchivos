@@ -84,7 +84,7 @@ type SB struct {
 	FirstFreeDd              int32
 	FirstFreeInodo           int32
 	FirstFreeBloque          int32
-	MagicNum                 int32 //= 201701023;
+	MagicNum                 int32 //= 201807431;
 }
 
 //Bloque is...
@@ -130,7 +130,7 @@ type Arbol struct {
 	AVDFechaCreacion    [10]byte
 	AVDNombreDirectorio string
 	Subirectorios       [6]int32
-	Detalle             DetalleDirectorio
+	DetalleDirectorio   int32
 	VirtualDirectorio   int32
 	AVDProper           int32
 }
@@ -730,6 +730,8 @@ func MOUNT(path string, name string) {
 					Letra:     auxLetra,
 					Num:       num,
 					Siguiente: nil,
+					PartStart: int(masterboot.Particion[indexP].PartStart),
+					PartSize:  int(masterboot.Particion[indexP].PartSize),
 				}
 
 				listaParticiones.Insertar(&n)
@@ -1074,19 +1076,19 @@ func ParticionLogicaExist(path string, name string) int {
 		}
 		if extendida != -1 {
 
-			ebr := EBR{
-				PartNext: -2,
-			}
+			ebr := EBR{}
+			ebr = readEBR(File, int64(masterboot.Particion[extendida].PartStart))
+
 			for ebr.PartNext != -1 && (ebr.PartNext < masterboot.Particion[extendida].PartStart+masterboot.Particion[extendida].PartSize) {
-				if ebr.PartNext == -2 {
-					ebr = readEBR(File, int64(masterboot.Particion[extendida].PartStart))
-				} else {
-					ebr = readEBR(File, int64(ebr.PartNext))
-				}
 				var nameByte [16]byte
 				copy(nameByte[:], name)
 				if bytes.Compare(ebr.PartName[:], nameByte[:]) == 0 {
 					return int((ebr.PartNext - int32(unsafe.Sizeof(ebr))))
+				}
+				if ebr.PartNext == -1 {
+
+				} else {
+					ebr = readEBR(File, int64(ebr.PartNext))
 				}
 			}
 		}
@@ -1389,20 +1391,18 @@ func Formatear(id string) {
 
 	if pathD != "null" {
 
-		File := getFile(pathD)                       //Obtenemos el disco
-		MBR := readMBR(File)                         // Leemos el MBR
-		PartName := listaParticiones.GetPartName(id) // Obtenemos el PartName
-		PartSize := ObtenerPartSize(MBR, PartName)   // Obtenemos el PartSize
-		PartStart := ObtenerPartStart(MBR, PartName)
-		//TODO : Recorrer EBR tambien
-		//Utilizando Formula
+		/*
+		 *   INSTANCIANDO LOS STRUCTS
+		 */
 		SB := SB{}
-		AVD := Arbol{}
-		DD := DetalleDirectorio{}
-		Inodo := TablaInodo{}
-		Bloque := Bloque{}
-		Bitacora := Bitacora{}
-		//Size
+		AVD := InicializarAVD(Arbol{})
+		DD := InicializarDD(DetalleDirectorio{})
+		Inodo := InicializarInodo(TablaInodo{})
+		Bloque := InicializarBloque(Bloque{})
+		Bitacora := InicializarBitacora(Bitacora{})
+		/*
+		 *  OBTENIENDO EL SIZE
+		 */
 		SBSize := int(unsafe.Sizeof(SB))
 		AVDSize := int(unsafe.Sizeof(AVD))
 		DDSize := int(unsafe.Sizeof(DD))
@@ -1410,19 +1410,28 @@ func Formatear(id string) {
 		BloqueSize := int(unsafe.Sizeof(Bloque))
 		BitacoraSize := int(unsafe.Sizeof(Bitacora))
 
+		File := getFile(pathD)                         //Obtenemos el disco
+		PartName := listaParticiones.GetPartName(id)   // Obtenemos el PartName
+		PartSize := listaParticiones.GetPartSize(id)   // Obtenemos el PartSize
+		PartStart := listaParticiones.GetPartStart(id) // Obtenemos el partStart
+
 		//Formula de Cantidad de estructuras
 		var CantidadEstructuras int = (PartSize - (2 * SBSize)) /
 			(27 + AVDSize + DDSize + (5*InodoSize + (20 * BloqueSize) + BitacoraSize))
 		fmt.Println(CantidadEstructuras)
 
+		//Cantidad de elementos de cada Struct
 		var CantidadAVD int = CantidadEstructuras
 		var CantidadDD int = CantidadEstructuras
 		var CantidadInodos int = 5 * CantidadEstructuras
 		var CantidadBloques int = 20 * CantidadEstructuras
 		var CantidadBitacora int = CantidadEstructuras
 
-		//Setearlo los valorea al SB
-		copy(SB.NombreHD[:], PartName) //Seteandole el nombre
+		/*
+		 *  INICIALIZANDO EL SUPER BLOQUE
+		 */
+		copy(SB.NombreHD[:], PartName)
+		//Cantidad de elementos
 		SB.ArbolVirtualCount = int32(CantidadAVD)
 		SB.DetalleDirectorioCount = int32(CantidadDD)
 		SB.InodosCount = int32(CantidadInodos)
@@ -1437,6 +1446,7 @@ func Formatear(id string) {
 		copy(SB.DateCreacion[:], fecha)
 		copy(SB.DateUltimoMontaje[:], fecha)
 		SB.MontajesCount = 0
+		//Start Cada Struct
 		SB.StartBmArbolDirectorio = int32(PartStart + int(unsafe.Sizeof(SB)))
 		SB.StartArbolDirectorio = SB.StartBmArbolDirectorio + int32(CantidadEstructuras)
 		SB.StartBmDetalleDirectorio = SB.StartArbolDirectorio + int32((CantidadEstructuras * int(unsafe.Sizeof(SB))))
@@ -1446,11 +1456,15 @@ func Formatear(id string) {
 		SB.StartBmBloques = SB.StartInodos + int32((5 * CantidadEstructuras * int(unsafe.Sizeof(Inodo))))
 		SB.StartBloques = SB.StartBmBloques + int32((20 * CantidadEstructuras))
 		SB.StartLog = SB.StartBloques + int32((20 * CantidadEstructuras * int(unsafe.Sizeof(Bloque)))) //Bitacora.
+		//Espacios Libres
 		SB.FirstFreeAvd = 0
 		SB.FirstFreeDd = 0
 		SB.FirstFreeInodo = 0
 		SB.FirstFreeBloque = 0
+		//Magic Num
+		SB.MagicNum = 201807431
 
+		//Escribo
 		reWriteSuperBloque(File, SB, int64(PartStart))
 
 		//BitMap AVD
@@ -1522,33 +1536,52 @@ func Formatear(id string) {
 			File.Write(binario2.Bytes())
 		}
 
+		// Guardar Bitacora
+		File.Seek(int64(SB.StartLog), 0)
+		s1 := &Bitacora
+		var binario2 bytes.Buffer
+		binary.Write(&binario2, binary.BigEndian, s1)
+		File.Write(binario2.Bytes())
+
+		File.Close()
+
+		//CREAR RAIZ
+
+		/*Carpeta folder;
+		folder.makeDirectory("/", 0, id, montaje, false);*/
+
 	} else {
 		ErrorMessage("[MKFS] -> La particion no se encuentra montada")
 	}
 }
 
-//ObtenerPartSize is...
-func ObtenerPartSize(mbr MBR, name string) int {
-	for i := 0; i < 4; i++ {
-		var nameByte [16]byte
-		copy(nameByte[:], name)
-		if bytes.Compare(nameByte[:], mbr.Particion[i].PartName[:]) == 0 {
-			return int(mbr.Particion[i].PartSize)
-		}
-	}
-	return -1
+//InicializarAVD is...
+func InicializarAVD(Arbol Arbol) Arbol {
+	return Arbol
 }
 
-//ObtenerPartStart is...
-func ObtenerPartStart(mbr MBR, name string) int {
-	for i := 0; i < 4; i++ {
-		var nameByte [16]byte
-		copy(nameByte[:], name)
-		if bytes.Compare(nameByte[:], mbr.Particion[i].PartName[:]) == 0 {
-			return int(mbr.Particion[i].PartStart)
-		}
-	}
-	return -1
+//InicializarDD is...
+func InicializarDD(DetalleD DetalleDirectorio) DetalleDirectorio {
+
+	return DetalleD
+}
+
+//InicializarInodo is...
+func InicializarInodo(Inodo TablaInodo) TablaInodo {
+
+	return Inodo
+}
+
+//InicializarBloque is...
+func InicializarBloque(Bloque Bloque) Bloque {
+
+	return Bloque
+}
+
+//InicializarBitacora is...
+func InicializarBitacora(Bitacora Bitacora) Bitacora {
+
+	return Bitacora
 }
 
 /*

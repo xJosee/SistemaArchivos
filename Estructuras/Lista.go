@@ -9,6 +9,8 @@ type Nodo struct {
 	Letra     byte
 	Num       int
 	Siguiente *Nodo
+	PartStart int
+	PartSize  int
 }
 
 //Lista is...
@@ -113,6 +115,36 @@ func (Lista *Lista) GetDireccion(id string) string {
 		aux = aux.Siguiente
 	}
 	return "null"
+}
+
+//GetPartSize is...
+func (Lista *Lista) GetPartSize(id string) int {
+	aux := Lista.Primero
+	for aux != nil {
+		tempID := "vd"
+		tempID += string(aux.Letra)
+		tempID = fmt.Sprint(tempID, aux.Num)
+		if id == tempID {
+			return aux.PartSize
+		}
+		aux = aux.Siguiente
+	}
+	return -1
+}
+
+//GetPartStart is...
+func (Lista *Lista) GetPartStart(id string) int {
+	aux := Lista.Primero
+	for aux != nil {
+		tempID := "vd"
+		tempID += string(aux.Letra)
+		tempID = fmt.Sprint(tempID, aux.Num)
+		if id == tempID {
+			return aux.PartStart
+		}
+		aux = aux.Siguiente
+	}
+	return -1
 }
 
 //GetPartName is...
