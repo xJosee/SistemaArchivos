@@ -152,7 +152,7 @@ func VerificarComando(listaComandos []string) {
 
 	} else if strings.ToLower(listaComandos[0]) == "mkfs" {
 		if VerificarParametros(listaComandos) {
-			comandos.MKFS(id, tipo)
+			comandos.MKFS(id)
 		}
 	} else if strings.ToLower(listaComandos[0]) == "1" {
 

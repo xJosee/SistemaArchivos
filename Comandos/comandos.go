@@ -231,12 +231,16 @@ func reWriteSuperBloque(file *os.File, SuperB SB, seek int64) {
 	file.Write(binario2.Bytes())
 }
 
+/*
+ *  READS DE LOS STRUCTS EN LOS FILES
+ */
+
 //readMBR is...
 func readMBR(file *os.File) MBR {
 	m := MBR{}
 	var size int = int(unsafe.Sizeof(m))
 
-	data := readNextBytesMBR(file, size)
+	data := readNextBytes(file, size)
 	buffer := bytes.NewBuffer(data)
 
 	err := binary.Read(buffer, binary.BigEndian, &m)
@@ -247,25 +251,13 @@ func readMBR(file *os.File) MBR {
 
 }
 
-//readNextBytesMBR is...
-func readNextBytesMBR(file *os.File, number int) []byte {
-	bytes := make([]byte, number)
-
-	_, err := file.Read(bytes)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return bytes
-}
-
 //readEBR is...
 func readEBR(file *os.File, seek int64) EBR {
 	file.Seek(seek, 0)
 	m := EBR{}
 	var size int = int(unsafe.Sizeof(m))
 
-	data := readNextBytesEBR(file, size)
+	data := readNextBytes(file, size)
 	buffer := bytes.NewBuffer(data)
 
 	err := binary.Read(buffer, binary.BigEndian, &m)
@@ -282,8 +274,24 @@ func readEBR(file *os.File, seek int64) EBR {
 	return m
 }
 
+//readSuperBloque is...
+func readSuperBloque(file *os.File, seek int64) SB {
+	file.Seek(seek, 0)
+	m := SB{}
+	var size int = int(unsafe.Sizeof(m))
+
+	data := readNextBytes(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	err := binary.Read(buffer, binary.BigEndian, &m)
+	if err != nil {
+		log.Fatal("binary.Read failed", err)
+	}
+	return m
+}
+
 //readNextBytesEBR is...
-func readNextBytesEBR(file *os.File, number int) []byte {
+func readNextBytes(file *os.File, number int) []byte {
 	bytes := make([]byte, number)
 
 	_, err := file.Read(bytes)
@@ -1416,8 +1424,9 @@ func Formatear(id string) {
 		PartStart := listaParticiones.GetPartStart(id) // Obtenemos el partStart
 
 		//Formula de Cantidad de estructuras
-		var CantidadEstructuras int = (PartSize - (2 * SBSize)) /
+		var CantidadEstructuras int = (PartSize*1024 - (2 * SBSize)) /
 			(27 + AVDSize + DDSize + (5*InodoSize + (20 * BloqueSize) + BitacoraSize))
+		fmt.Println(PartSize, SBSize, AVDSize, DDSize, InodoSize, BloqueSize, BitacoraSize)
 		fmt.Println(CantidadEstructuras)
 
 		//Cantidad de elementos de cada Struct
@@ -1425,7 +1434,7 @@ func Formatear(id string) {
 		var CantidadDD int = CantidadEstructuras
 		var CantidadInodos int = 5 * CantidadEstructuras
 		var CantidadBloques int = 20 * CantidadEstructuras
-		var CantidadBitacora int = CantidadEstructuras
+		//var CantidadBitacora int = CantidadEstructuras
 
 		/*
 		 *  INICIALIZANDO EL SUPER BLOQUE
@@ -1546,41 +1555,110 @@ func Formatear(id string) {
 		File.Close()
 
 		//CREAR RAIZ
-
 		/*Carpeta folder;
 		folder.makeDirectory("/", 0, id, montaje, false);*/
+		CrearDirectorio("/", id)
 
 	} else {
 		ErrorMessage("[MKFS] -> La particion no se encuentra montada")
 	}
 }
 
+//CrearDirectorio is...
+func CrearDirectorio(Ruta string, id string) {
+
+	pathD := listaParticiones.GetDireccion(id)     //Obtenemos la direccion del disco
+	SB := SB{}                                     // Instanciamos un SuperBloque
+	File := getFile(pathD)                         //Obtenemos el file que contiene el disco
+	PartStart := listaParticiones.GetPartStart(id) // Obtenemos el partStart
+
+	SB = readSuperBloque(File, int64(PartStart)) //Leemos el supetbloque
+
+	if Ruta == "/" { //Verificamos si la ruta es root ('/')
+
+		var Carpeta Arbol = InicializarAVD(Arbol{})
+		Carpeta.AVDNombreDirectorio = "Raiz"
+		copy(Carpeta.AVDFechaCreacion[:], "Poner Fecha") //TODO : Poner Fecha
+		Carpeta.DetalleDirectorio = SB.FirstFreeDd
+
+		File.Seek(int64(SB.StartArbolDirectorio), 0)
+		//Escribimos la carpeta
+		s1 := &Carpeta
+		var binario2 bytes.Buffer
+		binary.Write(&binario2, binary.BigEndian, s1)
+		File.Write(binario2.Bytes())
+
+		File.Seek(int64(SB.StartBmArbolDirectorio), 0) //Ocupamos su posicion en bitmap.
+		//Escribimos 1's
+		var uno byte = '1'
+		s2 := &uno
+		var binario3 bytes.Buffer
+		binary.Write(&binario3, binary.BigEndian, s2)
+		File.Write(binario3.Bytes())
+
+		SB.ArbolVirtualFree--
+		SB.FirstFreeAvd++
+
+		//Escribiendo el detalle directorio
+		Detalle := InicializarDD(DetalleDirectorio{})
+		File.Seek(int64(SB.StartDetalleDirectorio), 0)
+		//Escribimos
+		s3 := &Detalle
+		var binario4 bytes.Buffer
+		binary.Write(&binario4, binary.BigEndian, s3)
+		File.Write(binario4.Bytes())
+
+		File.Seek(int64(SB.StartBmDetalleDirectorio), 0) //Ocupamos su posicion en bitmap.
+		var uno1 byte = '1'
+		s4 := &uno1
+		var binario5 bytes.Buffer
+		binary.Write(&binario5, binary.BigEndian, s4)
+		File.Write(binario5.Bytes())
+
+		SB.DetalleDirectorioFree--
+		SB.FirstFreeDd++
+
+		File.Seek(int64(PartStart), 0)
+		s5 := &SB
+		var binario6 bytes.Buffer
+		binary.Write(&binario6, binary.BigEndian, s5)
+		File.Write(binario6.Bytes())
+		File.Close()
+	}
+}
+
 //InicializarAVD is...
 func InicializarAVD(Arbol Arbol) Arbol {
+	for i := 0; i < 6; i++ {
+		Arbol.Subirectorios[i] = -1
+	}
+	Arbol.AVDProper = -1
+	Arbol.VirtualDirectorio = -1
+	Arbol.DetalleDirectorio = 1
 	return Arbol
 }
 
 //InicializarDD is...
 func InicializarDD(DetalleD DetalleDirectorio) DetalleDirectorio {
-
+	DetalleD.DDApDetalleDirectorio = -1
 	return DetalleD
 }
 
 //InicializarInodo is...
 func InicializarInodo(Inodo TablaInodo) TablaInodo {
-
+	Inodo.IApIndirecto = -1
+	Inodo.IIDProper = -1
 	return Inodo
 }
 
 //InicializarBloque is...
 func InicializarBloque(Bloque Bloque) Bloque {
-
 	return Bloque
 }
 
 //InicializarBitacora is...
 func InicializarBitacora(Bitacora Bitacora) Bitacora {
-
+	Bitacora.Tipo = '1'
 	return Bitacora
 }
 
