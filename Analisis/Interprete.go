@@ -140,7 +140,7 @@ func VerificarComando(listaComandos []string) {
 
 		if VerificarParametros(listaComandos) {
 			comandos.ReporteDisco(path, "", "")
-			comandos.ReporteEBR(path)
+			//comandos.ReporteEBR(path)
 			//SuccessMessage("[EXEC] -> Comando ejecutado correctamente")
 		}
 

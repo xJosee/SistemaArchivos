@@ -95,7 +95,7 @@ type Bloque struct {
 //Bitacora is...
 type Bitacora struct {
 	TipoOp    [20]byte
-	Tipo      byte
+	Tipo      int32
 	Nombre    [20]byte
 	Contenido [20]byte
 	Fecha     [10]byte
@@ -106,7 +106,7 @@ type TablaInodo struct {
 	ICountInodo            int32
 	ISizeArchivo           int32
 	ICountBloquesAsignados int32
-	IArrayBloques          [4]Bloque
+	IArrayBloques          [4]int32
 	IApIndirecto           int32
 	IIDProper              int32
 }
@@ -130,9 +130,17 @@ type Arbol struct {
 	AVDFechaCreacion    [10]byte
 	AVDNombreDirectorio string
 	Subirectorios       [6]int32
-	DetalleDirectorio   int32
 	VirtualDirectorio   int32
+	DetalleDirectorio   int32
 	AVDProper           int32
+}
+
+//Usuario is...
+type Usuario struct {
+}
+
+//Sesion is...
+type Sesion struct {
 }
 
 /*
@@ -190,18 +198,22 @@ func writeFile(path string, size int, Disco MBR) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for i := 0; i < size; i++ {
-		var numParticion int8 = int8(0)
-		err := binary.Write(file, binary.LittleEndian, numParticion)
-		if err != nil {
-			fmt.Println("err!", err)
-		}
-	}
 	file.Seek(0, 0)
-	s1 := &Disco
+	var cero byte = '0'
+	s1 := &cero
 	var binario2 bytes.Buffer
 	binary.Write(&binario2, binary.BigEndian, s1)
 	file.Write(binario2.Bytes())
+
+	file.Seek(int64(size-1), 0)
+	file.Write(binario2.Bytes())
+
+	file.Seek(0, 0)
+	//Meto el MBR
+	s2 := &Disco
+	var binario bytes.Buffer
+	binary.Write(&binario, binary.BigEndian, s2)
+	file.Write(binario.Bytes())
 
 }
 
@@ -1214,7 +1226,7 @@ func ReporteEBR(path string) {
 		fmt.Fprintf(graphDot, "}\n")
 		graphDot.Close()
 		File.Close()
-		exec.Command("dot", "-Tpng", "graficaEBR.dot", "-o", "/home/jose/Escritorio/grafica.png").Output()
+		exec.Command("dot", "-Tpng", "-o", "/home/jose/Escritorio/graficaEBR.png", "graficaEBR.dot").Output()
 		SuccessMessage("[REP] -> Reporte del disco generado correctamente")
 
 	}
@@ -1235,60 +1247,26 @@ func ReporteDisco(direccion string, destino string, extension string) {
 		fmt.Fprintf(graphDot, "  tbl [\n    shape=box\n    label=<\n")
 		fmt.Fprintf(graphDot, "     <table border='0' cellborder='1' width='600' height='200' color='coral'>\n")
 		fmt.Fprintf(graphDot, "     <tr>\n")
-		fmt.Fprintf(graphDot, "     <td height='200' width='100'> MBR </td>\n")
+		fmt.Fprintf(graphDot, "     <td  cellspacing= '0' height='200' width='100'> MBR </td>\n")
 
 		var masterboot MBR
 		fp.Seek(0, 0)
 		masterboot = readMBR(fp)
 
-		var total int = int(masterboot.Size)
-		var espacioUsado int = 0
-
 		for i := 0; i < 4; i++ {
-			var parcial int = int(masterboot.Particion[i].PartSize)
+
 			if masterboot.Particion[i].PartStart != -1 {
-				var porcentajeReal int = (parcial * 100) / total
-				var porcentajeAux int = (porcentajeReal * 500) / 100
-				espacioUsado += porcentajeReal
 
 				if masterboot.Particion[i].PartStatus != '1' {
 
 					if masterboot.Particion[i].PartType == 'P' { //Verificar Primaria
 
-						fmt.Fprintf(graphDot, "     <td height='200' width='%.1f'>PRIMARIA <br/>  %.1f%c</td>\n", float32(porcentajeAux), float32(porcentajeReal), '%')
-
-						if i != 3 {
-							var p1 int = int(masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)
-							var p2 int = int(masterboot.Particion[i+1].PartStart)
-
-							if masterboot.Particion[i+1].PartStart != -1 {
-
-								if (p2 - p1) != 0 { //Verficiar Si hay fragmentacion
-									var fragmentacion int = p2 - p1
-									var porcentajeReal int = (fragmentacion * 100) / total
-									var porcentajeAux int = (porcentajeReal * 500) / 100
-
-									fmt.Fprintf(graphDot, "     <td height='200' width='%.1f'>LIBRE<br/>  %.1f%c</td>\n", float32(porcentajeAux), float32(porcentajeReal), '%')
-								}
-							}
-
-						} else {
-							var p1 int = int(masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)
-							var mbrTamano int = total + int(unsafe.Sizeof(masterboot))
-
-							if (mbrTamano - p1) != 0 { // LIBRE
-								var libre int = (mbrTamano - p1) + int(unsafe.Sizeof(masterboot))
-								var porcentajeReal int = (libre * 100) / total
-								var porcentajeAux int = (porcentajeReal * 500) / 100
-
-								fmt.Fprintf(graphDot, "     <td height='200' width='%.1f'>LIBRE<br/>  %.1f%c</td>\n", float32(porcentajeAux), float32(porcentajeReal), '%')
-							}
-						}
+						fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='200' width='200'>PRIMARIA </td>\n")
 
 					} else {
 						//Particion Extendida
 
-						fmt.Fprintf(graphDot, "     <td  height='200' width='%.1f'>\n     <table border='0'  height='200' WIDTH='%.1f' cellborder='1'>\n", float32(porcentajeReal), float32(porcentajeReal))
+						fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='200' width='200'>\n     <table border='0'  height='200' WIDTH='200' cellborder='1'>\n")
 						fmt.Fprintf(graphDot, "     <tr>  <td height='60' colspan='15'>EXTENDIDA</td>  </tr>\n     <tr>\n")
 
 						var extendedBoot EBR
@@ -1299,27 +1277,9 @@ func ReporteDisco(direccion string, destino string, extension string) {
 
 							for extendedBoot.PartNext != -1 && (extendedBoot.PartNext < (masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)) {
 
-								parcial = int(extendedBoot.PartSize)
-								porcentajeReal = (parcial * 100) / total
+								fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='140'>EBR</td>\n")
+								fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='140'>LOGICA</td>\n")
 
-								if porcentajeReal != 0 {
-
-									if extendedBoot.PartStatus != '1' {
-										fmt.Fprintf(graphDot, "     <td height='140'>EBR</td>\n")
-										fmt.Fprintf(graphDot, "     <td height='140'>LOGICA<br/> %.1f%c</td>\n", float32(porcentajeReal), '%')
-									} else { //Espacio no asignado
-										fmt.Fprintf(graphDot, "      <td height='150'>LIBRE<br/>  %.1f%c</td>\n", float32(porcentajeReal), '%')
-									}
-									if extendedBoot.PartNext == -1 {
-										parcial = int((masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize) - (extendedBoot.PartStart + extendedBoot.PartSize))
-										porcentajeReal = (parcial * 100) / total
-										if porcentajeReal != 0 {
-											fmt.Fprintf(graphDot, "     <td height='150'>LIBRE<br/>  %.1f%c </td>\n", float32(porcentajeReal), '%')
-										}
-										break
-									}
-
-								}
 								if extendedBoot.PartNext == -1 {
 
 								} else {
@@ -1327,54 +1287,22 @@ func ReporteDisco(direccion string, destino string, extension string) {
 								}
 							}
 						} else {
-							fmt.Fprintf(graphDot, "     <td height='140'>  %.1f%c</td>", float32(porcentajeReal), '%')
+							fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='140'></td>")
 						}
 
 						fmt.Fprintf(graphDot, "     </tr>\n     </table>\n     </td>\n")
 
-						if i != 3 {
-							var p1 int = int(masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)
-							var p2 int = int(masterboot.Particion[i+1].PartStart)
-
-							if masterboot.Particion[i+1].PartStart != -1 {
-
-								if (p2 - p1) != 0 { //Hay fragmentacion
-									var fragmentacion int = p2 - p1
-									var porcentajeReal int = (fragmentacion * 100) / total
-									var porcentajeAux int = (porcentajeReal * 500) / 100
-									fmt.Fprintf(graphDot, "     <td height='200' width='%.1f'>LIBRE<br/>  %.1f%c</td>\n", float32(porcentajeAux), float32(porcentajeReal), '%')
-								}
-
-							}
-						} else {
-							var p1 int = int(masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)
-							var mbrTamano int = total + int(unsafe.Sizeof(masterboot))
-
-							if (mbrTamano - p1) != 0 { //Libre
-
-								var libre int = (mbrTamano - p1) + int(unsafe.Sizeof(masterboot))
-								var porcentajeReal int = (libre * 100) / total
-								var porcentajeAux int = (porcentajeReal * 500) / 100
-
-								fmt.Fprintf(graphDot, "     <td height='200' width='%.1f'>LIBRE<br/>  %.1f%c</td>\n", float32(porcentajeAux), float32(porcentajeReal), '%')
-							}
-						}
-
 					}
-
-				} else {
-					fmt.Fprintf(graphDot, "     <td height='200' width='%.1f'>LIBRE <br/>  %.1f%c</td>\n", float32(porcentajeAux), float32(porcentajeReal), '%')
 				}
 			}
 		}
 
-		fmt.Fprintf(graphDot, "     <td height='200'> LIBRE %.1f%c\n     </td>", float32((100 - espacioUsado)), '%')
+		fmt.Fprintf(graphDot, "     <td height='200'> LIBRE </td>")
 
 		fmt.Fprintf(graphDot, "     </tr> \n     </table>        \n>];\n\n}")
 		graphDot.Close()
 		fp.Close()
-
-		exec.Command("dot", "-Tpng", "graficaDisco.dot", "-o", "/home/jose/Escritorio/grafica.png").Output()
+		exec.Command("dot", "-Tpng", "-o", "/home/jose/Escritorio/grafica.png", "graficaDisco.dot").Output()
 
 		SuccessMessage("[REP] -> Reporte del disco generado correctamente")
 	} else {
@@ -1418,15 +1346,21 @@ func Formatear(id string) {
 		BloqueSize := int(unsafe.Sizeof(Bloque))
 		BitacoraSize := int(unsafe.Sizeof(Bitacora))
 
+		fmt.Println("SB", SBSize)
+		fmt.Println("AVD", AVDSize)
+		fmt.Println("DD", DDSize)
+		fmt.Println("Inodo", InodoSize)
+		fmt.Println("Bloque", BloqueSize)
+		fmt.Println("Bitacora", BitacoraSize)
+
 		File := getFile(pathD)                         //Obtenemos el disco
 		PartName := listaParticiones.GetPartName(id)   // Obtenemos el PartName
 		PartSize := listaParticiones.GetPartSize(id)   // Obtenemos el PartSize
 		PartStart := listaParticiones.GetPartStart(id) // Obtenemos el partStart
 
 		//Formula de Cantidad de estructuras
-		var CantidadEstructuras int = (PartSize*1024 - (2 * SBSize)) /
-			(27 + AVDSize + DDSize + (5*InodoSize + (20 * BloqueSize) + BitacoraSize))
-		fmt.Println(PartSize, SBSize, AVDSize, DDSize, InodoSize, BloqueSize, BitacoraSize)
+		var CantidadEstructuras int = (PartSize - (2 * SBSize)) / (27 + AVDSize + DDSize + (5*InodoSize + (20 * BloqueSize) + BitacoraSize))
+		fmt.Println("PartSize", PartSize)
 		fmt.Println(CantidadEstructuras)
 
 		//Cantidad de elementos de cada Struct
@@ -1479,7 +1413,11 @@ func Formatear(id string) {
 		//BitMap AVD
 		for i := 0; i < CantidadEstructuras; i++ {
 			File.Seek(int64((SB.StartBmArbolDirectorio + int32(i))), 0)
-			File.Write([]byte("0"))
+			var cero = '0'
+			s1 := &cero
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
 		}
 
 		//AVD = Arbol
@@ -1494,7 +1432,11 @@ func Formatear(id string) {
 		//BitMap DD
 		for i := 0; i < CantidadEstructuras; i++ {
 			File.Seek(int64(SB.StartBmDetalleDirectorio+int32(i)), 0)
-			File.Write([]byte("0"))
+			var cero = '0'
+			s1 := &cero
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
 		}
 
 		//DD
@@ -1509,7 +1451,11 @@ func Formatear(id string) {
 		//BitMap Inodo
 		for i := 0; i < (5 * CantidadEstructuras); i++ {
 			File.Seek(int64(SB.StartBmInodos+int32(i)), 0)
-			File.Write([]byte("0"))
+			var cero = '0'
+			s1 := &cero
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
 		}
 
 		//Inodo
@@ -1524,7 +1470,11 @@ func Formatear(id string) {
 		//BitMap Bloque
 		for i := 0; i < (20 * CantidadEstructuras); i++ {
 			File.Seek(int64(SB.StartBmBloques+int32(i)), 0)
-			File.Write([]byte("0"))
+			var cero = '0'
+			s1 := &cero
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
 		}
 
 		//Bloque
@@ -1558,6 +1508,9 @@ func Formatear(id string) {
 		/*Carpeta folder;
 		folder.makeDirectory("/", 0, id, montaje, false);*/
 		CrearDirectorio("/", id)
+		fmt.Println("----------------------------------------------------")
+		fmt.Println("-       Formateo LWH realizado correctamente       -")
+		fmt.Println("----------------------------------------------------")
 
 	} else {
 		ErrorMessage("[MKFS] -> La particion no se encuentra montada")
@@ -1578,7 +1531,10 @@ func CrearDirectorio(Ruta string, id string) {
 
 		var Carpeta Arbol = InicializarAVD(Arbol{})
 		Carpeta.AVDNombreDirectorio = "Raiz"
-		copy(Carpeta.AVDFechaCreacion[:], "Poner Fecha") //TODO : Poner Fecha
+		//Obtenemos fecha actual
+		dt := time.Now()
+		fecha := dt.Format("01-02-2006 15:04:05")
+		copy(Carpeta.AVDFechaCreacion[:], fecha)
 		Carpeta.DetalleDirectorio = SB.FirstFreeDd
 
 		File.Seek(int64(SB.StartArbolDirectorio), 0)
@@ -1624,6 +1580,8 @@ func CrearDirectorio(Ruta string, id string) {
 		binary.Write(&binario6, binary.BigEndian, s5)
 		File.Write(binario6.Bytes())
 		File.Close()
+	} else { //Si es una ruta diferente a root ('/')
+		fmt.Println("Ruta diferente a root")
 	}
 }
 
@@ -1658,8 +1616,18 @@ func InicializarBloque(Bloque Bloque) Bloque {
 
 //InicializarBitacora is...
 func InicializarBitacora(Bitacora Bitacora) Bitacora {
-	Bitacora.Tipo = '1'
+	Bitacora.Tipo = -1
 	return Bitacora
+}
+
+//Login is ...
+func Login() {
+
+}
+
+//Logout is...
+func Logout() {
+
 }
 
 /*
