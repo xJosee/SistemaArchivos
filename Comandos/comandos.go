@@ -137,10 +137,22 @@ type Arbol struct {
 
 //Usuario is...
 type Usuario struct {
+	IDUser   int32
+	IDGrupo  int32
+	UserName [12]byte
+	PassWord [12]byte
+	Group    [12]byte
 }
 
 //Sesion is...
 type Sesion struct {
+	IDUser        int32
+	IDGrupo       int32
+	InicioSupet   int32
+	InicioJournal int32
+	TipoSistema   int32
+	Direccion     string
+	Fit           byte
 }
 
 /*
