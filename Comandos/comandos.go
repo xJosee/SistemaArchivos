@@ -99,6 +99,7 @@ type Bitacora struct {
 	Nombre    [20]byte
 	Contenido [20]byte
 	Fecha     [10]byte
+	Size      int32
 }
 
 //TablaInodo is...
@@ -318,6 +319,22 @@ func readSuperBloque(file *os.File, seek int64) SB {
 func readArbolVirtualDirectorio(file *os.File, seek int64) Arbol {
 	file.Seek(seek, 0)
 	m := Arbol{}
+	var size int = int(unsafe.Sizeof(m))
+
+	data := readNextBytes(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	err := binary.Read(buffer, binary.BigEndian, &m)
+	if err != nil {
+		log.Fatal("binary.Read failed", err)
+	}
+	return m
+}
+
+//readBitacora is...
+func readBitacora(file *os.File, seek int64) Bitacora {
+	file.Seek(seek, 0)
+	m := Bitacora{}
 	var size int = int(unsafe.Sizeof(m))
 
 	data := readNextBytes(file, size)
@@ -1600,8 +1617,11 @@ func Formatear(id string) {
 		//CREAR RAIZ
 		/*Carpeta folder;
 		folder.makeDirectory("/", 0, id, montaje, false);*/
-		CrearDirectorio("/", id, false) //TODO : Verficar cuando vandar true de la bitacora
-		CrearDirectorio("/home/jose/Escritorio/Jose/Luis/", "vda1", false)
+		/*
+		 * SE CREA EL AVD QUE REPRESENTA AL ROOT
+		 */
+		CrearDirectorio("/", id, false, 0) //TODO : Verficar cuando vandar true de la bitacora
+		CrearDirectorio("", "vda1", false, 0)
 		fmt.Println("----------------------------------------------------")
 		fmt.Println("-       Formateo LWH realizado correctamente       -")
 		fmt.Println("----------------------------------------------------")
@@ -1611,8 +1631,13 @@ func Formatear(id string) {
 	}
 }
 
+//CrearRoot is...
+func CrearRoot() {
+
+}
+
 //CrearDirectorio is...
-func CrearDirectorio(Ruta string, id string, Bitacora bool) {
+func CrearDirectorio(Ruta string, id string, bitacora bool, p int) {
 
 	pathD := listaParticiones.GetDireccion(id)     //Obtenemos la direccion del disco
 	SB := SB{}                                     // Instanciamos un SuperBloque
@@ -1621,25 +1646,28 @@ func CrearDirectorio(Ruta string, id string, Bitacora bool) {
 
 	SB = readSuperBloque(File, int64(PartStart)) //Leemos el superbloque
 
-	if Ruta == "/" { //Verificamos si la ruta es root ('/')
+	if Ruta == "/" { //Aca creamos el AVD que hace referencia al root
+		// y es el primero que se crea al hacer el formateo
 
-		var Carpeta Arbol = InicializarAVD(Arbol{})
-		copy(Carpeta.AVDNombreDirectorio[:], "Raiz")
-		//Obtenemos fecha actual
+		//Se crea una variable carpeta de tipo AVD que hace referencia al root
+		var CarpetaRoot Arbol = InicializarAVD(Arbol{})
+		//Se inicializan los valores del AVD
+		copy(CarpetaRoot.AVDNombreDirectorio[:], "root")
 		dt := time.Now()
 		fecha := dt.Format("01-02-2006 15:04:05")
-		copy(Carpeta.AVDFechaCreacion[:], fecha)
-		Carpeta.DetalleDirectorio = SB.FirstFreeDd
+		copy(CarpetaRoot.AVDFechaCreacion[:], fecha)
+		CarpetaRoot.DetalleDirectorio = SB.FirstFreeDd
 
+		//Nos posicionamos en el start del AVD del superbloque
 		File.Seek(int64(SB.StartArbolDirectorio), 0)
-		//Escribimos la carpeta
-		s1 := &Carpeta
+		//Escribimos la carpeta root
+		s1 := &CarpetaRoot
 		var binario2 bytes.Buffer
 		binary.Write(&binario2, binary.BigEndian, s1)
 		File.Write(binario2.Bytes())
 
-		File.Seek(int64(SB.StartBmArbolDirectorio), 0) //Ocupamos su posicion en bitmap.
-		//Escribimos 1's
+		//Escribimos 1 en el bitmap para indicar que esta ocupado
+		File.Seek(int64(SB.StartBmArbolDirectorio), 0)
 		var uno byte = '1'
 		s2 := &uno
 		var binario3 bytes.Buffer
@@ -1649,16 +1677,20 @@ func CrearDirectorio(Ruta string, id string, Bitacora bool) {
 		SB.ArbolVirtualFree--
 		SB.FirstFreeAvd++
 
+		/*
+		 * INICIALIZAMOS EL DETALLE DIRECTORIO EN EL AVD
+		 */
+
 		//Escribiendo el detalle directorio
 		Detalle := InicializarDD(DetalleDirectorio{})
 		File.Seek(int64(SB.StartDetalleDirectorio), 0)
-		//Escribimos
 		s3 := &Detalle
 		var binario4 bytes.Buffer
 		binary.Write(&binario4, binary.BigEndian, s3)
 		File.Write(binario4.Bytes())
 
-		File.Seek(int64(SB.StartBmDetalleDirectorio), 0) //Ocupamos su posicion en bitmap.
+		//Escribimos 1 en el bitmap para indicar que esta ocupado
+		File.Seek(int64(SB.StartBmDetalleDirectorio), 0)
 		var uno1 byte = '1'
 		s4 := &uno1
 		var binario5 bytes.Buffer
@@ -1668,44 +1700,183 @@ func CrearDirectorio(Ruta string, id string, Bitacora bool) {
 		SB.DetalleDirectorioFree--
 		SB.FirstFreeDd++
 
+		/*
+		 * REESCRIBIMOS EL SUPERBLOQUE EN EL PARTSART
+		 */
 		File.Seek(int64(PartStart), 0)
 		s5 := &SB
 		var binario6 bytes.Buffer
 		binary.Write(&binario6, binary.BigEndian, s5)
 		File.Write(binario6.Bytes())
+
+		//Cerramos el archivo
 		File.Close()
 
 	} else { //Si es una ruta diferente a root ('/')
 
+		//Hacemos un split para obtener todos los nombres de las carpetas que se desean crear
 		Rutas := strings.Split(Ruta, "/")
-		var Raiz Arbol
-		Raiz = readArbolVirtualDirectorio(File, int64(SB.StartArbolDirectorio))
+		// Creamos una variable llamada root que hace referencia al AVD del root que se crea en el formateo
+		var Root Arbol
+		// Se lee el root
+		Root = readArbolVirtualDirectorio(File, int64(SB.StartArbolDirectorio))
 
-		MKDIR(Raiz, Rutas, Ruta, SB, 0)
+		/* Mandamos esos valores para el metodo MKDIR que es el encargado de crear las carpetas
+		le mandamos el root porque es la raiz y de ahi se desprenden todas las carpetas */
+		MKDIR(Root, Rutas, Ruta, SB, 0)
 
+		//Cerramos el archivo
 		File.Close()
 	}
 
-	if !Bitacora {
+	// Verificamos si es bitacora
+	if !bitacora {
+		dt := time.Now()
+		fecha := dt.Format("01-02-2006 15:04:05")
+		//Instanciamos la bitacora
+		var log Bitacora
+		copy(log.Fecha[:], fecha)
+		log.Tipo = '0'
+		copy(log.TipoOp[:], "mkdir")
+		log.Size = int32(p)
 
+		File2 := getFile(pathD)
+		var BitacoraRaiz Bitacora
+		BitacoraRaiz = readBitacora(File2, int64(SB.StartLog))
+		sizeBitacora := int32(unsafe.Sizeof(log))
+		//Lo escribimos en el first free de la bitacora.
+		File2.Seek(int64(SB.StartLog+(BitacoraRaiz.Size*sizeBitacora)), 0) //TODO : verificar lo del size del bitacora raiz
+		s := &log
+		var binario bytes.Buffer
+		binary.Write(&binario, binary.BigEndian, s)
+		File2.Write(binario.Bytes())
+
+		BitacoraRaiz.Size++
+		File2.Seek(int64(SB.StartLog), 0)
+		s1 := &log
+		var binario1 bytes.Buffer
+		binary.Write(&binario, binary.BigEndian, s1)
+		File2.Write(binario1.Bytes())
+
+		File2.Close()
 	}
 }
 
 //MKDIR is...
-func MKDIR(AVD Arbol, path []string, RutaDisco string, SuperBloque SB, Apuntador int) {
+func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, Apuntador int) {
 	// TODO : Hacer el mkdir
-	//Rutas := strings.Split(path, "/")
-	//fmt.Println(Rutas)
-	//var SuperBloque SB = readSuperBloque(File,)
-	// 1. Hacer los splits "/"
-	// 2. Leer SB
-	// 3. Leo el arbol de directorio del root **Revisarrr**
-	// 4. Crear Directorio metodo
-	// 4.1 Recorrer cada arbol de directorio
-	// 4.2 Verificar el AVD en la pos i el apuntador es -1
-	// 4.3 si 4.2 true CrearCarpeta else leer el AVD sig para obtener el nombre y comparar , si el noombre es igual la carpeta ya existe
-	// Formula PosAVD = SB.InicioAVD + PrimerBitLibreAVD * AVDSize
-	// Cada vez que escriba un AVD reescribir el SB
+
+	// Se leer el archivo que contiene al disco
+	File := getFile(RutaDisco)
+	// Se declara un char para escribir en los bitmaps
+	var uno byte = '1'
+
+	// Esta variable hace referencia al apuntador actual en los subdirectorios
+	var apuntador int32 = 0
+	var apuntadorAVD int32 = 0
+
+	// Se recorren las 6 posiciones de los subdirectorios del AVD
+	for i := 0; i < 6; i++ {
+
+		// Se obtiene el apuntador
+		apuntador = AVD.Subirectorios[i]
+
+		if apuntador == -1 { // Si el apuntador es -1 significa que esta vacia la posicion
+
+			// Se crear una variable tipo AVD que hace referencia a la carpeta que se creara
+			var Carpeta Arbol
+			// Se inicializan los valores
+			dt := time.Now()
+			fecha := dt.Format("01-02-2006 15:04:05")
+			copy(Carpeta.AVDNombreDirectorio[:], paths[0])
+			copy(Carpeta.AVDFechaCreacion[:], fecha)
+
+			//El detalle directorio de la carpeta es la primera posicion libre del detalle direcotiro del superbloque
+			Carpeta.DetalleDirectorio = SuperBloque.FirstFreeDd
+			//El apuntador al subdirectorio es la primera posicion libre del AVd del superbloque
+			AVD.Subirectorios[i] = SuperBloque.FirstFreeAvd
+
+			//El apuntador AVD es la primera posicion libre del AVd del superbloque
+			apuntadorAVD = SuperBloque.FirstFreeAvd
+
+			//Formula para saber en que posicion escribir
+			Posicion := SuperBloque.StartArbolDirectorio + (SuperBloque.FirstFreeAvd * int32(unsafe.Sizeof(Carpeta)))
+
+			/*
+			 * Escribimos el AVD de la carpeta que deseamos crear
+			 */
+			File.Seek(int64(Posicion), 0)
+			s1 := &Carpeta
+			var binario bytes.Buffer
+			binary.Write(&binario, binary.BigEndian, s1)
+			File.Write(binario.Bytes())
+
+			//Escribimos el 1 en el bitmap para representar que esta lleno
+			File.Seek(int64(SuperBloque.StartBmArbolDirectorio+SuperBloque.FirstFreeAvd), 0)
+			s2 := &uno
+			var binario1 bytes.Buffer
+			binary.Write(&binario1, binary.BigEndian, s2)
+			File.Write(binario1.Bytes())
+
+			SuperBloque.ArbolVirtualFree--
+			SuperBloque.FirstFreeAvd++
+
+			/*
+			 * Reescribimos el AVD que recibimos como parametro en el metodo
+			 */
+			File.Seek(int64(SuperBloque.StartArbolDirectorio+(apuntador*int32(unsafe.Sizeof(AVD)))), 0)
+			s3 := &AVD
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s3)
+			File.Write(binario2.Bytes())
+
+			//Eliminamos del vector de que contiene los nombres de las carpetas , el nombre de la carpeta que acabamos de crear
+			paths = paths[:1]
+			//Cerramos el archivo
+			File.Close()
+			/*
+			 * llamamos recursivamente a este metodo para crear todos las carpetas y se detiene hasta que
+			 * el vector de los nombres de las carpetas este vacio
+			 */
+			MKDIR(Carpeta, paths, RutaDisco, SuperBloque, int(apuntadorAVD))
+			return
+
+		}
+		/*
+		 * Esta parte significa que la posicion no esta vacia y que ya existe una creada
+		 */
+
+		var CarpetaHija Arbol
+		//Leemos la carpeta que esta creada en esa posicion
+		CarpetaHija = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio+(apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
+		var nameByte [16]byte
+		copy(nameByte[:], paths[0])
+		//Comparamos si el nombre es igual
+		if bytes.Compare(nameByte[:], CarpetaHija.AVDNombreDirectorio[:]) == 0 { // Si es igual significa que la carpeta ya estaba creada
+			//Se saca del vector
+			paths = paths[:1]
+			//Se cierra el archivo
+			File.Close()
+			//Se llama recursivamente para crear las demas carpetas del vector
+			MKDIR(CarpetaHija, paths, RutaDisco, SuperBloque, int(apuntador))
+			return
+		}
+
+		/*
+		 *  APUNTADORES INDIRECTOS
+		 *  Hace referencia al AVD que se crea si un AVD ya esta lleno , entonces se crea una copia
+		 */
+		// El valor del apuntador es el siguiente o sea la copia
+		apuntador = AVD.VirtualDirectorio
+
+		if apuntador == -1 { //Significa que no hay una copia aun
+
+		} else { //Significa que ya existe una copia de ese AVD
+
+		}
+
+	}
+
 }
 
 //InicializarAVD is...
