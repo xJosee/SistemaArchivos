@@ -1492,6 +1492,11 @@ func Formatear(id string) {
 		SB.FirstFreeBloque = 0
 		//Magic Num
 		SB.MagicNum = 201807431
+		//Struct Size
+		SB.SizeStructAvd = int32(unsafe.Sizeof(AVD))
+		SB.SizeStructDd = int32(unsafe.Sizeof(DD))
+		SB.SizeStructInodo = int32(unsafe.Sizeof(Inodo))
+		SB.SizeStructBloque = int32(unsafe.Sizeof(Bloque))
 
 		fmt.Println("Inicio Bitacora", SB.StartLog+int32(CantidadEstructuras))
 
