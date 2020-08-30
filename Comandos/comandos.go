@@ -166,6 +166,13 @@ var listaParticiones = Estructuras.Lista{
 }
 
 /*
+ *  V A R I A B L E S   P A R A   E L   M A N E J O   D E   LA  S E S I O N
+ */
+
+var sesionActual Sesion
+var isLogged bool = false
+
+/*
  *  C O M A N D O S
  */
 
@@ -319,6 +326,21 @@ func readSuperBloque(file *os.File, seek int64) SB {
 func readArbolVirtualDirectorio(file *os.File, seek int64) Arbol {
 	file.Seek(seek, 0)
 	m := Arbol{}
+	var size int = int(unsafe.Sizeof(m))
+
+	data := readNextBytes(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	err := binary.Read(buffer, binary.BigEndian, &m)
+	if err != nil {
+		log.Fatal("binary.Read failed", err)
+	}
+	return m
+}
+
+func readInodo(file *os.File, seek int64) TablaInodo {
+	file.Seek(seek, 0)
+	m := TablaInodo{}
 	var size int = int(unsafe.Sizeof(m))
 
 	data := readNextBytes(file, size)
@@ -1162,6 +1184,28 @@ func ParticionLogicaExist(path string, name string) int {
 	return -1
 }
 
+//BuscarParticion is...
+func BuscarParticion(path string, nombre string) int {
+
+	if VerificarRuta(path) {
+
+		File := getFile(path)
+		MBR := readMBR(File)
+
+		for i := 0; i < 4; i++ {
+			var nameByte [16]byte
+			copy(nameByte[:], nombre)
+			if MBR.Particion[i].PartStatus != '1' {
+				if bytes.Compare(nameByte[:], MBR.Particion[i].PartName[:]) == 0 {
+					return i
+				}
+			}
+		}
+
+	}
+	return -1
+}
+
 /*
  *	R E P O R T E S
  */
@@ -1292,7 +1336,7 @@ func ReporteDisco(direccion string, destino string, extension string) {
 
 		fmt.Fprintf(graphDot, "digraph G{\n")
 		fmt.Fprintf(graphDot, "  tbl [\n    shape=box\n    label=<\n")
-		fmt.Fprintf(graphDot, "     <table border='0' cellborder='1' width='600' height='200' color='coral'>\n")
+		fmt.Fprintf(graphDot, "     <table border='0' cellborder='1' width='600' height='200' color='lightblue'>\n")
 		fmt.Fprintf(graphDot, "     <tr>\n")
 		fmt.Fprintf(graphDot, "     <td  cellspacing= '0' height='200' width='100'> MBR </td>\n")
 
@@ -1449,19 +1493,19 @@ func Formatear(id string) {
 		BloqueSize := int(unsafe.Sizeof(Bloque))
 		BitacoraSize := int(unsafe.Sizeof(Bitacora))
 
-		fmt.Println("SB", SBSize)
+		/*fmt.Println("SB", SBSize)
 		fmt.Println("AVD", AVDSize)
 		fmt.Println("DD", DDSize)
 		fmt.Println("Inodo", InodoSize)
 		fmt.Println("Bloque", BloqueSize)
-		fmt.Println("Bitacora", BitacoraSize)
+		fmt.Println("Bitacora", BitacoraSize)*/
 
 		File := getFile(pathD)                         //Obtenemos el disco
 		PartName := listaParticiones.GetPartName(id)   // Obtenemos el PartName
 		PartSize := listaParticiones.GetPartSize(id)   // Obtenemos el PartSize
 		PartStart := listaParticiones.GetPartStart(id) // Obtenemos el partStart
 
-		fmt.Println("PartStart", PartStart)
+		//fmt.Println("PartStart", PartStart)
 
 		//Formula de Cantidad de estructuras
 		var CantidadEstructuras int = (PartSize - (2 * SBSize)) / (27 + AVDSize + DDSize + (5*InodoSize + (20 * BloqueSize) + BitacoraSize))
@@ -1471,8 +1515,8 @@ func Formatear(id string) {
 		var CantidadDD int = CantidadEstructuras
 		var CantidadInodos int = 5 * CantidadEstructuras
 		var CantidadBloques int = 20 * CantidadEstructuras
-		var CantidadBitacora int = CantidadEstructuras
-		fmt.Println(CantidadAVD, CantidadDD, CantidadInodos, CantidadBloques, CantidadBitacora)
+		//var CantidadBitacora int = CantidadEstructuras
+		//fmt.Println(CantidadAVD, CantidadDD, CantidadInodos, CantidadBloques, CantidadBitacora)
 		/*
 		 *  INICIALIZANDO EL SUPER BLOQUE
 		 */
@@ -1515,7 +1559,7 @@ func Formatear(id string) {
 		SB.SizeStructInodo = int32(unsafe.Sizeof(Inodo))
 		SB.SizeStructBloque = int32(unsafe.Sizeof(Bloque))
 
-		fmt.Println("Inicio Bitacora", SB.StartLog+int32(CantidadEstructuras))
+		//fmt.Println("Inicio Bitacora", SB.StartLog+int32(CantidadEstructuras))
 
 		//Escribo el super bloque al inicio de la particion
 		reWriteSuperBloque(File, SB, int64(PartStart))
@@ -1621,7 +1665,6 @@ func Formatear(id string) {
 		 * SE CREA EL AVD QUE REPRESENTA AL ROOT
 		 */
 		CrearDirectorio("/", id, false, 0) //TODO : Verficar cuando vandar true de la bitacora
-		CrearDirectorio("", "vda1", false, 0)
 		fmt.Println("----------------------------------------------------")
 		fmt.Println("-       Formateo LWH realizado correctamente       -")
 		fmt.Println("----------------------------------------------------")
@@ -1629,11 +1672,6 @@ func Formatear(id string) {
 	} else {
 		ErrorMessage("[MKFS] -> La particion no se encuentra montada")
 	}
-}
-
-//CrearRoot is...
-func CrearRoot() {
-
 }
 
 //CrearDirectorio is...
@@ -1929,6 +1967,10 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, Apuntado
 
 }
 
+/*
+ *  METODOS PARA INICIALIZAR LOS STRUCTS DE LA FASE 2
+ */
+
 //InicializarAVD is...
 func InicializarAVD(Arbol Arbol) Arbol {
 	for i := 0; i < 6; i++ {
@@ -1964,9 +2006,48 @@ func InicializarBitacora(Bitacora Bitacora) Bitacora {
 	return Bitacora
 }
 
+/*
+ *  Manejo de la sesion
+ */
+
 //Login is ...
-func Login() {
+func Login(user string, password string, id string) {
+	fmt.Println(user, password, id)
 	// TODO : Hacer login
+	var RutaDisco string = listaParticiones.GetDireccion(id)
+
+	if RutaDisco != "null" {
+		var PartName string = listaParticiones.GetPartName(id)
+		PosParticion := BuscarParticion(RutaDisco, PartName)
+
+		if PosParticion != -1 {
+
+			/*var masterboot MBR
+			var SuperBloque SB
+			var Inodo TablaInodo
+			File := getFile(RutaDisco)
+			masterboot = readMBR(File)
+			SuperBloque = readSuperBloque(File, int64(masterboot.Particion[PosParticion].PartStart))
+			Inodo = readInodo(File, int64(SuperBloque.StartInodos+int32(unsafe.Sizeof(Inodo))))
+
+			File.Seek(int64(SuperBloque.StartInodos+int32(unsafe.Sizeof(Inodo))), 0)
+
+			inodo.i_atime = time(nullptr)
+			fwrite(&inodo, sizeof(InodoTable), 1, fp)
+			fclose(fp)
+			currentSession.inicioSuper = masterboot.mbr_partition[index].part_start
+			currentSession.fit = masterboot.mbr_partition[index].part_fit
+			currentSession.inicioJournal = masterboot.mbr_partition[index].part_start+static_cast < int > (sizeof(SuperBloque))
+			currentSession.tipo_sistema = super.s_filesystem_type
+			return verificarDatos(user, password, direccion)*/
+
+		} else {
+
+		}
+
+	} else {
+		ErrorMessage("[LOGIN] -> No se encuentra ninguna particion montada con ese id")
+	}
 }
 
 //Logout is...

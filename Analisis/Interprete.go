@@ -13,15 +13,17 @@ import (
 )
 
 var (
-	size   int    = 0
-	path   string = ""
-	fit    string = "ff"
-	unit   string = "k"
-	name   string = ""
-	tipo   string = ""
-	delete string = ""
-	add    int    = 0
-	id     string = ""
+	size     int    = 0
+	path     string = ""
+	fit      string = "ff"
+	unit     string = "k"
+	name     string = ""
+	tipo     string = ""
+	delete   string = ""
+	add      int    = 0
+	id       string = ""
+	user     string = ""
+	password string = ""
 )
 
 //Analizar is...
@@ -145,6 +147,20 @@ func VerificarComando(listaComandos []string) {
 			//SuccessMessage("[EXEC] -> Comando ejecutado correctamente")
 		}
 
+	} else if strings.ToLower(listaComandos[0]) == "login" {
+
+		if VerificarParametros(listaComandos) {
+			if user == "" {
+				ErrorMessage("[LOGIN] -> Parametro -usr no definido")
+			} else if password == "" {
+				ErrorMessage("[LOGIN] -> Parametro -pwd no definido")
+			} else if id == "" {
+				ErrorMessage("[LOGIN] -> Parametro -id no definido")
+			} else {
+				comandos.Login(user, password, id)
+			}
+		}
+
 	} else if strings.ToLower(listaComandos[0]) == "pause" {
 
 		fmt.Println("[CONSOLA] -> Presiona enter para continuar")
@@ -205,6 +221,10 @@ func VerificarParametros(listaComandos []string) bool {
 			add = Add
 		case "-id":
 			id = Paramatros[1]
+		case "-usr":
+			user = Paramatros[1]
+		case "-pwd":
+			password = Paramatros[1]
 		default:
 			ErrorMessage("[CONSOLA] -> Parametro [" + Paramatros[0] + "] incorrecto")
 			return false

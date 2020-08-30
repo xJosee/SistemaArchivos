@@ -2,7 +2,7 @@ digraph G{
   tbl [
     shape=box
     label=<
-     <table border='0' cellborder='1' width='600' height='200' color='coral'>
+     <table border='0' cellborder='1' width='600' height='200' color='lightblue'>
      <tr>
      <td  cellspacing= '0' height='200' width='100'> MBR </td>
      <td cellspacing= '0' height='200' width='200'>PRIMARIA </td>
