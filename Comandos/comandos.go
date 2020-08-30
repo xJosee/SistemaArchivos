@@ -119,16 +119,16 @@ type DetalleDirectorio struct {
 
 //File is...
 type File struct {
-	DDFileNombre           [10]byte
+	DDFileNombre           [16]byte
 	DDFileApInodo          int32
-	DDFileDateCreacion     [10]byte
-	DDFileDateModificacion [10]byte
+	DDFileDateCreacion     [20]byte
+	DDFileDateModificacion [20]byte
 }
 
 //Arbol is...
 type Arbol struct {
 	AVDFechaCreacion    [10]byte
-	AVDNombreDirectorio string
+	AVDNombreDirectorio [16]byte
 	Subirectorios       [6]int32
 	VirtualDirectorio   int32
 	DetalleDirectorio   int32
@@ -1333,7 +1333,7 @@ func MKFS(id string) {
 
 //Formatear is...
 func Formatear(id string) {
-	//TODO : Formatear LWH
+	//TODO : Ver lo de la escritura , porque mueren las particiones logicas
 
 	pathD := listaParticiones.GetDireccion(id) //Obtenemos la direccion del disco
 
@@ -1370,18 +1370,18 @@ func Formatear(id string) {
 		PartSize := listaParticiones.GetPartSize(id)   // Obtenemos el PartSize
 		PartStart := listaParticiones.GetPartStart(id) // Obtenemos el partStart
 
+		fmt.Println("PartStart", PartStart)
+
 		//Formula de Cantidad de estructuras
 		var CantidadEstructuras int = (PartSize - (2 * SBSize)) / (27 + AVDSize + DDSize + (5*InodoSize + (20 * BloqueSize) + BitacoraSize))
-		fmt.Println("PartSize", PartSize)
-		fmt.Println(CantidadEstructuras)
 
 		//Cantidad de elementos de cada Struct
 		var CantidadAVD int = CantidadEstructuras
 		var CantidadDD int = CantidadEstructuras
 		var CantidadInodos int = 5 * CantidadEstructuras
 		var CantidadBloques int = 20 * CantidadEstructuras
-		//var CantidadBitacora int = CantidadEstructuras
-
+		var CantidadBitacora int = CantidadEstructuras
+		fmt.Println(CantidadAVD, CantidadDD, CantidadInodos, CantidadBloques, CantidadBitacora)
 		/*
 		 *  INICIALIZANDO EL SUPER BLOQUE
 		 */
@@ -1404,7 +1404,7 @@ func Formatear(id string) {
 		//Start Cada Struct
 		SB.StartBmArbolDirectorio = int32(PartStart + int(unsafe.Sizeof(SB)))
 		SB.StartArbolDirectorio = SB.StartBmArbolDirectorio + int32(CantidadEstructuras)
-		SB.StartBmDetalleDirectorio = SB.StartArbolDirectorio + int32((CantidadEstructuras * int(unsafe.Sizeof(SB))))
+		SB.StartBmDetalleDirectorio = SB.StartArbolDirectorio + int32((CantidadEstructuras * int(unsafe.Sizeof(AVD))))
 		SB.StartDetalleDirectorio = SB.StartBmDetalleDirectorio + int32(CantidadEstructuras)
 		SB.StartBmInodos = SB.StartDetalleDirectorio + int32((CantidadEstructuras * int(unsafe.Sizeof(DD))))
 		SB.StartInodos = SB.StartBmInodos + int32((5 * CantidadEstructuras))
@@ -1419,7 +1419,9 @@ func Formatear(id string) {
 		//Magic Num
 		SB.MagicNum = 201807431
 
-		//Escribo
+		fmt.Println("Inicio Bitacora", SB.StartLog+int32(CantidadEstructuras))
+
+		//Escribo el super bloque al inicio de la particion
 		reWriteSuperBloque(File, SB, int64(PartStart))
 
 		//BitMap AVD
@@ -1537,12 +1539,12 @@ func CrearDirectorio(Ruta string, id string) {
 	File := getFile(pathD)                         //Obtenemos el file que contiene el disco
 	PartStart := listaParticiones.GetPartStart(id) // Obtenemos el partStart
 
-	SB = readSuperBloque(File, int64(PartStart)) //Leemos el supetbloque
+	SB = readSuperBloque(File, int64(PartStart)) //Leemos el superbloque
 
 	if Ruta == "/" { //Verificamos si la ruta es root ('/')
 
 		var Carpeta Arbol = InicializarAVD(Arbol{})
-		Carpeta.AVDNombreDirectorio = "Raiz"
+		copy(Carpeta.AVDNombreDirectorio[:], "Raiz")
 		//Obtenemos fecha actual
 		dt := time.Now()
 		fecha := dt.Format("01-02-2006 15:04:05")
@@ -1592,9 +1594,21 @@ func CrearDirectorio(Ruta string, id string) {
 		binary.Write(&binario6, binary.BigEndian, s5)
 		File.Write(binario6.Bytes())
 		File.Close()
+
 	} else { //Si es una ruta diferente a root ('/')
-		fmt.Println("Ruta diferente a root")
+		//TODO : Crear Carpetas diferentes de root  MKDIR
+		MKDIR(Ruta)
 	}
+}
+
+//MKDIR is...
+func MKDIR(path string) {
+	// TODO : Hacer el mkdir
+	// 1. Hacer los splits "/"
+	// 2. Leer SB
+	// 3. Leo el arbol de directorio del root **Revisarrr
+	// 4. Crear Directorio
+
 }
 
 //InicializarAVD is...
@@ -1634,12 +1648,12 @@ func InicializarBitacora(Bitacora Bitacora) Bitacora {
 
 //Login is ...
 func Login() {
-
+	// TODO : Hacer login
 }
 
 //Logout is...
 func Logout() {
-
+	// TODO : Hacer logout
 }
 
 /*
