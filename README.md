@@ -1,6 +1,5 @@
- Sistema de archivos
- Comandos    
-
+ # Sistema de archivos LWH
+ 
 | Comando | Descripcion |
 | ------ | ------ |
 | mkdisk | Crear un archivo binario |
