@@ -1871,9 +1871,59 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, Apuntado
 
 		if apuntador == -1 { //Significa que no hay una copia aun
 
-		} else { //Significa que ya existe una copia de ese AVD
+			//Creamos el AVD que hace referencia a la copia
+			var CopiaAVD Arbol
+			//Le seteamos el nombre del AVD anterior
+			CopiaAVD.AVDNombreDirectorio = AVD.AVDNombreDirectorio
+			//Obtenemos la fecha actual
+			dt := time.Now()
+			fecha := dt.Format("01-02-2006 15:04:05")
+			//Le setemos la fecha
+			copy(CopiaAVD.AVDFechaCreacion[:], fecha)
+
+			CopiaAVD.DetalleDirectorio = SuperBloque.FirstFreeDd
+			AVD.VirtualDirectorio = SuperBloque.FirstFreeAvd
+			apuntadorAVD = SuperBloque.FirstFreeAvd
+			var Posicion int = int(SuperBloque.StartArbolDirectorio + (SuperBloque.FirstFreeAvd * int32(unsafe.Sizeof(CopiaAVD))))
+
+			File.Seek(int64(Posicion), 0)
+			//Escribimos el La copia del AVD
+			s := &CopiaAVD
+			var binario bytes.Buffer
+			binary.Write(&binario, binary.BigEndian, s)
+			File.Write(binario.Bytes())
+			File.Seek(int64(SuperBloque.StartBmArbolDirectorio+SuperBloque.FirstFreeAvd), 0)
+			//Escribimos el 1 en el bitmap para representar el espacio ocupado
+			s1 := &uno
+			var binario1 bytes.Buffer
+			binary.Write(&binario1, binary.BigEndian, s1)
+			File.Write(binario1.Bytes())
+
+			SuperBloque.ArbolVirtualFree--
+			SuperBloque.FirstFreeAvd++
+
+			//Reescribo avd actual
+			File.Seek(int64(SuperBloque.StartArbolDirectorio+(apuntador*int32(unsafe.Sizeof(AVD)))), 0)
+			s2 := &AVD
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s2)
+			File.Write(binario2.Bytes())
+
+			//Cerramos el archivo
+			File.Close()
+			// Llamamos al metodo recursivamente para que cree la carpeta en la copia del AVD y le mandamos la copia
+			MKDIR(CopiaAVD, paths, RutaDisco, SuperBloque, int(apuntadorAVD))
+			return
 
 		}
+		//Significa que ya existe una copia de ese AVD
+		var CarpetaCopia Arbol
+		CarpetaCopia = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio+(apuntador*int32(unsafe.Sizeof(CarpetaCopia)))))
+		//Cerramos el archivo
+		File.Close()
+		//Llamamos recursivamente al metodo MKDIR para que repita todo el proceso en la copia del AVD
+		MKDIR(CarpetaCopia, paths, RutaDisco, SuperBloque, int(apuntador))
+		return
 
 	}
 
