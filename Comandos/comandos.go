@@ -314,6 +314,22 @@ func readSuperBloque(file *os.File, seek int64) SB {
 	return m
 }
 
+//readArbolVirtualDirectorio is...
+func readArbolVirtualDirectorio(file *os.File, seek int64) Arbol {
+	file.Seek(seek, 0)
+	m := Arbol{}
+	var size int = int(unsafe.Sizeof(m))
+
+	data := readNextBytes(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	err := binary.Read(buffer, binary.BigEndian, &m)
+	if err != nil {
+		log.Fatal("binary.Read failed", err)
+	}
+	return m
+}
+
 //readNextBytesEBR is...
 func readNextBytes(file *os.File, number int) []byte {
 	bytes := make([]byte, number)
@@ -1133,6 +1149,8 @@ func ParticionLogicaExist(path string, name string) int {
  *	R E P O R T E S
  */
 
+//**** FASE 1 ****/
+
 //ReporteEBR is...
 func ReporteEBR(path string) {
 
@@ -1320,6 +1338,62 @@ func ReporteDisco(direccion string, destino string, extension string) {
 	} else {
 		ErrorMessage("[REP] -> No se encuentra el disco")
 	}
+}
+
+/*** FASE 2 ****/
+
+//ReporteSuperBloque is...
+func ReporteSuperBloque(ID string) {
+	//TODO : Reporte SuperBloque
+	PartStart := listaParticiones.GetPartStart(ID)
+	PathDisco := listaParticiones.GetDireccion(ID)
+	File := getFile(PathDisco)
+	SB := readSuperBloque(File, int64(PartStart))
+
+	os.Create("graficaSuperBloque.dot")
+	graphDot := getFile("graficaSuperBloque.dot")
+
+	//Empezamos a escribir en el archivo
+	fmt.Fprintf(graphDot, "digraph G{ \n")
+	fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
+	fmt.Fprintf(graphDot, "tbl[\nlabel=<\n")
+	fmt.Fprintf(graphDot, "<table border='0' cellborder='1' cellspacing='0' width='300'  height='200' >\n")
+	fmt.Fprintf(graphDot, " <tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>MBR</font></b></td></tr>")
+	fmt.Fprintf(graphDot, "<tr>  <td width='230'> <b>Atributo</b> </td> <td width='230'> <b>Valor</b> </td>  </tr>\n")
+
+	fmt.Fprintf(graphDot, "<tr>  <td>NombreHD</td><td>%s</td>  </tr>\n", string(SB.NombreHD[:]))
+	fmt.Fprintf(graphDot, "<tr>  <td>ArbolVirtualCount</td><td>%d</td>  </tr>\n", SB.ArbolVirtualCount)
+	fmt.Fprintf(graphDot, "<tr>  <td>DetalleDirectorioCount</td><td>%d</td>  </tr>\n", SB.DetalleDirectorioCount)
+	fmt.Fprintf(graphDot, "<tr>  <td>InodosCount</td><td>%d</td>  </tr>\n", SB.InodosCount)
+	fmt.Fprintf(graphDot, "<tr>  <td>BloquesCount</td><td>%d</td>  </tr>\n", SB.BloquesCount)
+	fmt.Fprintf(graphDot, "<tr>  <td>ArbolVirtualFree</td><td>%d</td>  </tr>\n", SB.ArbolVirtualFree)
+	fmt.Fprintf(graphDot, "<tr>  <td>DetalleDirectorioFree</td><td>%d</td>  </tr>\n", SB.DetalleDirectorioFree)
+	fmt.Fprintf(graphDot, "<tr>  <td>InodosFree</td><td>%d</td>  </tr>\n", SB.InodosFree)
+	fmt.Fprintf(graphDot, "<tr>  <td>BloquesFree</td><td>%d</td>  </tr>\n", SB.BloquesFree)
+	fmt.Fprintf(graphDot, "<tr>  <td>FechaCreacion</td><td>%s</td>  </tr>\n", string(SB.DateCreacion[:]))
+	fmt.Fprintf(graphDot, "<tr>  <td>FechaUltimoMontaje</td><td>%s</td>  </tr>\n", string(SB.DateUltimoMontaje[:]))
+	fmt.Fprintf(graphDot, "<tr>  <td>MontajesCount</td><td>%d</td>  </tr>\n", SB.MontajesCount)
+	fmt.Fprintf(graphDot, "<tr>  <td>StartBmArbolDirectorio</td><td>%d</td>  </tr>\n", SB.StartBmArbolDirectorio)
+	fmt.Fprintf(graphDot, "<tr>  <td>StartArbolDirectorio</td><td>%d</td>  </tr>\n", SB.StartArbolDirectorio)
+	fmt.Fprintf(graphDot, "<tr>  <td>StartBmArbolDirectorio</td><td>%d</td>  </tr>\n", SB.StartBmDetalleDirectorio)
+	fmt.Fprintf(graphDot, "<tr>  <td>StartDetalleDirectorio</td><td>%d</td>  </tr>\n", SB.StartDetalleDirectorio)
+	fmt.Fprintf(graphDot, "<tr>  <td>StartBmInodos</td><td>%d</td>  </tr>\n", SB.StartBmInodos)
+	fmt.Fprintf(graphDot, "<tr>  <td>StartInodos</td><td>%d</td>  </tr>\n", SB.StartInodos)
+	fmt.Fprintf(graphDot, "<tr>  <td>StartBmBloques</td><td>%d</td>  </tr>\n", SB.StartBmBloques)
+	fmt.Fprintf(graphDot, "<tr>  <td>StartBloques</td><td>%d</td>  </tr>\n", SB.StartBloques)
+	fmt.Fprintf(graphDot, "<tr>  <td>StartBitacora</td><td>%d</td>  </tr>\n", SB.StartLog)
+	fmt.Fprintf(graphDot, "<tr>  <td>SizeAVD</td><td>%d</td>  </tr>\n", SB.SizeStructAvd)
+	fmt.Fprintf(graphDot, "<tr>  <td>SizeDD</td><td>%d</td>  </tr>\n", SB.SizeStructDd)
+	fmt.Fprintf(graphDot, "<tr>  <td>SizeInodo</td><td>%d</td>  </tr>\n", SB.SizeStructInodo)
+	fmt.Fprintf(graphDot, "<tr>  <td>SizeBloque</td><td>%d</td>  </tr>\n", SB.SizeStructBloque)
+	fmt.Fprintf(graphDot, "<tr>  <td>FirstFreeAVD</td><td>%d</td>  </tr>\n", SB.FirstFreeAvd)
+	fmt.Fprintf(graphDot, "<tr>  <td>FirstFreeDD</td><td>%d</td>  </tr>\n", SB.FirstFreeDd)
+	fmt.Fprintf(graphDot, "<tr>  <td>FirstFreeInodos</td><td>%d</td>  </tr>\n", SB.FirstFreeInodo)
+	fmt.Fprintf(graphDot, "<tr>  <td>FirstFreeBloque</td><td>%d</td>  </tr>\n", SB.FirstFreeInodo)
+	fmt.Fprintf(graphDot, "<tr>  <td>MagicNum</td><td>%d</td>  </tr>\n", SB.MagicNum)
+
+	fmt.Fprintf(graphDot, "</table>\n")
+	fmt.Fprintf(graphDot, ">];\n}")
 }
 
 /*
@@ -1521,7 +1595,8 @@ func Formatear(id string) {
 		//CREAR RAIZ
 		/*Carpeta folder;
 		folder.makeDirectory("/", 0, id, montaje, false);*/
-		CrearDirectorio("/", id)
+		CrearDirectorio("/", id, false) //TODO : Verficar cuando vandar true de la bitacora
+		CrearDirectorio("/home/jose/Escritorio/Jose/Luis/", "vda1", false)
 		fmt.Println("----------------------------------------------------")
 		fmt.Println("-       Formateo LWH realizado correctamente       -")
 		fmt.Println("----------------------------------------------------")
@@ -1532,7 +1607,7 @@ func Formatear(id string) {
 }
 
 //CrearDirectorio is...
-func CrearDirectorio(Ruta string, id string) {
+func CrearDirectorio(Ruta string, id string, Bitacora bool) {
 
 	pathD := listaParticiones.GetDireccion(id)     //Obtenemos la direccion del disco
 	SB := SB{}                                     // Instanciamos un SuperBloque
@@ -1596,19 +1671,36 @@ func CrearDirectorio(Ruta string, id string) {
 		File.Close()
 
 	} else { //Si es una ruta diferente a root ('/')
-		//TODO : Crear Carpetas diferentes de root  MKDIR
-		MKDIR(Ruta)
+
+		Rutas := strings.Split(Ruta, "/")
+		var Raiz Arbol
+		Raiz = readArbolVirtualDirectorio(File, int64(SB.StartArbolDirectorio))
+
+		MKDIR(Raiz, Rutas, Ruta, SB, 0)
+
+		File.Close()
+	}
+
+	if !Bitacora {
+
 	}
 }
 
 //MKDIR is...
-func MKDIR(path string) {
+func MKDIR(AVD Arbol, path []string, RutaDisco string, SuperBloque SB, Apuntador int) {
 	// TODO : Hacer el mkdir
+	//Rutas := strings.Split(path, "/")
+	//fmt.Println(Rutas)
+	//var SuperBloque SB = readSuperBloque(File,)
 	// 1. Hacer los splits "/"
 	// 2. Leer SB
-	// 3. Leo el arbol de directorio del root **Revisarrr
-	// 4. Crear Directorio
-
+	// 3. Leo el arbol de directorio del root **Revisarrr**
+	// 4. Crear Directorio metodo
+	// 4.1 Recorrer cada arbol de directorio
+	// 4.2 Verificar el AVD en la pos i el apuntador es -1
+	// 4.3 si 4.2 true CrearCarpeta else leer el AVD sig para obtener el nombre y comparar , si el noombre es igual la carpeta ya existe
+	// Formula PosAVD = SB.InicioAVD + PrimerBitLibreAVD * AVDSize
+	// Cada vez que escriba un AVD reescribir el SB
 }
 
 //InicializarAVD is...

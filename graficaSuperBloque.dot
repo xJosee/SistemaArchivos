@@ -1,0 +1,39 @@
+digraph G{ 
+node [shape=plaintext]
+tbl[
+label=<
+<table border='0' cellborder='1' cellspacing='0' width='300'  height='200' >
+ <tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>MBR</font></b></td></tr><tr>  <td width='230'> <b>Nombre</b> </td> <td width='230'> <b>Valor</b> </td>  </tr>
+<tr>  <td>NombreHD</td><td>part2</td>  </tr>
+<tr>  <td>ArbolVirtualCount</td><td>3643</td>  </tr>
+<tr>  <td>DetalleDirectorioCount</td><td>3643</td>  </tr>
+<tr>  <td>InodosCount</td><td>18215</td>  </tr>
+<tr>  <td>BloquesCount</td><td>72860</td>  </tr>
+<tr>  <td>ArbolVirtualFree</td><td>3642</td>  </tr>
+<tr>  <td>DetalleDirectorioFree</td><td>3642</td>  </tr>
+<tr>  <td>InodosFree</td><td>18215</td>  </tr>
+<tr>  <td>BloquesFree</td><td>72860</td>  </tr>
+<tr>  <td>FechaCreacion</td><td>08-30-2020 11:21:32</td>  </tr>
+<tr>  <td>FechaUltimoMontaje</td><td>08-30-2020 11:21:32</td>  </tr>
+<tr>  <td>MontajesCount</td><td>0</td>  </tr>
+<tr>  <td>StartBmArbolDirectorio</td><td>2097460</td>  </tr>
+<tr>  <td>StartArbolDirectorio</td><td>2101103</td>  </tr>
+<tr>  <td>StartBmArbolDirectorio</td><td>2334255</td>  </tr>
+<tr>  <td>StartDetalleDirectorio</td><td>2337898</td>  </tr>
+<tr>  <td>StartBmInodos</td><td>3445370</td>  </tr>
+<tr>  <td>StartInodos</td><td>3463585</td>  </tr>
+<tr>  <td>StartBmBloques</td><td>4119325</td>  </tr>
+<tr>  <td>StartBloques</td><td>4192185</td>  </tr>
+<tr>  <td>StartBitacora</td><td>6013685</td>  </tr>
+<tr>  <td>SizeAVD</td><td>0</td>  </tr>
+<tr>  <td>SizeDD</td><td>0</td>  </tr>
+<tr>  <td>SizeInodo</td><td>0</td>  </tr>
+<tr>  <td>SizeBloque</td><td>0</td>  </tr>
+<tr>  <td>FirstFreeAVD</td><td>1</td>  </tr>
+<tr>  <td>FirstFreeDD</td><td>1</td>  </tr>
+<tr>  <td>FirstFreeInodos</td><td>0</td>  </tr>
+<tr>  <td>FirstFreeBloque</td><td>0</td>  </tr>
+<tr>  <td>MagicNum</td><td>201807431</td>  </tr>
+</table>
+>];
+}
