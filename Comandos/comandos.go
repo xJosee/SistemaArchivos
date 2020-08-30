@@ -1358,7 +1358,7 @@ func ReporteSuperBloque(ID string) {
 	fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
 	fmt.Fprintf(graphDot, "tbl[\nlabel=<\n")
 	fmt.Fprintf(graphDot, "<table border='0' cellborder='1' cellspacing='0' width='300'  height='200' >\n")
-	fmt.Fprintf(graphDot, " <tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>MBR</font></b></td></tr>")
+	fmt.Fprintf(graphDot, " <tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>Super Bloque</font></b></td></tr>")
 	fmt.Fprintf(graphDot, "<tr>  <td width='230'> <b>Atributo</b> </td> <td width='230'> <b>Valor</b> </td>  </tr>\n")
 
 	fmt.Fprintf(graphDot, "<tr>  <td>NombreHD</td><td>%s</td>  </tr>\n", string(SB.NombreHD[:]))
