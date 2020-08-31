@@ -1754,6 +1754,8 @@ func CrearDirectorio(Ruta string, id string, bitacora bool, p int) {
 
 		//Hacemos un split para obtener todos los nombres de las carpetas que se desean crear
 		Rutas := strings.Split(Ruta, "/")
+		Rutas = Rutas[1:]
+		Rutas = Rutas[:len(Rutas)]
 		// Creamos una variable llamada root que hace referencia al AVD del root que se crea en el formateo
 		var Root Arbol
 		// Se lee el root
@@ -1868,22 +1870,27 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, Apuntado
 			binary.Write(&binario2, binary.BigEndian, s3)
 			File.Write(binario2.Bytes())
 
+			fmt.Println("Si llego hasta aca")
+
 			//Eliminamos del vector de que contiene los nombres de las carpetas , el nombre de la carpeta que acabamos de crear
-			paths = paths[:1]
+			fmt.Println(paths)
+			paths = paths[1:]
+			fmt.Println(paths)
 			//Cerramos el archivo
 			File.Close()
 			/*
 			 * llamamos recursivamente a este metodo para crear todos las carpetas y se detiene hasta que
 			 * el vector de los nombres de las carpetas este vacio
 			 */
+			if len(paths) == 0 {
+				return
+			}
 			MKDIR(Carpeta, paths, RutaDisco, SuperBloque, int(apuntadorAVD))
 			return
-
 		}
 		/*
 		 * Esta parte significa que la posicion no esta vacia y que ya existe una creada
 		 */
-
 		var CarpetaHija Arbol
 		//Leemos la carpeta que esta creada en esa posicion
 		CarpetaHija = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio+(apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
@@ -1892,7 +1899,7 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, Apuntado
 		//Comparamos si el nombre es igual
 		if bytes.Compare(nameByte[:], CarpetaHija.AVDNombreDirectorio[:]) == 0 { // Si es igual significa que la carpeta ya estaba creada
 			//Se saca del vector
-			paths = paths[:1]
+			paths = paths[1:]
 			//Se cierra el archivo
 			File.Close()
 			//Se llama recursivamente para crear las demas carpetas del vector
@@ -1965,6 +1972,44 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, Apuntado
 
 	}
 
+}
+
+//MKFILE is...
+func MKFILE(id string, path string, p bool, size int, count string) {
+
+	PathDisco := listaParticiones.GetDireccion(id)
+	if PathDisco != "null" {
+		if VerificarRuta(PathDisco) {
+			File := getFile(PathDisco)
+			//PartSize := listaParticiones.GetPartSize(id)
+			PartStart := listaParticiones.GetPartStart(id)
+			//PartName := listaParticiones.GetPartName(id)
+
+			//Leemos el SuperBloque
+			var SuperBloque SB
+			SuperBloque = readSuperBloque(File, int64(PartStart))
+
+			Rutas := strings.Split(path, "/") // TODO : Eliminar si vienen / al inicio y final
+
+			var Root Arbol
+			Root = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
+
+			//Eliminamos el espacio vacio y el nombre del archivo home/jose
+			NombreArchivo := Rutas[len(Rutas)-1]
+			Rutas = Rutas[1:]
+			Rutas = Rutas[:len(Rutas)-1]
+
+			fmt.Println(NombreArchivo)
+			//Mandamos a crear las carpetas si no estan creadas
+			MKDIR(Root, Rutas, PathDisco, SuperBloque, 0)
+
+		} else {
+			ErrorMessage("[MKFILE] -> No se encuentra ningun disco en esa ruta")
+		}
+
+	} else {
+		ErrorMessage("[MKFILE] -> No hay ninguna particion montada con ese id")
+	}
 }
 
 /*

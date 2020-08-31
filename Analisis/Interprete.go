@@ -24,6 +24,8 @@ var (
 	id       string = ""
 	user     string = ""
 	password string = ""
+	p        bool   = false
+	count    string = ""
 )
 
 //Analizar is...
@@ -45,6 +47,10 @@ func Analizar(comandos string) {
 	delete = ""
 	add = 0
 	id = ""
+	user = ""
+	password = ""
+	p = false
+	count = ""
 }
 
 //VerificarComando is...
@@ -161,6 +167,18 @@ func VerificarComando(listaComandos []string) {
 			}
 		}
 
+	} else if strings.ToLower(listaComandos[0]) == "mkfile" {
+
+		if VerificarParametros(listaComandos) {
+			if id == "" {
+				ErrorMessage("[MKFILE] -> Parametro -id no definido")
+			} else if path == "" {
+				ErrorMessage("[MKFILE] -> Parametro -path no definido")
+			} else {
+				comandos.MKFILE(id, path, true, size, count)
+			}
+		}
+
 	} else if strings.ToLower(listaComandos[0]) == "pause" {
 
 		fmt.Println("[CONSOLA] -> Presiona enter para continuar")
@@ -225,6 +243,10 @@ func VerificarParametros(listaComandos []string) bool {
 			user = Paramatros[1]
 		case "-pwd":
 			password = Paramatros[1]
+		case "-p":
+			p = true
+		case "-count":
+			count = Paramatros[1]
 		default:
 			ErrorMessage("[CONSOLA] -> Parametro [" + Paramatros[0] + "] incorrecto")
 			return false
