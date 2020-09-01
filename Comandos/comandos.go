@@ -1235,8 +1235,8 @@ func ReporteEBR(path string) {
 	if VerificarRuta(path) {
 
 		File := getFile(path)
-		os.Create("graficaEBR.dot")
-		graphDot := getFile("graficaEBR.dot")
+		os.Create("Reportes/graficaEBR.dot")
+		graphDot := getFile("Reportes/graficaEBR.dot")
 
 		fmt.Fprintf(graphDot, "digraph G{ \n")
 		fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
@@ -1334,7 +1334,7 @@ func ReporteEBR(path string) {
 		fmt.Fprintf(graphDot, "}\n")
 		graphDot.Close()
 		File.Close()
-		exec.Command("dot", "-Tpng", "-o", "/home/jose/Escritorio/graficaEBR.png", "graficaEBR.dot").Output()
+		exec.Command("dot", "-Tpng", "-o", "/home/jose/Escritorio/graficaEBR.png", "Reportes/graficaEBR.dot").Output()
 		SuccessMessage("[REP] -> Reporte del disco generado correctamente")
 
 	}
@@ -1348,8 +1348,8 @@ func ReporteDisco(direccion string, destino string, extension string) {
 
 	if VerificarRuta(auxDir) {
 		fp := getFile(auxDir)
-		os.Create("graficaDisco.dot")
-		graphDot := getFile("graficaDisco.dot")
+		os.Create("Reportes/graficaDisco.dot")
+		graphDot := getFile("Reportes/graficaDisco.dot")
 
 		fmt.Fprintf(graphDot, "digraph G{\n")
 		fmt.Fprintf(graphDot, "  tbl [\n    shape=box\n    label=<\n")
@@ -1410,7 +1410,7 @@ func ReporteDisco(direccion string, destino string, extension string) {
 		fmt.Fprintf(graphDot, "     </tr> \n     </table>        \n>];\n\n}")
 		graphDot.Close()
 		fp.Close()
-		exec.Command("dot", "-Tpng", "-o", "/home/jose/Escritorio/grafica.png", "graficaDisco.dot").Output()
+		exec.Command("dot", "-Tpng", "-o", "/home/jose/Escritorio/grafica.png", "Reportes/graficaDisco.dot").Output()
 
 		SuccessMessage("[REP] -> Reporte del disco generado correctamente")
 	} else {
@@ -1428,8 +1428,8 @@ func ReporteSuperBloque(ID string) {
 	File := getFile(PathDisco)
 	SB := readSuperBloque(File, int64(PartStart))
 
-	os.Create("graficaSuperBloque.dot")
-	graphDot := getFile("graficaSuperBloque.dot")
+	os.Create("Reportes/graficaSuperBloque.dot")
+	graphDot := getFile("Reportes/graficaSuperBloque.dot")
 
 	//Empezamos a escribir en el archivo
 	fmt.Fprintf(graphDot, "digraph G{ \n")
@@ -2184,7 +2184,14 @@ func CrearArchivo(Archivo DetalleDirectorio, Apuntador int, RutaDisco string, Su
 			/*
 			 *	TENEMOS QUE CREAR UNA COPIA DEL DETALLE DIRECTORIO
 			 */
-			//var NuevoDetalleDirectorio DetalleDirectorio
+			var NuevoDetalleDirectorio DetalleDirectorio
+			//PosNuevoDD := SuperB.StartDetalleDirectorio + (SuperB.FirstFreeDd * int32(unsafe.Sizeof(NuevoDetalleDirectorio)))
+			ApuntadorCopia = SuperB.FirstFreeDd
+			Archivo.DDApDetalleDirectorio = SuperB.FirstFreeDd
+
+			/*
+			 * ESCRIBIMOS EL NUEVO DETALLE DIRECTORIO (COPIA)
+			 */
 
 		}
 
