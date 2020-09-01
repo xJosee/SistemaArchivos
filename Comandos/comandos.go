@@ -114,12 +114,12 @@ type TablaInodo struct {
 
 //DetalleDirectorio is...
 type DetalleDirectorio struct {
-	DDArrayFiles          [5]File
-	DDApDetalleDirectorio int32
+	DDArrayFiles          [5]FileStruct // Los archivos que puede tener
+	DDApDetalleDirectorio int32         // Apunta a la copia del DD por si ya no caben mas files
 }
 
-//File is...
-type File struct {
+//FileStruct is...
+type FileStruct struct {
 	DDFileNombre           [16]byte
 	DDFileApInodo          int32
 	DDFileDateCreacion     [20]byte
@@ -2012,7 +2012,6 @@ func MKFILE(id string, path string, p bool, size int, count string) {
 			Rutas = Rutas[1:]
 			Rutas = Rutas[:len(Rutas)-1]
 
-			fmt.Println(NombreArchivo)
 			File.Close()
 			//Mandamos a crear las carpetas si no estan creadas
 			MKDIR(Root, Rutas, PathDisco, SuperBloque, 0)
@@ -2024,7 +2023,7 @@ func MKFILE(id string, path string, p bool, size int, count string) {
 
 			File.Close()
 
-			RecorrerArbol(Root, Rutas, PathDisco, SuperBloque, size, count)
+			RecorrerArbol(Root, Rutas, PathDisco, SuperBloque, size, count, NombreArchivo)
 
 		} else {
 			ErrorMessage("[MKFILE] -> No se encuentra ningun disco en esa ruta")
@@ -2036,7 +2035,7 @@ func MKFILE(id string, path string, p bool, size int, count string) {
 }
 
 //RecorrerArbol is...
-func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB, size int, count string) {
+func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB, size int, count string, NombreArchivo string) {
 
 	if VerificarRuta(PathDisco) {
 
@@ -2060,11 +2059,11 @@ func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB,
 					var Archivos DetalleDirectorio
 					Archivos = readDetalleDirectorio(File, int64(Superbloque.StartDetalleDirectorio+(Apuntador*int32(unsafe.Sizeof(Archivos)))))
 					File.Close()
-					CrearArchivo(Archivos, int(Apuntador), Rutas, PathDisco, Superbloque, size, count)
+					CrearArchivo(Archivos, int(Apuntador), Rutas, PathDisco, Superbloque, size, count, NombreArchivo)
 					return
 				}
 				File.Close()
-				RecorrerArbol(CarpetaHija, Rutas, PathDisco, Superbloque, size, count)
+				RecorrerArbol(CarpetaHija, Rutas, PathDisco, Superbloque, size, count, NombreArchivo)
 				return
 
 			}
@@ -2075,7 +2074,7 @@ func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB,
 		var CopiaCarpeta Arbol
 		CopiaCarpeta = readArbolVirtualDirectorio(File, int64(Superbloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CopiaCarpeta)))))
 		File.Close()
-		RecorrerArbol(CopiaCarpeta, Rutas, PathDisco, Superbloque, size, count)
+		RecorrerArbol(CopiaCarpeta, Rutas, PathDisco, Superbloque, size, count, NombreArchivo)
 		return
 
 	}
@@ -2084,7 +2083,95 @@ func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB,
 }
 
 //CrearArchivo is...
-func CrearArchivo(Archivo DetalleDirectorio, Apuntador int, Rutas []string, RutaDisco string, SuperB SB, size int, count string) {
+func CrearArchivo(Archivo DetalleDirectorio, Apuntador int, Rutas []string, RutaDisco string, SuperB SB, size int, count string, NombreArchivo string) {
+
+	if VerificarRuta(RutaDisco) {
+
+		//Recorreremos el array de Files del detalle directorio
+		File := getFile(RutaDisco)
+
+		for i := 0; i < 5; i++ {
+			Apuntador := Archivo.DDArrayFiles[i].DDFileApInodo
+
+			if Apuntador == -1 { //Quiere decir que esta disponible
+
+				/*
+				 * CREAMOS UN STRUCT DE FILE QUE REPRESENTA EL ARCHIVO QUE DESEAMOS CREAR
+				 */
+				var FileCrear FileStruct
+				dt := time.Now()
+				fecha := dt.Format("01-02-2006 15:04:05")
+				// Inicializamos los atributos
+				copy(FileCrear.DDFileDateCreacion[:], fecha)
+				copy(FileCrear.DDFileDateModificacion[:], fecha)
+				copy(FileCrear.DDFileNombre[:], NombreArchivo)
+				FileCrear.DDFileApInodo = SuperB.FirstFreeInodo
+
+				/*
+				 * ASIGNAMOS EL FILE QUE ACABAMOS DE CREAR AL DETALLE DIRECTORIO
+				 */
+				Archivo.DDArrayFiles[i] = FileCrear
+
+				/*
+				 * REESCRIBIMOS EL SUPERBLOQUE CON LAS MODIFICACIONES REALIZADAS
+				 */
+				File.Seek(int64(SuperB.StartDetalleDirectorio+(Apuntador*int32(unsafe.Sizeof(Archivo)))), 0)
+				s1 := &Archivo
+				var binario bytes.Buffer
+				binary.Write(&binario, binary.BigEndian, s1)
+				File.Write(binario.Bytes())
+
+				//Obtenemos el valor del apuntador al inodo
+				ApuntadorInodo := SuperB.FirstFreeInodo
+
+				/*
+				 *  CREAMOS EL INODO Y SETEAMOS SUS VALORES
+				 */
+
+				var Inodo TablaInodo
+				Inodo.ICountInodo = ApuntadorInodo
+				Inodo.ISizeArchivo = int32(size)
+				//Calculamos la cantidad de bloques
+				//TODO : Calcular la cantidad de bloques y ese show
+				SuperB.InodosFree++
+				SuperB.FirstFreeInodo++
+
+				/*
+				 *  ESCRIBIMOS EL 1 EN EL BITMAP DE INODO
+				 */
+				File.Seek(int64(SuperB.StartBmInodos+Inodo.ICountInodo), 0)
+				var uno byte = '1'
+				s := &uno
+				var binario1 bytes.Buffer
+				binary.Write(&binario1, binary.BigEndian, s)
+				File.Write(binario1.Bytes())
+
+				/*
+				 *	REESCRIBIMOS LE SUPERBLOQUE
+				 */
+				File.Seek(int64(SuperB.StartBmArbolDirectorio-int32(unsafe.Sizeof(SuperB))), 0)
+				s2 := &SuperB
+				var binario2 bytes.Buffer
+				binary.Write(&binario2, binary.BigEndian, s2)
+				File.Write(binario2.Bytes())
+
+				//Cerramos el archivo
+				File.Close()
+
+				CrearInodo()
+
+				return
+			}
+
+		}
+
+	} else {
+		ErrorMessage("[MKFILE] -> No existe ningun disco en esa ruta")
+	}
+}
+
+//CrearInodo is...
+func CrearInodo() {
 
 }
 
