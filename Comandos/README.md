@@ -1,6 +1,8 @@
 # Comandos
 | Comando | Descripcion |
 | ------ | ------ |
+| exec | Ejecutar un script |
+| rep | Ver reportes |
 | **Fase1** |
 | mkdisk | Crear un archivo binario |
 | rmdisk | Eliminar un archivo binario |
@@ -11,4 +13,3 @@
 | mkfs | Make File System |
 | mkdir | Crear Carpetas |
 | mkfile | Crear archivos |
-| rep | Ver reportes |
