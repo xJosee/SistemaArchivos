@@ -1870,12 +1870,8 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, Apuntado
 			binary.Write(&binario2, binary.BigEndian, s3)
 			File.Write(binario2.Bytes())
 
-			fmt.Println("Si llego hasta aca")
-
 			//Eliminamos del vector de que contiene los nombres de las carpetas , el nombre de la carpeta que acabamos de crear
-			fmt.Println(paths)
 			paths = paths[1:]
-			fmt.Println(paths)
 			//Cerramos el archivo
 			File.Close()
 			/*
@@ -2000,8 +1996,18 @@ func MKFILE(id string, path string, p bool, size int, count string) {
 			Rutas = Rutas[:len(Rutas)-1]
 
 			fmt.Println(NombreArchivo)
+			File.Close()
 			//Mandamos a crear las carpetas si no estan creadas
 			MKDIR(Root, Rutas, PathDisco, SuperBloque, 0)
+
+			File = getFile(PathDisco)
+			SuperBloque = readSuperBloque(File, int64(PartStart))
+
+			Root = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
+
+			File.Close()
+
+			RecorrerArbol(Root, Rutas, PathDisco, SuperBloque, size, count)
 
 		} else {
 			ErrorMessage("[MKFILE] -> No se encuentra ningun disco en esa ruta")
@@ -2010,6 +2016,11 @@ func MKFILE(id string, path string, p bool, size int, count string) {
 	} else {
 		ErrorMessage("[MKFILE] -> No hay ninguna particion montada con ese id")
 	}
+}
+
+//RecorrerArbol is...
+func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB, size int, count string) {
+	fmt.Println(Rutas)
 }
 
 /*
