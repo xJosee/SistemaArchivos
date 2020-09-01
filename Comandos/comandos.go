@@ -2059,7 +2059,7 @@ func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB,
 					var Archivos DetalleDirectorio
 					Archivos = readDetalleDirectorio(File, int64(Superbloque.StartDetalleDirectorio+(Apuntador*int32(unsafe.Sizeof(Archivos)))))
 					File.Close()
-					CrearArchivo(Archivos, int(Apuntador), Rutas, PathDisco, Superbloque, size, count, NombreArchivo)
+					CrearArchivo(Archivos, int(Apuntador), PathDisco, Superbloque, size, count, NombreArchivo)
 					return
 				}
 				File.Close()
@@ -2083,7 +2083,7 @@ func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB,
 }
 
 //CrearArchivo is...
-func CrearArchivo(Archivo DetalleDirectorio, Apuntador int, Rutas []string, RutaDisco string, SuperB SB, size int, count string, NombreArchivo string) {
+func CrearArchivo(Archivo DetalleDirectorio, Apuntador int, RutaDisco string, SuperB SB, size int, count string, NombreArchivo string) {
 
 	if VerificarRuta(RutaDisco) {
 
@@ -2162,6 +2162,29 @@ func CrearArchivo(Archivo DetalleDirectorio, Apuntador int, Rutas []string, Ruta
 
 				return
 			}
+
+			/*
+			 * NOS MOVEMOS A BUSCAR EN LA COPIA
+			 */
+
+			var ApuntadorCopia int32 = Archivo.DDApDetalleDirectorio
+			if ApuntadorCopia != 1 { //Significa que ya existe una copia
+				var DetalleDirectorioCopia DetalleDirectorio
+				DetalleDirectorioCopia = readDetalleDirectorio(File, int64(SuperB.StartDetalleDirectorio+(ApuntadorCopia*int32(unsafe.Sizeof(DetalleDirectorioCopia)))))
+
+				//Cerramos el archivo
+				File.Close()
+				/*
+				 * LLAMAMOS RECURSIVAMENTE AL METODO CREAR ARCHIVO PERO LE MANDAMOS COMO DD LA COPIA
+				 */
+				CrearArchivo(DetalleDirectorioCopia, int(ApuntadorCopia), RutaDisco, SuperB, size, count, NombreArchivo)
+				return
+
+			}
+			/*
+			 *	TENEMOS QUE CREAR UNA COPIA DEL DETALLE DIRECTORIO
+			 */
+			//var NuevoDetalleDirectorio DetalleDirectorio
 
 		}
 
