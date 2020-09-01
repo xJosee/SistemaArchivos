@@ -338,9 +338,26 @@ func readArbolVirtualDirectorio(file *os.File, seek int64) Arbol {
 	return m
 }
 
+//readInodo is...
 func readInodo(file *os.File, seek int64) TablaInodo {
 	file.Seek(seek, 0)
 	m := TablaInodo{}
+	var size int = int(unsafe.Sizeof(m))
+
+	data := readNextBytes(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	err := binary.Read(buffer, binary.BigEndian, &m)
+	if err != nil {
+		log.Fatal("binary.Read failed", err)
+	}
+	return m
+}
+
+//readDetalleDirectorio
+func readDetalleDirectorio(file *os.File, seek int64) DetalleDirectorio {
+	file.Seek(seek, 0)
+	m := DetalleDirectorio{}
 	var size int = int(unsafe.Sizeof(m))
 
 	data := readNextBytes(file, size)
@@ -2020,7 +2037,55 @@ func MKFILE(id string, path string, p bool, size int, count string) {
 
 //RecorrerArbol is...
 func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB, size int, count string) {
-	fmt.Println(Rutas)
+
+	if VerificarRuta(PathDisco) {
+
+		File := getFile(PathDisco)
+		var Apuntador int32 = 0
+
+		//recorremos los 6 subdirectorios del AVD
+		for i := 0; i < 6; i++ {
+			Apuntador = root.Subirectorios[i]
+			var CarpetaHija Arbol
+			CarpetaHija = readArbolVirtualDirectorio(File, int64(Superbloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
+
+			//Verificamos el nombre de la carpeta
+			var nameCarpetaByte [16]byte
+			copy(nameCarpetaByte[:], Rutas[0])
+			if bytes.Compare(CarpetaHija.AVDNombreDirectorio[:], nameCarpetaByte[:]) == 0 {
+				Rutas = Rutas[1:]
+
+				if len(Rutas) == 1 {
+					Apuntador = CarpetaHija.DetalleDirectorio
+					var Archivos DetalleDirectorio
+					Archivos = readDetalleDirectorio(File, int64(Superbloque.StartDetalleDirectorio+(Apuntador*int32(unsafe.Sizeof(Archivos)))))
+					File.Close()
+					CrearArchivo(Archivos, int(Apuntador), Rutas, PathDisco, Superbloque, size, count)
+					return
+				}
+				File.Close()
+				RecorrerArbol(CarpetaHija, Rutas, PathDisco, Superbloque, size, count)
+				return
+
+			}
+
+		}
+		// Buscamos en la copida de la carpeta
+		Apuntador = root.VirtualDirectorio
+		var CopiaCarpeta Arbol
+		CopiaCarpeta = readArbolVirtualDirectorio(File, int64(Superbloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CopiaCarpeta)))))
+		File.Close()
+		RecorrerArbol(CopiaCarpeta, Rutas, PathDisco, Superbloque, size, count)
+		return
+
+	}
+	ErrorMessage("[MKFILE] -> No hay ningun disco en la ruta indicada")
+
+}
+
+//CrearArchivo is...
+func CrearArchivo(Archivo DetalleDirectorio, Apuntador int, Rutas []string, RutaDisco string, SuperB SB, size int, count string) {
+
 }
 
 /*
