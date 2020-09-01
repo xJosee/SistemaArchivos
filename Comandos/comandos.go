@@ -2185,13 +2185,60 @@ func CrearArchivo(Archivo DetalleDirectorio, Apuntador int, RutaDisco string, Su
 			 *	TENEMOS QUE CREAR UNA COPIA DEL DETALLE DIRECTORIO
 			 */
 			var NuevoDetalleDirectorio DetalleDirectorio
-			//PosNuevoDD := SuperB.StartDetalleDirectorio + (SuperB.FirstFreeDd * int32(unsafe.Sizeof(NuevoDetalleDirectorio)))
+			PosNuevoDD := SuperB.StartDetalleDirectorio + (SuperB.FirstFreeDd * int32(unsafe.Sizeof(NuevoDetalleDirectorio)))
 			ApuntadorCopia = SuperB.FirstFreeDd
 			Archivo.DDApDetalleDirectorio = SuperB.FirstFreeDd
 
 			/*
 			 * ESCRIBIMOS EL NUEVO DETALLE DIRECTORIO (COPIA)
 			 */
+			File.Seek(int64(PosNuevoDD), 0)
+			s3 := &NuevoDetalleDirectorio
+			var binario3 bytes.Buffer
+			binary.Write(&binario3, binary.BigEndian, s3)
+			File.Write(binario3.Bytes())
+
+			/*
+			 *  ESCRIBIMOS EL 1 EN EL BITMAP DEL DETALLE DIRECTORIO
+			 */
+			File.Seek(int64(SuperB.StartBmDetalleDirectorio+SuperB.FirstFreeDd), 0)
+			var unoo byte = '1'
+			s4 := &unoo
+			var binario4 bytes.Buffer
+			binary.Write(&binario4, binary.BigEndian, s4)
+			File.Write(binario4.Bytes())
+
+			SuperB.DetalleDirectorioFree--
+			SuperB.FirstFreeDd++
+
+			/*
+			 *  REESCRIBIMOS EL DETALLE DIRECTORIO PADRE PARA APLICARLE LOS CAMBIOS
+			 */
+			File.Seek(int64(SuperB.StartDetalleDirectorio+(Apuntador*int32(unsafe.Sizeof(Archivo)))), 0)
+			s5 := &Archivo
+			var binario5 bytes.Buffer
+			binary.Write(&binario5, binary.BigEndian, s5)
+			File.Write(binario5.Bytes())
+
+			/*
+			 * REESCRIBIMOS EL SUPERBLOQUE PARA APLICARLE LOS CAMBIOS
+			 */
+			File.Seek(int64(SuperB.StartBmArbolDirectorio-int32(unsafe.Sizeof(SuperB))), 0)
+			s6 := &SuperB
+			var binario6 bytes.Buffer
+			binary.Write(&binario6, binary.BigEndian, s6)
+			File.Write(binario6.Bytes())
+
+			//Cerramos el archivo
+			File.Close()
+
+			/*
+			 * YA QUE CREAMOS EL DD COPIA MANDAMOS A LLAMAR AL METODO CREARARCHIVO RECURSIVAMENTE
+			 * PERO LE MANDAMOS COMO DD LA COPIA
+			 */
+
+			CrearArchivo(NuevoDetalleDirectorio, int(ApuntadorCopia), RutaDisco, SuperB, size, count, NombreArchivo)
+			return
 
 		}
 
