@@ -1474,6 +1474,15 @@ func ReporteSuperBloque(ID string) {
 	fmt.Fprintf(graphDot, ">];\n}")
 }
 
+//ReporteDirectorio is...
+func ReporteDirectorio() {
+
+}
+
+/*
+ * REPORTES BITMAPS
+ */
+
 /*
  *	C O M A N D O S   F A S E   2
  */
@@ -2158,7 +2167,7 @@ func CrearArchivo(Archivo DetalleDirectorio, Apuntador int, RutaDisco string, Su
 				//Cerramos el archivo
 				File.Close()
 
-				CrearInodo()
+				CrearInodo(Inodo, NombreArchivo, RutaDisco, SuperB, count)
 
 				return
 			}
@@ -2248,7 +2257,78 @@ func CrearArchivo(Archivo DetalleDirectorio, Apuntador int, RutaDisco string, Su
 }
 
 //CrearInodo is...
-func CrearInodo() {
+func CrearInodo(Inodo TablaInodo, NombreArchivo string, RutaDisco string, SuperBloque SB, contenido string) {
+
+	if VerificarRuta(RutaDisco) {
+		File := getFile(RutaDisco)
+
+		for i := 0; i < int(Inodo.ICountBloquesAsignados); i++ {
+			//Verificamos si el contenido viene o no
+			if contenido == "" {
+				contenido = "Este es un texto de prueba"
+			}
+
+			/*
+			 * CREAMOS EL BLOQUE
+			 */
+			var BloqueDatos Bloque
+			//Verificamos el valor del contenido a ingresar
+			if len(contenido) >= 25 {
+				copy(BloqueDatos.Texto[:], contenido)
+			} else {
+				ErrorMessage("[MKFILE] -> El contenido sobrepasa el size permitido")
+			}
+
+			Inodo.IArrayBloques[i] = SuperBloque.FirstFreeBloque
+
+			/*
+			 *  ESCRIBIMOS EL BLOQUE EN EL FILE
+			 */
+			File.Seek(int64(SuperBloque.StartBloques+(SuperBloque.FirstFreeBloque)*int32(unsafe.Sizeof(BloqueDatos))), 0)
+			s := &BloqueDatos
+			var binario bytes.Buffer
+			binary.Write(&binario, binary.BigEndian, s)
+			File.Write(binario.Bytes())
+
+			/*
+			 * PONEMOS UN 1 EN EL BITMAP DE BLOQUES
+			 */
+			File.Seek(int64(SuperBloque.StartBmBloques+SuperBloque.FirstFreeBloque), 0)
+			var uno byte = '1'
+			s1 := &uno
+			var binario1 bytes.Buffer
+			binary.Write(&binario1, binary.BigEndian, s1)
+			File.Write(binario1.Bytes())
+
+			/*
+			 * REESCRIBIMOS EL INODO
+			 */
+			File.Seek(int64(SuperBloque.StartInodos+(Inodo.ICountInodo*int32(unsafe.Sizeof(Inodo)))), 0)
+			s2 := &Inodo
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s2)
+			File.Write(binario2.Bytes())
+
+			SuperBloque.BloquesFree--
+			SuperBloque.FirstFreeBloque++
+
+			/*
+			 * REESCRIBIMOS EL SUPERBLOQUE CON LOS CAMBIOS
+			 */
+			File.Seek(int64(SuperBloque.StartBmArbolDirectorio-int32(unsafe.Sizeof(SuperBloque))), 0)
+			s3 := &SuperBloque
+			var binario3 bytes.Buffer
+			binary.Write(&binario3, binary.BigEndian, s3)
+			File.Write(binario3.Bytes())
+		}
+
+		/*
+		 *  VERIFICAMOS SI LOS BLOQUES SON MAYOR A 4
+		 */
+
+	} else {
+		ErrorMessage("[MKFILE] -> No existe ningun disco en esta ruta")
+	}
 
 }
 
