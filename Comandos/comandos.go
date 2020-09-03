@@ -1494,7 +1494,7 @@ func ReporteDirectorio(path string, id string) {
 		fmt.Fprintf(graphDot, "digraph G{ \n")
 		fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
 
-		RecorrerArbolReporte(Root, SuperBloque, File, &Grafica)
+		RecorrerArbolReporte(Root, SuperBloque, File, &Grafica, false)
 
 		fmt.Fprintf(graphDot, Grafica)
 
@@ -1507,7 +1507,9 @@ func ReporteDirectorio(path string, id string) {
 }
 
 //RecorrerArbolReporte is...
-func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *string) {
+func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *string, avd bool) {
+
+	fmt.Println(string(arbol.AVDNombreDirectorio[:]))
 
 	var Apuntador int32 = 0
 	*Grafica += "tbl"
@@ -1517,7 +1519,11 @@ func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *s
 	*Grafica += "[label=<\n"
 	*Grafica += "<table border='0' cellborder='1' cellspacing='0'>\n"
 	*Grafica += "<tr>\n"
-	*Grafica += "<td colspan='8' bgcolor= 'lightblue' >" + texto + "</td>\n"
+	if !avd {
+		*Grafica += "<td colspan='8' bgcolor= 'lightblue' >" + texto + "</td>\n"
+	} else {
+		*Grafica += "<td colspan='8' bgcolor= 'forestgreen' >" + texto + "</td>\n"
+	}
 	*Grafica += "</tr>\n"
 	*Grafica += "<tr>\n"
 	*Grafica += "<td bgcolor='lightblue' width='20' >1</td>\n"
@@ -1558,40 +1564,56 @@ func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *s
 	//Apuntador al DD
 	*Grafica += "tbl" + texto
 	*Grafica += "->"
-	*Grafica += "tbl" + texto + "_DD\n"
+	*Grafica += "tbl" + texto + "DD\n"
 
-	Posicion := Superbloque.StartArbolDirectorio + (Superbloque.FirstFreeAvd * int32(unsafe.Sizeof(arbol)))
-	Detalle := readDetalleDirectorio(file, int64(Posicion))
+	*Grafica += GenerarDetalleDirectorio(texto)
 
-	*Grafica += GenerarDetalleDirectorio(texto, Detalle)
+	if arbol.VirtualDirectorio != -1 {
+		ApuntadorAVDCopia := arbol.VirtualDirectorio
+		var CopiaCarpeta Arbol
+		CopiaCarpeta = readArbolVirtualDirectorio(file, int64(Superbloque.StartArbolDirectorio+(ApuntadorAVDCopia*int32(unsafe.Sizeof(arbol)))))
+		NombreCopia := string(CopiaCarpeta.AVDNombreDirectorio[:])
+		NombreCopia = strings.Replace(NombreCopia, "\x00", "", -1)
+		/*
+		 *	PUNTERO PARA EL AVD VIRTUAL
+		 */
+		*Grafica += "tbl" + texto
+		*Grafica += "->"
+		*Grafica += "tbl" + NombreCopia + "\n"
 
-	/*if arbol.VirtualDirectorio != -1 {
-		var Posicion int = int(Superbloque.StartArbolDirectorio + (apuntador * int32(unsafe.Sizeof(arbol))))
-	}*/
+		RecorrerArbolReporte(CopiaCarpeta, Superbloque, file, Grafica, true)
+	}
 
 	/*
 	 * RECORREMOS RECURSIVAMENTE
 	 */
 	for j := 0; j < 6; j++ {
 		Apuntador = arbol.Subirectorios[j]
-
 		if Apuntador != -1 {
-			*Grafica += "tbl" + texto
-			*Grafica += "->"
 			var CarpetaHija Arbol
 			CarpetaHija = readArbolVirtualDirectorio(file, int64(Superbloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
 			texto1 := string(CarpetaHija.AVDNombreDirectorio[:])
 			texto1 = strings.Replace(texto1, "\x00", "", -1)
+
+			/*
+			 * APUNTADOR EN EL GRAPHVIZ
+			 */
+			*Grafica += "tbl" + texto
+			*Grafica += "->"
 			*Grafica += "tbl" + texto1 + "\n"
-			RecorrerArbolReporte(CarpetaHija, Superbloque, file, Grafica)
+			/*
+			 * LLAMAMOS RECURSIVAMENTE AL METODO
+			 */
+			RecorrerArbolReporte(CarpetaHija, Superbloque, file, Grafica, false)
 		}
 	}
+
 }
 
 //GenerarDetalleDirectorio is...
-func GenerarDetalleDirectorio(Nombre string, Detalle DetalleDirectorio) string {
+func GenerarDetalleDirectorio(Nombre string) string {
 
-	Nombre += "_DD"
+	Nombre += "DD"
 
 	var GraficaDD string
 	GraficaDD = "tbl" + Nombre + "[label=<\n"
@@ -1611,11 +1633,6 @@ func GenerarDetalleDirectorio(Nombre string, Detalle DetalleDirectorio) string {
 	GraficaDD += "</table>\n>];\n"
 
 	return GraficaDD
-
-}
-
-//GenerarAVDVirtual is...
-func GenerarAVDVirtual() {
 
 }
 
@@ -2040,6 +2057,7 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, puntero 
 			 * llamamos recursivamente a este metodo para crear todos las carpetas y se detiene hasta que
 			 * el vector de los nombres de las carpetas este vacio
 			 */
+			fmt.Println("mkdir2", string(AVD.AVDNombreDirectorio[:]), AVD.Subirectorios, paths)
 			MKDIR(Carpeta, paths, RutaDisco, SuperBloque, int(apuntadorAVD))
 			return
 		}
@@ -2057,7 +2075,7 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, puntero 
 			paths = paths[1:]
 			//Se cierra el archivo
 			File.Close()
-
+			fmt.Println("mkdir3", string(AVD.AVDNombreDirectorio[:]), AVD.Subirectorios, paths)
 			//Se llama recursivamente para crear las demas carpetas del vector
 			MKDIR(CarpetaHija, paths, RutaDisco, SuperBloque, int(apuntador))
 			return
@@ -2076,7 +2094,10 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, puntero 
 		//Creamos el AVD que hace referencia a la copia
 		CopiaAVD := InicializarAVD(Arbol{})
 		//Le seteamos el nombre del AVD anterior
-		CopiaAVD.AVDNombreDirectorio = AVD.AVDNombreDirectorio
+		Nombre := string(AVD.AVDNombreDirectorio[:])
+		Nombre = strings.Replace(Nombre, "\x00", "", -1)
+		Nombre += "AVD"
+		copy(CopiaAVD.AVDNombreDirectorio[:], Nombre)
 		//Obtenemos la fecha actual
 		dt := time.Now()
 		fecha := dt.Format("01-02-2006 15:04:05")
@@ -2113,6 +2134,9 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, puntero 
 
 		//Cerramos el archivo
 		File.Close()
+
+		fmt.Println("mkdir4", string(AVD.AVDNombreDirectorio[:]), AVD.Subirectorios, paths)
+
 		// Llamamos al metodo recursivamente para que cree la carpeta en la copia del AVD y le mandamos la copia
 		MKDIR(CopiaAVD, paths, RutaDisco, SuperBloque, int(apuntadorAVD))
 		return
@@ -2123,7 +2147,7 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, puntero 
 	CarpetaCopia = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio+(apuntador*int32(unsafe.Sizeof(CarpetaCopia)))))
 	//Cerramos el archivo
 	File.Close()
-
+	fmt.Println("mkdir5", string(AVD.AVDNombreDirectorio[:]), AVD.Subirectorios, paths)
 	//Llamamos recursivamente al metodo MKDIR para que repita todo el proceso en la copia del AVD
 	MKDIR(CarpetaCopia, paths, RutaDisco, SuperBloque, int(apuntador))
 	return
@@ -2230,7 +2254,7 @@ func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB,
 			}
 
 		}
-		// Buscamos en la copida de la carpeta
+		// Buscamos en la copia de la carpeta
 		Apuntador = root.VirtualDirectorio
 
 		var CopiaCarpeta Arbol

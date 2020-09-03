@@ -1,9 +1,9 @@
 digraph G{ 
 node [shape=plaintext]
-tbl1111[label=<
+tblroot[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >1111</td>
+<td colspan='8' bgcolor= 'lightblue' >root</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -17,7 +17,7 @@ tbl1111[label=<
 </tr>
 <tr>
 <td width='20'>1</td>
-<td width='20'>-1</td>
+<td width='20'>10</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
@@ -27,10 +27,10 @@ tbl1111[label=<
 </tr>
 </table>
 >];
-tbl1111->tbl1111_DD
-tbl1111_DD[label=<
+tblroot->tblrootDD
+tblrootDD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>1111_DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>rootDD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -54,7 +54,7 @@ tbl1111_DD[label=<
 </tr>
 </table>
 >];
-tbl1111->tblhome
+tblroot->tblhome
 tblhome[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
@@ -72,7 +72,7 @@ tblhome[label=<
 </tr>
 <tr>
 <td width='20'>2</td>
-<td width='20'>4</td>
+<td width='20'>-1</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
@@ -82,10 +82,10 @@ tblhome[label=<
 </tr>
 </table>
 >];
-tblhome->tblhome_DD
-tblhome_DD[label=<
+tblhome->tblhomeDD
+tblhomeDD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>home_DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>homeDD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -109,11 +109,11 @@ tblhome_DD[label=<
 </tr>
 </table>
 >];
-tblhome->tblcarpeta
-tblcarpeta[label=<
+tblhome->tbljose
+tbljose[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >carpeta</td>
+<td colspan='8' bgcolor= 'lightblue' >jose</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -127,7 +127,7 @@ tblcarpeta[label=<
 </tr>
 <tr>
 <td width='20'>3</td>
-<td width='20'>-1</td>
+<td width='20'>8</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
@@ -137,10 +137,10 @@ tblcarpeta[label=<
 </tr>
 </table>
 >];
-tblcarpeta->tblcarpeta_DD
-tblcarpeta_DD[label=<
+tbljose->tbljoseDD
+tbljoseDD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta_DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>joseDD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -164,11 +164,11 @@ tblcarpeta_DD[label=<
 </tr>
 </table>
 >];
-tblcarpeta->tbl1111111
-tbl1111111[label=<
+tbljose->tbl11critorio
+tbl11critorio[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >1111111</td>
+<td colspan='8' bgcolor= 'lightblue' >11critorio</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -181,10 +181,10 @@ tbl1111111[label=<
 <td bgcolor='forestgreen' width='20' >AVD</td>
 </tr>
 <tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
+<td width='20'>4</td>
+<td width='20'>5</td>
+<td width='20'>6</td>
+<td width='20'>7</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
 <td width='20'>3</td>
@@ -192,10 +192,10 @@ tbl1111111[label=<
 </tr>
 </table>
 >];
-tbl1111111->tbl1111111_DD
-tbl1111111_DD[label=<
+tbl11critorio->tbl11critorioDD
+tbl11critorioDD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>1111111_DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>11critorioDD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -219,11 +219,11 @@ tbl1111111_DD[label=<
 </tr>
 </table>
 >];
-tblhome->tblprueba
-tblprueba[label=<
+tbl11critorio->tblcompi2
+tblcompi2[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >prueba</td>
+<td colspan='8' bgcolor= 'lightblue' >compi2</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -236,21 +236,21 @@ tblprueba[label=<
 <td bgcolor='forestgreen' width='20' >AVD</td>
 </tr>
 <tr>
-<td width='20'>5</td>
-<td width='20'>6</td>
-<td width='20'>7</td>
-<td width='20'>8</td>
-<td width='20'>9</td>
-<td width='20'>10</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
 <td width='20'>4</td>
 <td width='20'>-1</td>
 </tr>
 </table>
 >];
-tblprueba->tblprueba_DD
-tblprueba_DD[label=<
+tblcompi2->tblcompi2DD
+tblcompi2DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>prueba_DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>compi2DD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -274,11 +274,11 @@ tblprueba_DD[label=<
 </tr>
 </table>
 >];
-tblprueba->tblsijala1
-tblsijala1[label=<
+tbl11critorio->tblarchivos
+tblarchivos[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala1</td>
+<td colspan='8' bgcolor= 'lightblue' >archivos</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -302,10 +302,10 @@ tblsijala1[label=<
 </tr>
 </table>
 >];
-tblsijala1->tblsijala1_DD
-tblsijala1_DD[label=<
+tblarchivos->tblarchivosDD
+tblarchivosDD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala1_DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>archivosDD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -329,11 +329,11 @@ tblsijala1_DD[label=<
 </tr>
 </table>
 >];
-tblprueba->tblsijala2
-tblsijala2[label=<
+tbl11critorio->tblarqui1
+tblarqui1[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala2</td>
+<td colspan='8' bgcolor= 'lightblue' >arqui1</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -357,10 +357,10 @@ tblsijala2[label=<
 </tr>
 </table>
 >];
-tblsijala2->tblsijala2_DD
-tblsijala2_DD[label=<
+tblarqui1->tblarqui1DD
+tblarqui1DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala2_DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>arqui1DD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -384,11 +384,11 @@ tblsijala2_DD[label=<
 </tr>
 </table>
 >];
-tblprueba->tblsijala3
-tblsijala3[label=<
+tbl11critorio->tbllogica
+tbllogica[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala3</td>
+<td colspan='8' bgcolor= 'lightblue' >logica</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -412,10 +412,10 @@ tblsijala3[label=<
 </tr>
 </table>
 >];
-tblsijala3->tblsijala3_DD
-tblsijala3_DD[label=<
+tbllogica->tbllogicaDD
+tbllogicaDD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala3_DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>logicaDD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -439,11 +439,11 @@ tblsijala3_DD[label=<
 </tr>
 </table>
 >];
-tblprueba->tblsijala4
-tblsijala4[label=<
+tbljose->tblCarpetas
+tblCarpetas[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala4</td>
+<td colspan='8' bgcolor= 'lightblue' >Carpetas</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -456,7 +456,7 @@ tblsijala4[label=<
 <td bgcolor='forestgreen' width='20' >AVD</td>
 </tr>
 <tr>
-<td width='20'>-1</td>
+<td width='20'>9</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
@@ -467,10 +467,10 @@ tblsijala4[label=<
 </tr>
 </table>
 >];
-tblsijala4->tblsijala4_DD
-tblsijala4_DD[label=<
+tblCarpetas->tblCarpetasDD
+tblCarpetasDD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala4_DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>CarpetasDD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -494,11 +494,11 @@ tblsijala4_DD[label=<
 </tr>
 </table>
 >];
-tblprueba->tblsijala5
-tblsijala5[label=<
+tblCarpetas->tblio2
+tblio2[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala5</td>
+<td colspan='8' bgcolor= 'lightblue' >io2</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -522,10 +522,10 @@ tblsijala5[label=<
 </tr>
 </table>
 >];
-tblsijala5->tblsijala5_DD
-tblsijala5_DD[label=<
+tblio2->tblio2DD
+tblio2DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala5_DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>io2DD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -549,11 +549,11 @@ tblsijala5_DD[label=<
 </tr>
 </table>
 >];
-tblprueba->tblgolang
-tblgolang[label=<
+tblroot->tbluser
+tbluser[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >golang</td>
+<td colspan='8' bgcolor= 'lightblue' >user</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -567,20 +567,20 @@ tblgolang[label=<
 </tr>
 <tr>
 <td width='20'>11</td>
-<td width='20'>12</td>
-<td width='20'>13</td>
-<td width='20'>14</td>
-<td width='20'>15</td>
-<td width='20'>16</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
 <td width='20'>10</td>
 <td width='20'>-1</td>
 </tr>
 </table>
 >];
-tblgolang->tblgolang_DD
-tblgolang_DD[label=<
+tbluser->tbluserDD
+tbluserDD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>golang_DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>userDD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -604,11 +604,11 @@ tblgolang_DD[label=<
 </tr>
 </table>
 >];
-tblgolang->tblsijala6
-tblsijala6[label=<
+tbluser->tblLuis
+tblLuis[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala6</td>
+<td colspan='8' bgcolor= 'lightblue' >Luis</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -632,285 +632,10 @@ tblsijala6[label=<
 </tr>
 </table>
 >];
-tblsijala6->tblsijala6_DD
-tblsijala6_DD[label=<
+tblLuis->tblLuisDD
+tblLuisDD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala6_DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tblgolang->tblsijala7
-tblsijala7[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala7</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>12</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tblsijala7->tblsijala7_DD
-tblsijala7_DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala7_DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tblgolang->tblsijala8
-tblsijala8[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala8</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>13</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tblsijala8->tblsijala8_DD
-tblsijala8_DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala8_DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tblgolang->tblsijala9
-tblsijala9[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala9</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>14</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tblsijala9->tblsijala9_DD
-tblsijala9_DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala9_DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tblgolang->tblsijala10
-tblsijala10[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala10</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>15</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tblsijala10->tblsijala10_DD
-tblsijala10_DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala10_DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tblgolang->tblsijala11
-tblsijala11[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala11</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>16</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tblsijala11->tblsijala11_DD
-tblsijala11_DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala11_DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>LuisDD</td>
 </tr>
 <tr>
 <td>-1</td>
