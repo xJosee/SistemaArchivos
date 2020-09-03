@@ -26,6 +26,7 @@ var (
 	password string = ""
 	p        bool   = false
 	count    string = ""
+	nombre   string = ""
 )
 
 //Analizar is...
@@ -51,6 +52,7 @@ func Analizar(comandos string) {
 	password = ""
 	p = false
 	count = ""
+	nombre = ""
 }
 
 //VerificarComando is...
@@ -147,10 +149,41 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "rep" {
 
 		if VerificarParametros(listaComandos) {
-			comandos.ReporteDisco(path, "", "")
-			comandos.ReporteSuperBloque("vda1")
-			//comandos.ReporteEBR(path)
-			//SuccessMessage("[EXEC] -> Comando ejecutado correctamente")
+			comandos.ReporteDirectorio(path, id)
+			if nombre == "" {
+				ErrorMessage("")
+			} else if id == "" {
+
+			} else if path == "" {
+
+			} else {
+				if strings.ToLower(nombre) == "mbr" {
+
+				} else if strings.ToLower(nombre) == "disk" {
+
+				} else if strings.ToLower(nombre) == "sb" {
+
+				} else if strings.ToLower(nombre) == "bm_arbdir" {
+
+				} else if strings.ToLower(nombre) == "bm_detdir" {
+
+				} else if strings.ToLower(nombre) == "bm_inode" {
+
+				} else if strings.ToLower(nombre) == "bm_block" {
+
+				} else if strings.ToLower(nombre) == "bitacora" {
+
+				} else if strings.ToLower(nombre) == "tree_file" {
+
+				} else if strings.ToLower(nombre) == "tree_directorio" {
+
+				} else if strings.ToLower(nombre) == "tree_complete" {
+
+				} else if strings.ToLower(nombre) == "ls" {
+
+				}
+			}
+
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "login" {
@@ -188,6 +221,16 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "mkfs" {
 		if VerificarParametros(listaComandos) {
 			comandos.MKFS(id)
+		}
+	} else if strings.ToLower(listaComandos[0]) == "mkdir" {
+		if VerificarParametros(listaComandos) {
+			if id == "" {
+				ErrorMessage("[MKDIR] -> Parametro -id no definido")
+			} else if path == "" {
+				ErrorMessage("[MKDIR] -> Parametro -path no definido")
+			} else {
+				comandos.ComandoMKDIR(id, path, p)
+			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "1" {
 
@@ -247,6 +290,8 @@ func VerificarParametros(listaComandos []string) bool {
 			p = true
 		case "-count":
 			count = Paramatros[1]
+		case "-nombre":
+			nombre = Paramatros[1]
 		default:
 			ErrorMessage("[CONSOLA] -> Parametro [" + Paramatros[0] + "] incorrecto")
 			return false

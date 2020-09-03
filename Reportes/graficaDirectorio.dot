@@ -1,0 +1,937 @@
+digraph G{ 
+node [shape=plaintext]
+tbl1111[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >1111</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>0</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tbl1111->tbl1111_DD
+tbl1111_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>1111_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tbl1111->tblhome
+tblhome[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >home</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>2</td>
+<td width='20'>4</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>1</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblhome->tblhome_DD
+tblhome_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>home_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblhome->tblcarpeta
+tblcarpeta[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >carpeta</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>3</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>2</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblcarpeta->tblcarpeta_DD
+tblcarpeta_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblcarpeta->tbl1111111
+tbl1111111[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >1111111</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>3</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tbl1111111->tbl1111111_DD
+tbl1111111_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>1111111_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblhome->tblprueba
+tblprueba[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >prueba</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>5</td>
+<td width='20'>6</td>
+<td width='20'>7</td>
+<td width='20'>8</td>
+<td width='20'>9</td>
+<td width='20'>10</td>
+<td width='20'>4</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblprueba->tblprueba_DD
+tblprueba_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>prueba_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblprueba->tblsijala1
+tblsijala1[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >sijala1</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>5</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblsijala1->tblsijala1_DD
+tblsijala1_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala1_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblprueba->tblsijala2
+tblsijala2[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >sijala2</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>6</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblsijala2->tblsijala2_DD
+tblsijala2_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala2_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblprueba->tblsijala3
+tblsijala3[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >sijala3</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>7</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblsijala3->tblsijala3_DD
+tblsijala3_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala3_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblprueba->tblsijala4
+tblsijala4[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >sijala4</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>8</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblsijala4->tblsijala4_DD
+tblsijala4_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala4_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblprueba->tblsijala5
+tblsijala5[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >sijala5</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>9</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblsijala5->tblsijala5_DD
+tblsijala5_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala5_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblprueba->tblgolang
+tblgolang[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >golang</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>11</td>
+<td width='20'>12</td>
+<td width='20'>13</td>
+<td width='20'>14</td>
+<td width='20'>15</td>
+<td width='20'>16</td>
+<td width='20'>10</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblgolang->tblgolang_DD
+tblgolang_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>golang_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblgolang->tblsijala6
+tblsijala6[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >sijala6</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>11</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblsijala6->tblsijala6_DD
+tblsijala6_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala6_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblgolang->tblsijala7
+tblsijala7[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >sijala7</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>12</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblsijala7->tblsijala7_DD
+tblsijala7_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala7_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblgolang->tblsijala8
+tblsijala8[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >sijala8</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>13</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblsijala8->tblsijala8_DD
+tblsijala8_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala8_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblgolang->tblsijala9
+tblsijala9[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >sijala9</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>14</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblsijala9->tblsijala9_DD
+tblsijala9_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala9_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblgolang->tblsijala10
+tblsijala10[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >sijala10</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>15</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblsijala10->tblsijala10_DD
+tblsijala10_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala10_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tblgolang->tblsijala11
+tblsijala11[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >sijala11</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>16</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tblsijala11->tblsijala11_DD
+tblsijala11_DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala11_DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+}
