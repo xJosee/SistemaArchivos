@@ -1490,8 +1490,8 @@ func ReporteSuperBloque(ID string) {
 	fmt.Fprintf(graphDot, ">];\n}")
 }
 
-//ReporteDirectorio is...
-func ReporteDirectorio(path string, id string) {
+//ReporteTreeComplete is...
+func ReporteTreeComplete(path string, id string) {
 
 	RutaDisco := listaParticiones.GetDireccion(id)
 	var Grafica string

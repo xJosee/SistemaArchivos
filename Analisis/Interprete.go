@@ -149,7 +149,7 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "rep" {
 
 		if VerificarParametros(listaComandos) {
-			comandos.ReporteDirectorio(path, id)
+			comandos.ReporteTreeComplete(path, id)
 			if nombre == "" {
 				ErrorMessage("")
 			} else if id == "" {
