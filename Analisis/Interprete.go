@@ -149,7 +149,7 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "rep" {
 
 		if VerificarParametros(listaComandos) {
-			comandos.ReporteTreeComplete(path, id)
+
 			if nombre == "" {
 				ErrorMessage("")
 			} else if id == "" {
@@ -164,15 +164,15 @@ func VerificarComando(listaComandos []string) {
 				} else if strings.ToLower(nombre) == "sb" {
 					comandos.ReporteSuperBloque(id)
 				} else if strings.ToLower(nombre) == "bm_arbdir" {
-
+					comandos.ReporteBMarbdir(path, id)
 				} else if strings.ToLower(nombre) == "bm_detdir" {
-
+					comandos.ReporteBMdetdir(path, id)
 				} else if strings.ToLower(nombre) == "bm_inode" {
-
+					comandos.ReporteBMinode(path, id)
 				} else if strings.ToLower(nombre) == "bm_block" {
-
+					comandos.ReporteBMblock(path, id)
 				} else if strings.ToLower(nombre) == "bitacora" {
-
+					comandos.ReporteBitacora(path, id)
 				} else if strings.ToLower(nombre) == "tree_file" {
 					fmt.Print("Ingresa el nombre de la carpeta : ")
 					scanner := bufio.NewScanner(os.Stdin)
@@ -180,11 +180,11 @@ func VerificarComando(listaComandos []string) {
 					Carpeta := scanner.Text()
 					comandos.ReporteTreeFile(Carpeta, id, path)
 				} else if strings.ToLower(nombre) == "tree_directorio" {
-
+					comandos.ReporteDirectorio(path, id)
 				} else if strings.ToLower(nombre) == "tree_complete" {
 					comandos.ReporteTreeComplete(path, id)
 				} else if strings.ToLower(nombre) == "ls" {
-
+					comandos.ReporteLS(path, id)
 				}
 			}
 
@@ -237,7 +237,16 @@ func VerificarComando(listaComandos []string) {
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "1" {
-
+		fmt.Println("")
+		fmt.Println(" - mkdisk")
+		fmt.Println(" - rmdisk")
+		fmt.Println(" - fdisk")
+		fmt.Println(" - mount")
+		fmt.Println(" - unmount")
+		fmt.Println(" - exec")
+		fmt.Println(" - rep")
+		fmt.Println("")
+	} else if strings.ToLower(listaComandos[0]) == "2" {
 		fmt.Println("")
 		fmt.Println(" - mbr")
 		fmt.Println(" - disk")
@@ -252,19 +261,6 @@ func VerificarComando(listaComandos []string) {
 		fmt.Println(" - tree_complete")
 		fmt.Println(" - ls")
 		fmt.Println("")
-
-	} else if strings.ToLower(listaComandos[0]) == "2" {
-
-		fmt.Println("")
-		fmt.Println(" - mkdisk")
-		fmt.Println(" - rmdisk")
-		fmt.Println(" - fdisk")
-		fmt.Println(" - mount")
-		fmt.Println(" - unmount")
-		fmt.Println(" - exec")
-		fmt.Println(" - rep")
-		fmt.Println("")
-
 	} else {
 		ErrorMessage("[CONSOLA] -> Comando [" + listaComandos[0] + "] incorrecto")
 	}
@@ -309,7 +305,7 @@ func VerificarParametros(listaComandos []string) bool {
 			password = Paramatros[1]
 		case "-p":
 			p = true
-		case "-count":
+		case "-cont":
 			count = Paramatros[1]
 		case "-nombre":
 			nombre = Paramatros[1]
