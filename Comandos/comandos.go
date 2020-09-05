@@ -2627,17 +2627,22 @@ func CrearArchivo(Archivo DetalleDirectorio, Rutas []string, apuntador int, Ruta
 			/*
 			 *	LEEMOS EL INODO PARA SUSTITUIR LA DATA
 			 */
-			var InodoB TablaInodo
-			InodoB = readInodo(File, int64(SuperB.StartInodos+(Puntero*int32(unsafe.Sizeof(InodoB)))))
-			SustituirData(InodoB, SuperB, File, count)
+			var nameDirec [16]byte
+			copy(nameDirec[:], Rutas[0])
+
+			if bytes.Compare(nameDirec[:], Archivo.DDArrayFiles[i].DDFileNombre[:]) == 0 {
+				var InodoB TablaInodo
+				InodoB = readInodo(File, int64(SuperB.StartInodos+(Puntero*int32(unsafe.Sizeof(InodoB)))))
+				SustituirData(InodoB, SuperB, File, count)
+				return
+			}
+
 		}
 		/*
 		 * NOS MOVEMOS A BUSCAR EN LA COPIA
 		 */
 
 		var ApuntadorCopia int32 = Archivo.DDApDetalleDirectorio
-		fmt.Println("ApuntadorCopia", ApuntadorCopia)
-
 		if ApuntadorCopia == -1 {
 			/*
 			 *	TENEMOS QUE CREAR UNA COPIA DEL DETALLE DIRECTORIO

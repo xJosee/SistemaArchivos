@@ -30,7 +30,7 @@ tbl0[label=<
 tbl0->tbl0DD
 tbl0DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>root</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>rootDD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -89,7 +89,7 @@ tbl1[label=<
 tbl1->tbl1DD
 tbl1DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>home</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>homeDD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -148,7 +148,7 @@ tbl8[label=<
 tbl8->tbl8DD
 tbl8DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>homeAVD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>homeAVDDD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -207,7 +207,7 @@ tbl15[label=<
 tbl15->tbl15DD
 tbl15DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>homeAVDAVD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>homeAVDAVDDD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -266,7 +266,7 @@ tbl16[label=<
 tbl16->tbl16DD
 tbl16DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta13</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta13DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -325,7 +325,7 @@ tbl17[label=<
 tbl17->tbl17DD
 tbl17DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta14</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta14DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -333,7 +333,7 @@ tbl17DD[label=<
 </tr>
 <tr>
 <td>test.txt</td>
-<td>15</td>
+<td>14</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -353,8 +353,8 @@ tbl17DD[label=<
 </tr>
 </table>
 >];
-tbl17DD->tblInodo15
-tblInodo15[label=<
+tbl17DD->tblInodo14
+tblInodo14[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr><td bgcolor='darkorange' width='100' colspan='4'>test.txt</td>
 </tr>
@@ -365,18 +365,18 @@ tblInodo15[label=<
 <td>4</td>
 </tr>
 <tr>
-<td>32</td><td>33</td><td>-1</td><td>-1</td></tr>
+<td>30</td><td>31</td><td>-1</td><td>-1</td></tr>
 </table>
->];tblInodo15->tblBloque32
-tblBloque32[label=<
+>];tblInodo14->tblBloque30
+tblBloque30[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
 <td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
 </tr>
 </table>
 >];
-tblInodo15->tblBloque33
-tblBloque33[label=<
+tblInodo14->tblBloque31
+tblBloque31[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
 <td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
@@ -414,7 +414,7 @@ tbl9[label=<
 tbl9->tbl9DD
 tbl9DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta7</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta7DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -473,7 +473,7 @@ tbl10[label=<
 tbl10->tbl10DD
 tbl10DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta8</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta8DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -532,7 +532,7 @@ tbl11[label=<
 tbl11->tbl11DD
 tbl11DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta9</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta9DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -591,7 +591,7 @@ tbl12[label=<
 tbl12->tbl12DD
 tbl12DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta10</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta10DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -650,7 +650,7 @@ tbl13[label=<
 tbl13->tbl13DD
 tbl13DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta11</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta11DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -709,7 +709,7 @@ tbl14[label=<
 tbl14->tbl14DD
 tbl14DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta12</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta12DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -768,7 +768,7 @@ tbl2[label=<
 tbl2->tbl2DD
 tbl2DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta1</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta1DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -827,7 +827,7 @@ tbl3[label=<
 tbl3->tbl3DD
 tbl3DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta2</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta2DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -886,7 +886,7 @@ tbl4[label=<
 tbl4->tbl4DD
 tbl4DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta3</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta3DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -945,7 +945,7 @@ tbl5[label=<
 tbl5->tbl5DD
 tbl5DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta4</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta4DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -1004,7 +1004,7 @@ tbl20[label=<
 tbl20->tbl20DD
 tbl20DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta4.1</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta4.1DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -1012,7 +1012,7 @@ tbl20DD[label=<
 </tr>
 <tr>
 <td>hola.txt</td>
-<td>16</td>
+<td>15</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -1032,8 +1032,8 @@ tbl20DD[label=<
 </tr>
 </table>
 >];
-tbl20DD->tblInodo16
-tblInodo16[label=<
+tbl20DD->tblInodo15
+tblInodo15[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr><td bgcolor='darkorange' width='100' colspan='4'>hola.txt</td>
 </tr>
@@ -1044,18 +1044,18 @@ tblInodo16[label=<
 <td>4</td>
 </tr>
 <tr>
-<td>34</td><td>35</td><td>-1</td><td>-1</td></tr>
+<td>32</td><td>33</td><td>-1</td><td>-1</td></tr>
 </table>
->];tblInodo16->tblBloque34
-tblBloque34[label=<
+>];tblInodo15->tblBloque32
+tblBloque32[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
 <td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
 </tr>
 </table>
 >];
-tblInodo16->tblBloque35
-tblBloque35[label=<
+tblInodo15->tblBloque33
+tblBloque33[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
 <td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
@@ -1093,7 +1093,7 @@ tbl6[label=<
 tbl6->tbl6DD
 tbl6DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta5</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta5DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -1152,7 +1152,7 @@ tbl7[label=<
 tbl7->tbl7DD
 tbl7DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta6</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta6DD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -1211,7 +1211,7 @@ tbl18[label=<
 tbl18->tbl18DD
 tbl18DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>user</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>userDD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -1257,7 +1257,7 @@ tblInodo0[label=<
 tblBloque0[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td width='200' bgcolor= 'lightblue' >'Herrerasun texto'</td>
+<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
 </tr>
 </table>
 >];
@@ -1265,7 +1265,7 @@ tblInodo0->tblBloque1
 tblBloque1[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td width='200' bgcolor= 'lightblue' >'Herrerasun texto'</td>
+<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
 </tr>
 </table>
 >];
@@ -1273,7 +1273,7 @@ tblInodo0->tblBloque2
 tblBloque2[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td width='200' bgcolor= 'lightblue' >'Herrerasun texto'</td>
+<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
 </tr>
 </table>
 >];
@@ -1281,7 +1281,7 @@ tblInodo0->tblBloque3
 tblBloque3[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td width='200' bgcolor= 'lightblue' >'Herrerasun texto'</td>
+<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
 </tr>
 </table>
 >];
@@ -1303,7 +1303,7 @@ tblInodo1[label=<
 tblBloque4[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td width='200' bgcolor= 'lightblue' >'Herreras'</td>
+<td width='200' bgcolor= 'lightblue' >'JoseLuis'</td>
 </tr>
 </table>
 >];
@@ -1311,7 +1311,7 @@ tblInodo1->tblBloque5
 tblBloque5[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td width='200' bgcolor= 'lightblue' >'Herreras'</td>
+<td width='200' bgcolor= 'lightblue' >'JoseLuis'</td>
 </tr>
 </table>
 >];
@@ -1408,7 +1408,7 @@ tblBloque11[label=<
 tbl18DD-> tbl19DDDD;
 tbl19DDDD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>user</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>userDD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -1589,7 +1589,7 @@ tblBloque21[label=<
 tbl19DDDD-> tbl20DDDD;
 tbl20DDDD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>user</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>userDD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -1738,7 +1738,7 @@ tbl19[label=<
 tbl19->tbl19DD
 tbl19DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>bin</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>binDD</td>
 </tr>
 <tr>
 <td>Virtual</td>
@@ -1749,8 +1749,8 @@ tbl19DD[label=<
 <td>13</td>
 </tr>
 <tr>
-<td>archivo.txt</td>
-<td>14</td>
+<td>-1</td>
+<td>-1</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -1793,36 +1793,6 @@ tblBloque29[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
 <td width='200' bgcolor= 'lightblue' >'Testeandoooo'</td>
-</tr>
-</table>
->];
-tbl19DD->tblInodo14
-tblInodo14[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='darkorange' width='100' colspan='4'>archivo.txt</td>
-</tr>
-<tr>
-<td>1</td>
-<td>2</td>
-<td>3</td>
-<td>4</td>
-</tr>
-<tr>
-<td>30</td><td>31</td><td>-1</td><td>-1</td></tr>
-</table>
->];tblInodo14->tblBloque30
-tblBloque30[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
-</tr>
-</table>
->];
-tblInodo14->tblBloque31
-tblBloque31[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
 </tr>
 </table>
 >];

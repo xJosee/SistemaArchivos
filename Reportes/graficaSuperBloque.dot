@@ -11,10 +11,10 @@ label=<
 <tr>  <td>BloquesCount</td><td>72620</td>  </tr>
 <tr>  <td>ArbolVirtualFree</td><td>3610</td>  </tr>
 <tr>  <td>DetalleDirectorioFree</td><td>3608</td>  </tr>
-<tr>  <td>InodosFree</td><td>18138</td>  </tr>
-<tr>  <td>BloquesFree</td><td>72584</td>  </tr>
-<tr>  <td>FechaCreacion</td><td>09-05-2020 14:33:23</td>  </tr>
-<tr>  <td>FechaUltimoMontaje</td><td>09-05-2020 14:33:23</td>  </tr>
+<tr>  <td>InodosFree</td><td>18139</td>  </tr>
+<tr>  <td>BloquesFree</td><td>72586</td>  </tr>
+<tr>  <td>FechaCreacion</td><td>09-05-2020 14:56:49</td>  </tr>
+<tr>  <td>FechaUltimoMontaje</td><td>09-05-2020 14:56:49</td>  </tr>
 <tr>  <td>MontajesCount</td><td>0</td>  </tr>
 <tr>  <td>StartBmArbolDirectorio</td><td>2097460</td>  </tr>
 <tr>  <td>StartArbolDirectorio</td><td>2101091</td>  </tr>
@@ -31,8 +31,8 @@ label=<
 <tr>  <td>SizeBloque</td><td>25</td>  </tr>
 <tr>  <td>FirstFreeAVD</td><td>21</td>  </tr>
 <tr>  <td>FirstFreeDD</td><td>23</td>  </tr>
-<tr>  <td>FirstFreeInodos</td><td>17</td>  </tr>
-<tr>  <td>FirstFreeBloque</td><td>17</td>  </tr>
+<tr>  <td>FirstFreeInodos</td><td>16</td>  </tr>
+<tr>  <td>FirstFreeBloque</td><td>16</td>  </tr>
 <tr>  <td>MagicNum</td><td>201807431</td>  </tr>
 </table>
 >];
