@@ -1359,8 +1359,6 @@ func ReporteEBR(path string) {
 		graphDot.Close()
 		File.Close()
 		exec.Command("dot", "-Tpng", "-o", "/home/jose/Escritorio/graficaEBR.png", "Reportes/graficaEBR.dot").Output()
-		SuccessMessage("[REP] -> Reporte del disco generado correctamente")
-
 	}
 
 }
@@ -1435,8 +1433,6 @@ func ReporteDisco(direccion string) {
 		graphDot.Close()
 		fp.Close()
 		exec.Command("dot", "-Tpng", "-o", "/home/jose/Escritorio/grafica.png", "Reportes/graficaDisco.dot").Output()
-
-		SuccessMessage("[REP] -> Reporte del disco generado correctamente")
 	} else {
 		ErrorMessage("[REP] -> No se encuentra el disco")
 	}
@@ -1535,7 +1531,7 @@ func ReporteTreeComplete(path string, id string) {
 func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *string, avd bool, ptr int, onlyAVD bool) {
 
 	//fmt.Println("Carpeta", string(arbol.AVDNombreDirectorio[:]))
-
+	var Graph string
 	texto := string(arbol.AVDNombreDirectorio[:])
 	texto = strings.Replace(texto, "\x00", "", -1)
 
@@ -1597,7 +1593,8 @@ func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *s
 		*Grafica += "tbl" + num
 		*Grafica += "->"
 		*Grafica += "tbl" + num + "DD\n"
-		*Grafica += GenerarDetalleDirectorio(num, texto, int(arbol.DetalleDirectorio), file, Superbloque)
+		GenerarDetalleDirectorio(num, texto+"DD", int(arbol.DetalleDirectorio), file, Superbloque, &Graph)
+		*Grafica += Graph
 	}
 
 	if arbol.VirtualDirectorio != -1 {
@@ -1642,39 +1639,41 @@ func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *s
 }
 
 //GenerarDetalleDirectorio is...
-func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.File, super SB) string {
-
+func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.File, super SB, GraficaDD *string) {
 	var Detalle DetalleDirectorio
 	PosicionDD := super.StartDetalleDirectorio + int32(puntero*int(unsafe.Sizeof(Detalle)))
 	Detalle = readDetalleDirectorio(file, int64(PosicionDD))
 
 	Nombre += "DD"
-	name += "DD"
 
-	var GraficaDD string
-	GraficaDD = "tbl" + Nombre + "[label=<\n"
-	GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
-	GraficaDD += "<tr>"
-	GraficaDD += "<td bgcolor='deepskyblue4' width='100' colspan='2'>" + name + "</td>\n"
-	GraficaDD += "</tr>\n"
-
+	*GraficaDD += "tbl" + Nombre + "[label=<\n"
+	*GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
+	*GraficaDD += "<tr>"
+	*GraficaDD += "<td bgcolor='deepskyblue4' width='100' colspan='2'>" + name + "</td>\n"
+	*GraficaDD += "</tr>\n"
+	*GraficaDD += "<tr>\n"
+	*GraficaDD += "<td>Virtual</td>\n"
+	var ptr string
+	ptr = fmt.Sprint(ptr, Detalle.DDApDetalleDirectorio)
+	*GraficaDD += "<td>" + ptr + "</td>\n"
+	*GraficaDD += "</tr>\n"
 	for i := 0; i < 5; i++ {
 		var apuntador string
 		nombreFile := string(Detalle.DDArrayFiles[i].DDFileNombre[:])
 		nombreFile = strings.Replace(nombreFile, "\x00", "", -1)
 		apuntador = fmt.Sprint(apuntador, Detalle.DDArrayFiles[i].DDFileApInodo)
 
-		GraficaDD += "<tr>\n"
+		*GraficaDD += "<tr>\n"
 		if nombreFile == "" {
-			GraficaDD += "<td>" + "-1" + "</td>\n"
+			*GraficaDD += "<td>" + "-1" + "</td>\n"
 		} else {
-			GraficaDD += "<td>" + nombreFile + "</td>\n"
+			*GraficaDD += "<td>" + nombreFile + "</td>\n"
 		}
-		GraficaDD += "<td>" + apuntador + "</td>\n"
-		GraficaDD += "</tr>\n"
+		*GraficaDD += "<td>" + apuntador + "</td>\n"
+		*GraficaDD += "</tr>\n"
 
 	}
-	GraficaDD += "</table>\n>];\n"
+	*GraficaDD += "</table>\n>];\n"
 
 	for i := 0; i < 5; i++ {
 
@@ -1685,34 +1684,34 @@ func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.
 		ApInodo := Detalle.DDArrayFiles[i].DDFileApInodo
 
 		if ApInodo != -1 {
-			GraficaDD += "tbl" + Nombre + "->"
+			*GraficaDD += "tbl" + Nombre + "->"
 			var NameInodo string
 			NameInodo = fmt.Sprint(NameInodo, ApInodo)
-			GraficaDD += "tblInodo" + NameInodo + "\n"
+			*GraficaDD += "tblInodo" + NameInodo + "\n"
 
 			Inodo = readInodo(file, int64(super.StartInodos+(ApInodo*int32(unsafe.Sizeof(Inodo)))))
 			/*
 			 * TABLA INODO
 			 */
-			GraficaDD += "tblInodo" + NameInodo
-			GraficaDD += "[label=<\n"
-			GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
-			GraficaDD += "<tr><td bgcolor='darkorange' width='100' colspan='4'>" + nombreFile + "</td>\n"
-			GraficaDD += "</tr>\n"
-			GraficaDD += "<tr>\n"
-			GraficaDD += "<td>1</td>\n"
-			GraficaDD += "<td>2</td>\n"
-			GraficaDD += "<td>3</td>\n"
-			GraficaDD += "<td>4</td>\n"
-			GraficaDD += "</tr>\n"
-			GraficaDD += "<tr>\n"
+			*GraficaDD += "tblInodo" + NameInodo
+			*GraficaDD += "[label=<\n"
+			*GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
+			*GraficaDD += "<tr><td bgcolor='darkorange' width='100' colspan='4'>" + nombreFile + "</td>\n"
+			*GraficaDD += "</tr>\n"
+			*GraficaDD += "<tr>\n"
+			*GraficaDD += "<td>1</td>\n"
+			*GraficaDD += "<td>2</td>\n"
+			*GraficaDD += "<td>3</td>\n"
+			*GraficaDD += "<td>4</td>\n"
+			*GraficaDD += "</tr>\n"
+			*GraficaDD += "<tr>\n"
 			for i := 0; i < 4; i++ {
 				var aux string
 				aux = fmt.Sprint(aux, Inodo.IArrayBloques[i])
-				GraficaDD += "<td>" + aux + "</td>"
+				*GraficaDD += "<td>" + aux + "</td>"
 			}
-			GraficaDD += "</tr>\n"
-			GraficaDD += "</table>\n>];"
+			*GraficaDD += "</tr>\n"
+			*GraficaDD += "</table>\n>];"
 
 			for i := 0; i < 4; i++ {
 				ApBloque := Inodo.IArrayBloques[i]
@@ -1726,21 +1725,26 @@ func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.
 					texto := string(Block.Texto[:])
 					texto = strings.Replace(texto, "\x00", "", -1)
 
-					GraficaDD += "tblInodo" + NameInodo + "->" + "tblBloque" + aux1 + "\n"
-					GraficaDD += "tblBloque" + aux1 + "[label=<\n"
-					GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
-					GraficaDD += "<tr>\n"
-					GraficaDD += "<td width='200' bgcolor= 'lightblue' >'" + texto + "'</td>\n"
-					GraficaDD += "</tr>\n"
-					GraficaDD += "</table>\n"
-					GraficaDD += ">];"
+					*GraficaDD += "tblInodo" + NameInodo + "->" + "tblBloque" + aux1 + "\n"
+					*GraficaDD += "tblBloque" + aux1 + "[label=<\n"
+					*GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
+					*GraficaDD += "<tr>\n"
+					*GraficaDD += "<td width='200' bgcolor= 'lightblue' >'" + texto + "'</td>\n"
+					*GraficaDD += "</tr>\n"
+					*GraficaDD += "</table>\n"
+					*GraficaDD += ">];\n"
 				}
 			}
 		}
 	}
-
-	return GraficaDD
-
+	if Detalle.DDApDetalleDirectorio != -1 {
+		var aux string
+		aux = fmt.Sprint(aux, Detalle.DDApDetalleDirectorio)
+		fmt.Println("Test", "tbl", aux, "DD")
+		*GraficaDD += "tbl" + Nombre + "-> " + "tbl" + aux + "DDDD" + ";\n"
+		aux += "DD"
+		GenerarDetalleDirectorio(aux, name, int(Detalle.DDApDetalleDirectorio), file, super, GraficaDD)
+	}
 }
 
 //ReporteTreeFile is...
@@ -1857,6 +1861,22 @@ func WriteSB(file *os.File, Super SB) {
 //WriteAVD is...
 func WriteAVD(file *os.File, AVD Arbol) {
 	s1 := &AVD
+	var binario2 bytes.Buffer
+	binary.Write(&binario2, binary.BigEndian, s1)
+	file.Write(binario2.Bytes())
+}
+
+//WriteInode is...
+func WriteInode(file *os.File, Inode TablaInodo) {
+	s1 := &Inode
+	var binario2 bytes.Buffer
+	binary.Write(&binario2, binary.BigEndian, s1)
+	file.Write(binario2.Bytes())
+}
+
+//WriteBloque is...
+func WriteBloque(file *os.File, Block Bloque) {
+	s1 := &Block
 	var binario2 bytes.Buffer
 	binary.Write(&binario2, binary.BigEndian, s1)
 	file.Write(binario2.Bytes())
@@ -2561,17 +2581,13 @@ func CrearArchivo(Archivo DetalleDirectorio, Rutas []string, apuntador int, Ruta
 				 * ASIGNAMOS EL FILE QUE ACABAMOS DE CREAR AL DETALLE DIRECTORIO
 				 */
 				Archivo.DDArrayFiles[i] = FileCrear
-				fmt.Println(string(FileCrear.DDFileNombre[:]))
-				fmt.Println(string(FileCrear.DDFileDateCreacion[:]))
 
 				/*
 				 * REESCRIBIMOS EL DETALLE DIRECTORIO CON LAS MODIFICACIONES REALIZADAS
 				 */
 				File.Seek(int64(SuperB.StartDetalleDirectorio+(int32(apuntador)*int32(unsafe.Sizeof(Archivo)))), 0)
-				s1 := &Archivo
-				var binario bytes.Buffer
-				binary.Write(&binario, binary.BigEndian, s1)
-				File.Write(binario.Bytes())
+				WriteDD(File, Archivo)
+
 				//Obtenemos el valor del apuntador al inodo
 				ApuntadorInodo := SuperB.FirstFreeInodo
 				/*
@@ -2614,85 +2630,81 @@ func CrearArchivo(Archivo DetalleDirectorio, Rutas []string, apuntador int, Ruta
 			var InodoB TablaInodo
 			InodoB = readInodo(File, int64(SuperB.StartInodos+(Puntero*int32(unsafe.Sizeof(InodoB)))))
 			SustituirData(InodoB, SuperB, File, count)
-			return
-
 		}
-
 		/*
 		 * NOS MOVEMOS A BUSCAR EN LA COPIA
 		 */
 
 		var ApuntadorCopia int32 = Archivo.DDApDetalleDirectorio
-		if ApuntadorCopia != 1 { //Significa que ya existe una copia
-			var DetalleDirectorioCopia DetalleDirectorio
-			DetalleDirectorioCopia = readDetalleDirectorio(File, int64(SuperB.StartDetalleDirectorio+(ApuntadorCopia*int32(unsafe.Sizeof(DetalleDirectorioCopia)))))
+		fmt.Println("ApuntadorCopia", ApuntadorCopia)
+
+		if ApuntadorCopia == -1 {
+			/*
+			 *	TENEMOS QUE CREAR UNA COPIA DEL DETALLE DIRECTORIO
+			 */
+			NuevoDetalleDirectorio := InicializarDD(DetalleDirectorio{})
+			PosNuevoDD := SuperB.StartDetalleDirectorio + (SuperB.FirstFreeDd * int32(unsafe.Sizeof(NuevoDetalleDirectorio)))
+			ApuntadorCopia = SuperB.FirstFreeDd
+			Archivo.DDApDetalleDirectorio = SuperB.FirstFreeDd
+
+			/*
+			 * ESCRIBIMOS EL NUEVO DETALLE DIRECTORIO (COPIA)
+			 */
+			File.Seek(int64(PosNuevoDD), 0)
+			s3 := &NuevoDetalleDirectorio
+			var binario3 bytes.Buffer
+			binary.Write(&binario3, binary.BigEndian, s3)
+			File.Write(binario3.Bytes())
+
+			/*
+			 *  ESCRIBIMOS EL 1 EN EL BITMAP DEL DETALLE DIRECTORIO
+			 */
+			File.Seek(int64(SuperB.StartBmDetalleDirectorio+SuperB.FirstFreeDd), 0)
+			var unoo byte = '1'
+			s4 := &unoo
+			var binario4 bytes.Buffer
+			binary.Write(&binario4, binary.BigEndian, s4)
+			File.Write(binario4.Bytes())
+
+			SuperB.DetalleDirectorioFree--
+			SuperB.FirstFreeDd++
+
+			/*
+			 *  REESCRIBIMOS EL DETALLE DIRECTORIO PADRE PARA APLICARLE LOS CAMBIOS
+			 */
+			File.Seek(int64(SuperB.StartDetalleDirectorio+int32(apuntador*int(unsafe.Sizeof(Archivo)))), 0)
+			s5 := &Archivo
+			var binario5 bytes.Buffer
+			binary.Write(&binario5, binary.BigEndian, s5)
+			File.Write(binario5.Bytes())
+
+			/*
+			 * REESCRIBIMOS EL SUPERBLOQUE PARA APLICARLE LOS CAMBIOS
+			 */
+			File.Seek(int64(SuperB.StartBmArbolDirectorio-int32(unsafe.Sizeof(SuperB))), 0)
+			s6 := &SuperB
+			var binario6 bytes.Buffer
+			binary.Write(&binario6, binary.BigEndian, s6)
+			File.Write(binario6.Bytes())
 
 			//Cerramos el archivo
 			File.Close()
+
 			/*
-			 * LLAMAMOS RECURSIVAMENTE AL METODO CREAR ARCHIVO PERO LE MANDAMOS COMO DD LA COPIA
+			 * YA QUE CREAMOS EL DD COPIA MANDAMOS A LLAMAR AL METODO CREARARCHIVO RECURSIVAMENTE
+			 * PERO LE MANDAMOS COMO DD LA COPIA
 			 */
-
-			CrearArchivo(DetalleDirectorioCopia, Rutas, int(ApuntadorCopia), RutaDisco, SuperB, size, count)
+			CrearArchivo(NuevoDetalleDirectorio, Rutas, int(ApuntadorCopia), RutaDisco, SuperB, size, count)
 			return
-
 		}
-		/*
-		 *	TENEMOS QUE CREAR UNA COPIA DEL DETALLE DIRECTORIO
-		 */
-		NuevoDetalleDirectorio := InicializarDD(DetalleDirectorio{})
-		PosNuevoDD := SuperB.StartDetalleDirectorio + (SuperB.FirstFreeDd * int32(unsafe.Sizeof(NuevoDetalleDirectorio)))
-		ApuntadorCopia = SuperB.FirstFreeDd
-		Archivo.DDApDetalleDirectorio = SuperB.FirstFreeDd
-
-		/*
-		 * ESCRIBIMOS EL NUEVO DETALLE DIRECTORIO (COPIA)
-		 */
-		File.Seek(int64(PosNuevoDD), 0)
-		s3 := &NuevoDetalleDirectorio
-		var binario3 bytes.Buffer
-		binary.Write(&binario3, binary.BigEndian, s3)
-		File.Write(binario3.Bytes())
-
-		/*
-		 *  ESCRIBIMOS EL 1 EN EL BITMAP DEL DETALLE DIRECTORIO
-		 */
-		File.Seek(int64(SuperB.StartBmDetalleDirectorio+SuperB.FirstFreeDd), 0)
-		var unoo byte = '1'
-		s4 := &unoo
-		var binario4 bytes.Buffer
-		binary.Write(&binario4, binary.BigEndian, s4)
-		File.Write(binario4.Bytes())
-
-		SuperB.DetalleDirectorioFree--
-		SuperB.FirstFreeDd++
-
-		/*
-		 *  REESCRIBIMOS EL DETALLE DIRECTORIO PADRE PARA APLICARLE LOS CAMBIOS
-		 */
-		File.Seek(int64(SuperB.StartDetalleDirectorio+int32(apuntador*int(unsafe.Sizeof(Archivo)))), 0)
-		s5 := &Archivo
-		var binario5 bytes.Buffer
-		binary.Write(&binario5, binary.BigEndian, s5)
-		File.Write(binario5.Bytes())
-
-		/*
-		 * REESCRIBIMOS EL SUPERBLOQUE PARA APLICARLE LOS CAMBIOS
-		 */
-		File.Seek(int64(SuperB.StartBmArbolDirectorio-int32(unsafe.Sizeof(SuperB))), 0)
-		s6 := &SuperB
-		var binario6 bytes.Buffer
-		binary.Write(&binario6, binary.BigEndian, s6)
-		File.Write(binario6.Bytes())
-
+		var DetalleDirectorioCopia DetalleDirectorio
+		DetalleDirectorioCopia = readDetalleDirectorio(File, int64(SuperB.StartDetalleDirectorio+(ApuntadorCopia*int32(unsafe.Sizeof(DetalleDirectorioCopia)))))
 		//Cerramos el archivo
 		File.Close()
-
 		/*
-		 * YA QUE CREAMOS EL DD COPIA MANDAMOS A LLAMAR AL METODO CREARARCHIVO RECURSIVAMENTE
-		 * PERO LE MANDAMOS COMO DD LA COPIA
+		 * LLAMAMOS RECURSIVAMENTE AL METODO CREAR ARCHIVO PERO LE MANDAMOS COMO DD LA COPIA
 		 */
-		CrearArchivo(NuevoDetalleDirectorio, Rutas, int(ApuntadorCopia), RutaDisco, SuperB, size, count)
+		CrearArchivo(DetalleDirectorioCopia, Rutas, int(ApuntadorCopia), RutaDisco, SuperB, size, count)
 		return
 
 	}
@@ -2710,7 +2722,8 @@ func SustituirData(Inodo TablaInodo, SuperBloque SB, file *os.File, cont string)
 			var Block Bloque
 			Block = readBloque(file, int64(SuperBloque.StartBloques+(ApuntadorBloque*int32(unsafe.Sizeof(Block)))))
 			copy(Block.Texto[:], cont)
-			fmt.Println(i, string(Block.Texto[:]))
+			file.Seek(int64(SuperBloque.StartBloques+(ApuntadorBloque*int32(unsafe.Sizeof(Block)))), 0)
+			WriteBloque(file, Block)
 		}
 	}
 

@@ -4,8 +4,8 @@ tbl[
 label=<
 <table border='0' cellborder='1' cellspacing='0' width='300'  height='200' >
  <tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>MBR</font></b></td></tr><tr>  <td width='150'> <b>Nombre</b> </td> <td width='150'> <b>Valor</b> </td>  </tr>
-<tr>  <td>Size</td><td>31457280</td>  </tr>
-<tr>  <td>Fecha</td> <td>08-28-2020 21:49:59</td>  </tr>
+<tr>  <td>Size</td><td>20971520</td>  </tr>
+<tr>  <td>Fecha</td> <td>09-05-2020 14:33:23</td>  </tr>
 <tr>  <td>Signature</td> <td>134020434</td>  </tr>
 <tr>  <td>Fit</td> <td>F</td>  </tr>
 <tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>Particion1</font></b></td></tr>
@@ -43,12 +43,38 @@ tbl_1[
 label=<
  <table border='0' cellborder='1' cellspacing='0'  width='300' height='160' >
  <tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>EBR</font></b></td></tr><tr ><td width='150'><b>Nombre</b></td> <td width='150'><b>Valor</b></td>  </tr>
+<tr>  <td>Status</td> <td>0</td>  </tr>
+<tr>  <td>Fit</td> <td>f</td>  </tr>
+<tr>  <td>Start</td> <td>6291600</td>  </tr>
+<tr>  <td>Size</td> <td>1048576</td>  </tr>
+<tr>  <td>Next</td> <td>7340208</td>  </tr>
+<tr>  <td>Name</td> <td>part6</td>  </tr>
+</table>
+>];
+
+tbl_2[
+label=<
+ <table border='0' cellborder='1' cellspacing='0'  width='300' height='160' >
+ <tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>EBR</font></b></td></tr><tr ><td width='150'><b>Nombre</b></td> <td width='150'><b>Valor</b></td>  </tr>
 <tr>  <td>Status</td> <td></td>  </tr>
-<tr>  <td>Fit</td> <td></td>  </tr>
-<tr>  <td>Start</td> <td>0</td>  </tr>
-<tr>  <td>Size</td> <td>0</td>  </tr>
-<tr>  <td>Next</td> <td>0</td>  </tr>
-<tr>  <td>Name</td> <td></td>  </tr>
+<tr>  <td>Fit</td> <td>f</td>  </tr>
+<tr>  <td>Start</td> <td>7340208</td>  </tr>
+<tr>  <td>Size</td> <td>1048576</td>  </tr>
+<tr>  <td>Next</td> <td>8388816</td>  </tr>
+<tr>  <td>Name</td> <td>part7</td>  </tr>
+</table>
+>];
+
+tbl_3[
+label=<
+ <table border='0' cellborder='1' cellspacing='0'  width='300' height='160' >
+ <tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>EBR</font></b></td></tr><tr ><td width='150'><b>Nombre</b></td> <td width='150'><b>Valor</b></td>  </tr>
+<tr>  <td>Status</td> <td></td>  </tr>
+<tr>  <td>Fit</td> <td>f</td>  </tr>
+<tr>  <td>Start</td> <td>8388816</td>  </tr>
+<tr>  <td>Size</td> <td>1048576</td>  </tr>
+<tr>  <td>Next</td> <td>9437424</td>  </tr>
+<tr>  <td>Name</td> <td>part8</td>  </tr>
 </table>
 >];
 }

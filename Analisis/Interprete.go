@@ -159,32 +159,44 @@ func VerificarComando(listaComandos []string) {
 			} else {
 				if strings.ToLower(nombre) == "mbr" {
 					comandos.ReporteEBR(path)
+					SuccessMessage("[REP] -> Reporte 'mbr' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "disk" {
 					comandos.ReporteDisco(path)
+					SuccessMessage("[REP] -> Reporte 'disk' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "sb" {
 					comandos.ReporteSuperBloque(id)
+					SuccessMessage("[REP] -> Reporte 'sb' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "bm_arbdir" {
 					comandos.ReporteBMarbdir(path, id)
+					SuccessMessage("[REP] -> Reporte 'bm_arbdir' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "bm_detdir" {
 					comandos.ReporteBMdetdir(path, id)
+					SuccessMessage("[REP] -> Reporte 'bm_detdir' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "bm_inode" {
 					comandos.ReporteBMinode(path, id)
+					SuccessMessage("[REP] -> Reporte 'bm_inode' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "bm_block" {
 					comandos.ReporteBMblock(path, id)
+					SuccessMessage("[REP] -> Reporte 'bm_block' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "bitacora" {
 					comandos.ReporteBitacora(path, id)
+					SuccessMessage("[REP] -> Reporte 'bitacora' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "tree_file" {
 					fmt.Print("Ingresa el nombre de la carpeta : ")
 					scanner := bufio.NewScanner(os.Stdin)
 					scanner.Scan()
 					Carpeta := scanner.Text()
 					comandos.ReporteTreeFile(Carpeta, id, path)
+					SuccessMessage("[REP] -> Reporte 'tree_file' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "tree_directorio" {
 					comandos.ReporteDirectorio(path, id)
+					SuccessMessage("[REP] -> Reporte 'tree_directorio' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "tree_complete" {
 					comandos.ReporteTreeComplete(path, id)
+					SuccessMessage("[REP] -> Reporte 'tree_complete' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "ls" {
 					comandos.ReporteLS(path, id)
+					SuccessMessage("[REP] -> Reporte 'ls' Generado Correctamente")
 				}
 			}
 
