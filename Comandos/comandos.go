@@ -1733,6 +1733,72 @@ func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.
 
 }
 
+//ReporteTreeFile is...
+func ReporteTreeFile(carpeta string, id string, path string) {
+	PathDisco := listaParticiones.GetDireccion(id)
+
+	if PathDisco != "null" {
+
+		Grafica := ""
+
+		PartStart := listaParticiones.GetPartStart(id)
+		File := getFile(PathDisco)
+
+		SuperBloque := readSuperBloque(File, int64(PartStart))
+		Root := readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
+
+		os.Create("Reportes/graficaTreeFile.dot")
+		graphDot := getFile("Reportes/graficaTreeFile.dot")
+
+		fmt.Fprintf(graphDot, "digraph G{ \n")
+		fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
+
+		Grafica = BuscarCarpeta(Root, SuperBloque, File, false, 0, carpeta)
+
+		fmt.Fprintf(graphDot, Grafica)
+
+		fmt.Fprintf(graphDot, "}")
+
+	} else {
+		ErrorMessage("[REP] -> Particion no montada")
+	}
+}
+
+//BuscarCarpeta is...
+func BuscarCarpeta(arbol Arbol, Superbloque SB, file *os.File, avd bool, ptr int, NombreCarpeta string) string {
+
+	var Grafica string
+
+	var nameCarpeta [16]byte
+	copy(nameCarpeta[:], NombreCarpeta)
+
+	if bytes.Compare(arbol.AVDNombreDirectorio[:], nameCarpeta[:]) == 0 {
+		RecorrerArbolReporte(arbol, Superbloque, file, &Grafica, false, int(ptr))
+	} else {
+		for i := 0; i < 6; i++ {
+			Apuntador := arbol.Subirectorios[i]
+
+			if Apuntador != -1 {
+				var CarpetaHija Arbol
+				CarpetaHija = readArbolVirtualDirectorio(file, int64(Superbloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
+
+				var nameCarpetaByte [16]byte
+				copy(nameCarpetaByte[:], NombreCarpeta)
+
+				if bytes.Compare(CarpetaHija.AVDNombreDirectorio[:], nameCarpetaByte[:]) == 0 {
+					RecorrerArbolReporte(CarpetaHija, Superbloque, file, &Grafica, false, int(Apuntador))
+				} else {
+					BuscarCarpeta(CarpetaHija, Superbloque, file, avd, int(Apuntador), NombreCarpeta)
+				}
+
+			}
+		}
+	}
+
+	return Grafica
+
+}
+
 /*
  * METODOS PARA ESCRIBIR
  */

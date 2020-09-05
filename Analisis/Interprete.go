@@ -174,7 +174,11 @@ func VerificarComando(listaComandos []string) {
 				} else if strings.ToLower(nombre) == "bitacora" {
 
 				} else if strings.ToLower(nombre) == "tree_file" {
-
+					fmt.Print("Ingresa el nombre de la carpeta : ")
+					scanner := bufio.NewScanner(os.Stdin)
+					scanner.Scan()
+					Carpeta := scanner.Text()
+					comandos.ReporteTreeFile(Carpeta, id, path)
 				} else if strings.ToLower(nombre) == "tree_directorio" {
 
 				} else if strings.ToLower(nombre) == "tree_complete" {
