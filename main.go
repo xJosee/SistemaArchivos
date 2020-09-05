@@ -18,6 +18,7 @@ func main() {
 	boldblue.Println("          B I E N V E N I D O")
 	boldblue.Println("========================================")
 	boldblue.Println("1. Comandos Disponibles")
+	boldblue.Println("2. Reportes Disponibles")
 	fmt.Println("")
 	Menu()
 }

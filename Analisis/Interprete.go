@@ -239,6 +239,23 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "1" {
 
 		fmt.Println("")
+		fmt.Println(" - mbr")
+		fmt.Println(" - disk")
+		fmt.Println(" - sb")
+		fmt.Println(" - bm_ardir")
+		fmt.Println(" - bm_detdir")
+		fmt.Println(" - bm_inode")
+		fmt.Println(" - bm_block")
+		fmt.Println(" - bitacora")
+		fmt.Println(" - tree_file")
+		fmt.Println(" - tree_directorio")
+		fmt.Println(" - tree_complete")
+		fmt.Println(" - ls")
+		fmt.Println("")
+
+	} else if strings.ToLower(listaComandos[0]) == "2" {
+
+		fmt.Println("")
 		fmt.Println(" - mkdisk")
 		fmt.Println(" - rmdisk")
 		fmt.Println(" - fdisk")
