@@ -158,11 +158,11 @@ func VerificarComando(listaComandos []string) {
 
 			} else {
 				if strings.ToLower(nombre) == "mbr" {
-
+					comandos.ReporteEBR(path)
 				} else if strings.ToLower(nombre) == "disk" {
-
+					comandos.ReporteDisco(path)
 				} else if strings.ToLower(nombre) == "sb" {
-
+					comandos.ReporteSuperBloque(id)
 				} else if strings.ToLower(nombre) == "bm_arbdir" {
 
 				} else if strings.ToLower(nombre) == "bm_detdir" {
@@ -182,7 +182,7 @@ func VerificarComando(listaComandos []string) {
 				} else if strings.ToLower(nombre) == "tree_directorio" {
 
 				} else if strings.ToLower(nombre) == "tree_complete" {
-
+					comandos.ReporteTreeComplete(path, id)
 				} else if strings.ToLower(nombre) == "ls" {
 
 				}

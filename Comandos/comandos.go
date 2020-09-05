@@ -1358,7 +1358,7 @@ func ReporteEBR(path string) {
 }
 
 //ReporteDisco is...
-func ReporteDisco(direccion string, destino string, extension string) {
+func ReporteDisco(direccion string) {
 
 	var auxDir string = direccion
 
