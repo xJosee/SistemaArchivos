@@ -17,8 +17,8 @@ tbl0[label=<
 </tr>
 <tr>
 <td width='20'>1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
+<td width='20'>18</td>
+<td width='20'>19</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
@@ -72,13 +72,13 @@ tbl1[label=<
 </tr>
 <tr>
 <td width='20'>2</td>
+<td width='20'>3</td>
+<td width='20'>4</td>
 <td width='20'>5</td>
-<td width='20'>22</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
+<td width='20'>6</td>
+<td width='20'>7</td>
 <td width='20'>1</td>
-<td width='20'>-1</td>
+<td width='20'>8</td>
 </tr>
 </table>
 >];
@@ -109,11 +109,11 @@ tbl1DD[label=<
 </tr>
 </table>
 >];
-tbl1->tbl2
-tbl2[label=<
+tbl1->tbl8
+tbl8[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >carpeta</td>
+<td colspan='8' bgcolor= 'forestgreen' >homeAVD</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -126,8 +126,586 @@ tbl2[label=<
 <td bgcolor='forestgreen' width='20' >AVD</td>
 </tr>
 <tr>
-<td width='20'>3</td>
-<td width='20'>4</td>
+<td width='20'>9</td>
+<td width='20'>10</td>
+<td width='20'>11</td>
+<td width='20'>12</td>
+<td width='20'>13</td>
+<td width='20'>14</td>
+<td width='20'>8</td>
+<td width='20'>15</td>
+</tr>
+</table>
+>];
+tbl8->tbl8DD
+tbl8DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>homeAVDDD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tbl8->tbl15
+tbl15[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'forestgreen' >homeAVDAVD</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>16</td>
+<td width='20'>17</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>15</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tbl15->tbl15DD
+tbl15DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>homeAVDAVDDD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tbl15->tbl16
+tbl16[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >carpeta13</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>16</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tbl16->tbl16DD
+tbl16DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta13DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tbl15->tbl17
+tbl17[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >carpeta14</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>17</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tbl17->tbl17DD
+tbl17DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta14DD</td>
+</tr>
+<tr>
+<td>test.txt</td>
+<td>2</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tbl17DD->tblInodo2
+tblInodo2[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='darkorange' width='100' colspan='4'>test.txt</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>4</td><td>5</td><td>-1</td><td>-1</td></tr>
+</table>
+>];tblInodo2->tblBloque4
+tblBloque4[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
+</tr>
+</table>
+>];tblInodo2->tblBloque5
+tblBloque5[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
+</tr>
+</table>
+>];tbl8->tbl9
+tbl9[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >carpeta7</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>9</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tbl9->tbl9DD
+tbl9DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta7DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tbl8->tbl10
+tbl10[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >carpeta8</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>10</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tbl10->tbl10DD
+tbl10DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta8DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tbl8->tbl11
+tbl11[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >carpeta9</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>11</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tbl11->tbl11DD
+tbl11DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta9DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tbl8->tbl12
+tbl12[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >carpeta10</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>12</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tbl12->tbl12DD
+tbl12DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta10DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tbl8->tbl13
+tbl13[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >carpeta11</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>13</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tbl13->tbl13DD
+tbl13DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta11DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tbl8->tbl14
+tbl14[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >carpeta12</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>14</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tbl14->tbl14DD
+tbl14DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta12DD</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tbl1->tbl2
+tbl2[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >carpeta1</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
@@ -140,7 +718,7 @@ tbl2[label=<
 tbl2->tbl2DD
 tbl2DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpetaDD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta1DD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -164,11 +742,11 @@ tbl2DD[label=<
 </tr>
 </table>
 >];
-tbl2->tbl3
+tbl1->tbl3
 tbl3[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >nuevo</td>
+<td colspan='8' bgcolor= 'lightblue' >carpeta2</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -195,7 +773,7 @@ tbl3[label=<
 tbl3->tbl3DD
 tbl3DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>nuevoDD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta2DD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -219,11 +797,11 @@ tbl3DD[label=<
 </tr>
 </table>
 >];
-tbl2->tbl4
+tbl1->tbl4
 tbl4[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >nuevo2</td>
+<td colspan='8' bgcolor= 'lightblue' >carpeta3</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -250,7 +828,7 @@ tbl4[label=<
 tbl4->tbl4DD
 tbl4DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>nuevo2DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta3DD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -278,117 +856,7 @@ tbl1->tbl5
 tbl5[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >prueba</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>6</td>
-<td width='20'>7</td>
-<td width='20'>8</td>
-<td width='20'>9</td>
-<td width='20'>10</td>
-<td width='20'>11</td>
-<td width='20'>5</td>
-<td width='20'>12</td>
-</tr>
-</table>
->];
-tbl5->tbl5DD
-tbl5DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>pruebaDD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tbl5->tbl12
-tbl12[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'forestgreen' >pruebaAVD</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>13</td>
-<td width='20'>14</td>
-<td width='20'>15</td>
-<td width='20'>16</td>
-<td width='20'>17</td>
-<td width='20'>18</td>
-<td width='20'>12</td>
-<td width='20'>19</td>
-</tr>
-</table>
->];
-tbl12->tbl12DD
-tbl12DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>pruebaAVDDD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tbl12->tbl19
-tbl19[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'forestgreen' >pruebaAVDAVD</td>
+<td colspan='8' bgcolor= 'lightblue' >carpeta4</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -407,15 +875,15 @@ tbl19[label=<
 <td width='20'>-1</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
-<td width='20'>19</td>
+<td width='20'>5</td>
 <td width='20'>-1</td>
 </tr>
 </table>
 >];
-tbl19->tbl19DD
-tbl19DD[label=<
+tbl5->tbl5DD
+tbl5DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>pruebaAVDAVDDD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta4DD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -439,11 +907,11 @@ tbl19DD[label=<
 </tr>
 </table>
 >];
-tbl19->tbl20
+tbl5->tbl20
 tbl20[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala13</td>
+<td colspan='8' bgcolor= 'lightblue' >carpeta4.1</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -470,11 +938,11 @@ tbl20[label=<
 tbl20->tbl20DD
 tbl20DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala13DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta4.1DD</td>
 </tr>
 <tr>
-<td>-1</td>
-<td>-1</td>
+<td>hola.txt</td>
+<td>3</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -494,396 +962,39 @@ tbl20DD[label=<
 </tr>
 </table>
 >];
-tbl12->tbl13
-tbl13[label=<
+tbl20DD->tblInodo3
+tblInodo3[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='darkorange' width='100' colspan='4'>hola.txt</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>6</td><td>7</td><td>-1</td><td>-1</td></tr>
+</table>
+>];tblInodo3->tblBloque6
+tblBloque6[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala7</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>13</td>
-<td width='20'>-1</td>
+<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
 </tr>
 </table>
->];
-tbl13->tbl13DD
-tbl13DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala7DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tbl12->tbl14
-tbl14[label=<
+>];tblInodo3->tblBloque7
+tblBloque7[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala8</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>21</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>14</td>
-<td width='20'>-1</td>
+<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
 </tr>
 </table>
->];
-tbl14->tbl14DD
-tbl14DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala8DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tbl14->tbl21
-tbl21[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >otra</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>21</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tbl21->tbl21DD
-tbl21DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>otraDD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tbl12->tbl15
-tbl15[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala9</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>15</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tbl15->tbl15DD
-tbl15DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala9DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tbl12->tbl16
-tbl16[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala10</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>16</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tbl16->tbl16DD
-tbl16DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala10DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tbl12->tbl17
-tbl17[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala11</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>17</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tbl17->tbl17DD
-tbl17DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala11DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tbl12->tbl18
-tbl18[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala12</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>18</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tbl18->tbl18DD
-tbl18DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala12DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tbl5->tbl6
+>];tbl1->tbl6
 tbl6[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala1</td>
+<td colspan='8' bgcolor= 'lightblue' >carpeta5</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -910,7 +1021,7 @@ tbl6[label=<
 tbl6->tbl6DD
 tbl6DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala1DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta5DD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -934,11 +1045,11 @@ tbl6DD[label=<
 </tr>
 </table>
 >];
-tbl5->tbl7
+tbl1->tbl7
 tbl7[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala2</td>
+<td colspan='8' bgcolor= 'lightblue' >carpeta6</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -965,7 +1076,7 @@ tbl7[label=<
 tbl7->tbl7DD
 tbl7DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala2DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta6DD</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -989,11 +1100,11 @@ tbl7DD[label=<
 </tr>
 </table>
 >];
-tbl5->tbl8
-tbl8[label=<
+tbl0->tbl18
+tbl18[label=<
 <table border='0' cellborder='1' cellspacing='0'>
 <tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala3</td>
+<td colspan='8' bgcolor= 'lightblue' >user</td>
 </tr>
 <tr>
 <td bgcolor='lightblue' width='20' >1</td>
@@ -1012,238 +1123,18 @@ tbl8[label=<
 <td width='20'>-1</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
-<td width='20'>8</td>
+<td width='20'>18</td>
 <td width='20'>-1</td>
 </tr>
 </table>
 >];
-tbl8->tbl8DD
-tbl8DD[label=<
+tbl18->tbl18DD
+tbl18DD[label=<
 <table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala3DD</td>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>userDD</td>
 </tr>
 <tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tbl5->tbl9
-tbl9[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala4</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>9</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tbl9->tbl9DD
-tbl9DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala4DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tbl5->tbl10
-tbl10[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala5</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>10</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tbl10->tbl10DD
-tbl10DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala5DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tbl5->tbl11
-tbl11[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >sijala6</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>11</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tbl11->tbl11DD
-tbl11DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>sijala6DD</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-<tr>
-<td>-1</td>
-<td>-1</td>
-</tr>
-</table>
->];
-tbl1->tbl22
-tbl22[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr>
-<td colspan='8' bgcolor= 'lightblue' >carpeta1</td>
-</tr>
-<tr>
-<td bgcolor='lightblue' width='20' >1</td>
-<td bgcolor='lightblue' width='20' >2</td>
-<td bgcolor='lightblue' width='20' >3</td>
-<td bgcolor='lightblue' width='20' >4</td>
-<td bgcolor='lightblue' width='20' >5</td>
-<td bgcolor='lightblue' width='20' >6</td>
-<td bgcolor='deepskyblue4' width='30' >DD</td>
-<td bgcolor='forestgreen' width='20' >AVD</td>
-</tr>
-<tr>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>-1</td>
-<td width='20'>22</td>
-<td width='20'>-1</td>
-</tr>
-</table>
->];
-tbl22->tbl22DD
-tbl22DD[label=<
-<table border='0' cellborder='1' cellspacing='0'>
-<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>carpeta1DD</td>
-</tr>
-<tr>
-<td>moransex.txt</td>
+<td>file1.txt</td>
 <td>0</td>
 </tr>
 <tr>
@@ -1264,4 +1155,115 @@ tbl22DD[label=<
 </tr>
 </table>
 >];
-}
+tbl18DD->tblInodo0
+tblInodo0[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='darkorange' width='100' colspan='4'>file1.txt</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>0</td><td>1</td><td>-1</td><td>-1</td></tr>
+</table>
+>];tblInodo0->tblBloque0
+tblBloque0[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
+</tr>
+</table>
+>];tblInodo0->tblBloque1
+tblBloque1[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
+</tr>
+</table>
+>];tbl0->tbl19
+tbl19[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue' >bin</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>19</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tbl19->tbl19DD
+tbl19DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='100' colspan='2'>binDD</td>
+</tr>
+<tr>
+<td>archivo.txt</td>
+<td>1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tbl19DD->tblInodo1
+tblInodo1[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='darkorange' width='100' colspan='4'>archivo.txt</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>2</td><td>3</td><td>-1</td><td>-1</td></tr>
+</table>
+>];tblInodo1->tblBloque2
+tblBloque2[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
+</tr>
+</table>
+>];tblInodo1->tblBloque3
+tblBloque3[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='200' bgcolor= 'lightblue' >'Este es un texto'</td>
+</tr>
+</table>
+>];}

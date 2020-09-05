@@ -354,6 +354,22 @@ func readInodo(file *os.File, seek int64) TablaInodo {
 	return m
 }
 
+//readBloque is...
+func readBloque(file *os.File, seek int64) Bloque {
+	file.Seek(seek, 0)
+	m := Bloque{}
+	var size int = int(unsafe.Sizeof(m))
+
+	data := readNextBytes(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	err := binary.Read(buffer, binary.BigEndian, &m)
+	if err != nil {
+		log.Fatal("binary.Read failed", err)
+	}
+	return m
+}
+
 //readDetalleDirectorio
 func readDetalleDirectorio(file *os.File, seek int64) DetalleDirectorio {
 	file.Seek(seek, 0)
@@ -1509,7 +1525,7 @@ func ReporteDirectorio(path string, id string) {
 //RecorrerArbolReporte is...
 func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *string, avd bool, ptr int) {
 
-	fmt.Println("Carpeta", string(arbol.AVDNombreDirectorio[:]))
+	//fmt.Println("Carpeta", string(arbol.AVDNombreDirectorio[:]))
 
 	texto := string(arbol.AVDNombreDirectorio[:])
 	texto = strings.Replace(texto, "\x00", "", -1)
@@ -1621,11 +1637,7 @@ func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.
 	var Detalle DetalleDirectorio
 	PosicionDD := super.StartDetalleDirectorio + int32(puntero*int(unsafe.Sizeof(Detalle)))
 	Detalle = readDetalleDirectorio(file, int64(PosicionDD))
-	fmt.Println("-----------------------")
-	for i := 0; i < 5; i++ {
-		fmt.Println(i+1, Detalle.DDArrayFiles[i].DDFileApInodo)
-	}
-	fmt.Println("-----------------------")
+
 	Nombre += "DD"
 	name += "DD"
 
@@ -1650,11 +1662,71 @@ func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.
 		}
 		GraficaDD += "<td>" + apuntador + "</td>\n"
 		GraficaDD += "</tr>\n"
+
 	}
 	GraficaDD += "</table>\n>];\n"
 
-	if Detalle.DDApDetalleDirectorio != -1 {
-		fmt.Println("llamar al metodo recursivo")
+	for i := 0; i < 5; i++ {
+
+		nombreFile := string(Detalle.DDArrayFiles[i].DDFileNombre[:])
+		nombreFile = strings.Replace(nombreFile, "\x00", "", -1)
+
+		var Inodo TablaInodo
+		ApInodo := Detalle.DDArrayFiles[i].DDFileApInodo
+
+		if ApInodo != -1 {
+			GraficaDD += "tbl" + Nombre + "->"
+			var NameInodo string
+			NameInodo = fmt.Sprint(NameInodo, ApInodo)
+			GraficaDD += "tblInodo" + NameInodo + "\n"
+
+			Inodo = readInodo(file, int64(super.StartInodos+(ApInodo*int32(unsafe.Sizeof(Inodo)))))
+			/*
+			 * TABLA INODO
+			 */
+			GraficaDD += "tblInodo" + NameInodo
+			GraficaDD += "[label=<\n"
+			GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
+			GraficaDD += "<tr><td bgcolor='darkorange' width='100' colspan='4'>" + nombreFile + "</td>\n"
+			GraficaDD += "</tr>\n"
+			GraficaDD += "<tr>\n"
+			GraficaDD += "<td>1</td>\n"
+			GraficaDD += "<td>2</td>\n"
+			GraficaDD += "<td>3</td>\n"
+			GraficaDD += "<td>4</td>\n"
+			GraficaDD += "</tr>\n"
+			GraficaDD += "<tr>\n"
+			for i := 0; i < 4; i++ {
+				var aux string
+				aux = fmt.Sprint(aux, Inodo.IArrayBloques[i])
+				GraficaDD += "<td>" + aux + "</td>"
+			}
+			GraficaDD += "</tr>\n"
+			GraficaDD += "</table>\n>];"
+
+			for i := 0; i < 4; i++ {
+				ApBloque := Inodo.IArrayBloques[i]
+
+				if ApBloque != -1 {
+					var aux1 string
+					aux1 = fmt.Sprint(aux1, ApBloque)
+					var Block Bloque
+					Block = readBloque(file, int64(super.StartBloques+(ApBloque*int32(unsafe.Sizeof(Block)))))
+
+					texto := string(Block.Texto[:])
+					texto = strings.Replace(texto, "\x00", "", -1)
+
+					GraficaDD += "tblInodo" + NameInodo + "->" + "tblBloque" + aux1 + "\n"
+					GraficaDD += "tblBloque" + aux1 + "[label=<\n"
+					GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
+					GraficaDD += "<tr>\n"
+					GraficaDD += "<td width='200' bgcolor= 'lightblue' >'" + texto + "'</td>\n"
+					GraficaDD += "</tr>\n"
+					GraficaDD += "</table>\n"
+					GraficaDD += ">];"
+				}
+			}
+		}
 	}
 
 	return GraficaDD
@@ -2405,6 +2477,9 @@ func CrearArchivo(Archivo DetalleDirectorio, Rutas []string, apuntador int, Ruta
 				CrearInodo(Inodo, Rutas[0], RutaDisco, SuperB, count, int(nBloques))
 				return
 			}
+			fmt.Println("Ya existo")
+			return
+
 		}
 
 		/*
@@ -2631,6 +2706,9 @@ func InicializarDD(DetalleD DetalleDirectorio) DetalleDirectorio {
 
 //InicializarInodo is...
 func InicializarInodo(Inodo TablaInodo) TablaInodo {
+	for i := 0; i < 4; i++ {
+		Inodo.IArrayBloques[i] = -1
+	}
 	Inodo.IApIndirecto = -1
 	Inodo.IIDProper = -1
 	return Inodo
