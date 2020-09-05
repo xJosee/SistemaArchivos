@@ -1739,7 +1739,7 @@ func ReporteTreeFile(carpeta string, id string, path string) {
 
 	if PathDisco != "null" {
 
-		Grafica := ""
+		var Grafica string
 
 		PartStart := listaParticiones.GetPartStart(id)
 		File := getFile(PathDisco)
@@ -1753,7 +1753,7 @@ func ReporteTreeFile(carpeta string, id string, path string) {
 		fmt.Fprintf(graphDot, "digraph G{ \n")
 		fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
 
-		Grafica = BuscarCarpeta(Root, SuperBloque, File, false, 0, carpeta)
+		BuscarCarpeta(Root, SuperBloque, File, false, 0, carpeta, &Grafica)
 
 		fmt.Fprintf(graphDot, Grafica)
 
@@ -1765,38 +1765,21 @@ func ReporteTreeFile(carpeta string, id string, path string) {
 }
 
 //BuscarCarpeta is...
-func BuscarCarpeta(arbol Arbol, Superbloque SB, file *os.File, avd bool, ptr int, NombreCarpeta string) string {
-
-	var Grafica string
-
+func BuscarCarpeta(arbol Arbol, Superbloque SB, file *os.File, avd bool, ptr int, NombreCarpeta string, Grafica *string) {
 	var nameCarpeta [16]byte
 	copy(nameCarpeta[:], NombreCarpeta)
-
 	if bytes.Compare(arbol.AVDNombreDirectorio[:], nameCarpeta[:]) == 0 {
-		RecorrerArbolReporte(arbol, Superbloque, file, &Grafica, false, int(ptr))
-	} else {
-		for i := 0; i < 6; i++ {
-			Apuntador := arbol.Subirectorios[i]
+		RecorrerArbolReporte(arbol, Superbloque, file, Grafica, false, int(ptr))
+	}
+	for i := 0; i < 6; i++ {
+		Apuntador := arbol.Subirectorios[i]
 
-			if Apuntador != -1 {
-				var CarpetaHija Arbol
-				CarpetaHija = readArbolVirtualDirectorio(file, int64(Superbloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
-
-				var nameCarpetaByte [16]byte
-				copy(nameCarpetaByte[:], NombreCarpeta)
-
-				if bytes.Compare(CarpetaHija.AVDNombreDirectorio[:], nameCarpetaByte[:]) == 0 {
-					RecorrerArbolReporte(CarpetaHija, Superbloque, file, &Grafica, false, int(Apuntador))
-				} else {
-					BuscarCarpeta(CarpetaHija, Superbloque, file, avd, int(Apuntador), NombreCarpeta)
-				}
-
-			}
+		if Apuntador != -1 {
+			var CarpetaHija Arbol
+			CarpetaHija = readArbolVirtualDirectorio(file, int64(Superbloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
+			BuscarCarpeta(CarpetaHija, Superbloque, file, avd, int(Apuntador), NombreCarpeta, Grafica)
 		}
 	}
-
-	return Grafica
-
 }
 
 /*
