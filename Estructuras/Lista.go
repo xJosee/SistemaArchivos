@@ -176,9 +176,13 @@ func (Lista *Lista) BuscarNodo(direccion string, nombre string) bool {
 
 //Listar is...
 func (Lista *Lista) Listar() {
+	fmt.Println("-----------------------------------------------")
+	fmt.Println("            PARTICIONES MONTADAS               ")
+	fmt.Println("-----------------------------------------------")
 	aux := Lista.Primero
 	for aux != nil {
-		fmt.Println("NOMBRE : ", aux.Nombre, " <----> ", "ID : vd", string(aux.Letra), aux.Num)
+		fmt.Println("      NOMBRE : ", aux.Nombre, " | ", "ID : vd", string(aux.Letra), aux.Num)
 		aux = aux.Siguiente
 	}
+	fmt.Println("-----------------------------------------------")
 }

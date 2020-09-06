@@ -1217,28 +1217,6 @@ func ParticionLogicaExist(path string, name string) int {
 	return -1
 }
 
-//BuscarParticion is...
-func BuscarParticion(path string, nombre string) int {
-
-	if VerificarRuta(path) {
-
-		File := getFile(path)
-		MBR := readMBR(File)
-
-		for i := 0; i < 4; i++ {
-			var nameByte [16]byte
-			copy(nameByte[:], nombre)
-			if MBR.Particion[i].PartStatus != '1' {
-				if bytes.Compare(nameByte[:], MBR.Particion[i].PartName[:]) == 0 {
-					return i
-				}
-			}
-		}
-
-	}
-	return -1
-}
-
 /*
  *	R E P O R T E S
  */
@@ -1703,8 +1681,12 @@ func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.
 			*GraficaDD += "<td>2</td>\n"
 			*GraficaDD += "<td>3</td>\n"
 			*GraficaDD += "<td>4</td>\n"
+			*GraficaDD += "<td>5</td>\n"
 			*GraficaDD += "</tr>\n"
 			*GraficaDD += "<tr>\n"
+			var ptr1 string
+			ptr1 = fmt.Sprint(ptr1, Inodo.IApIndirecto)
+			*GraficaDD += "<td>" + ptr1 + "</td>\n"
 			for i := 0; i < 4; i++ {
 				var aux string
 				aux = fmt.Sprint(aux, Inodo.IArrayBloques[i])
@@ -2129,7 +2111,7 @@ func Formatear(id string) {
 		/*
 		 *	MANDANDO A CREAR EL USER.TXT
 		 */
-		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 50, "HolaMundo")
+		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 50, "1,G,root")
 
 		fmt.Println("----------------------------------------------------")
 		fmt.Println("-       Formateo LWH realizado correctamente       -")
@@ -2615,7 +2597,11 @@ func CrearArchivo(Archivo DetalleDirectorio, Rutas []string, apuntador int, Ruta
 				Inodo.ISizeArchivo = int32(size)
 				//Calculamos la cantidad de bloques
 				nBloques := size / 25
-				Inodo.ICountBloquesAsignados = int32(nBloques)
+				if nBloques <= 4 {
+					Inodo.ICountBloquesAsignados = int32(nBloques)
+				} else {
+					Inodo.ICountBloquesAsignados = 4
+				}
 				SuperB.InodosFree--
 				SuperB.FirstFreeInodo++
 				/*
@@ -2648,9 +2634,10 @@ func CrearArchivo(Archivo DetalleDirectorio, Rutas []string, apuntador int, Ruta
 			copy(nameDirec[:], Rutas[0])
 
 			if bytes.Compare(nameDirec[:], Archivo.DDArrayFiles[i].DDFileNombre[:]) == 0 {
-				var InodoB TablaInodo
+				/*var InodoB TablaInodo
 				InodoB = readInodo(File, int64(SuperB.StartInodos+(Puntero*int32(unsafe.Sizeof(InodoB)))))
-				SustituirData(InodoB, SuperB, File, count)
+				SustituirData(InodoB, SuperB, File, count)*/
+				ErrorMessage("[MKFILE] -> Ya existe un file con el mismo nombre")
 				return
 			}
 
@@ -2760,15 +2747,22 @@ func CrearInodo(Inodo TablaInodo, NombreArchivo string, RutaDisco string, SuperB
 		for i := 0; i < int(Inodo.ICountBloquesAsignados); i++ {
 			//Verificamos si el contenido viene o no
 			if contenido == "" {
-				contenido = "Este es un texto"
+				contenido = "abcdefghijklmnopqrstuvwx"
 			}
 			/*
 			 * CREAMOS EL BLOQUE
 			 */
 			var BloqueDatos Bloque
-			copy(BloqueDatos.Texto[:], contenido)
+			runes := []rune(contenido)
+			subString := string(runes[0:25])
+			copy(BloqueDatos.Texto[:], subString)
 			//Verificamos el valor del contenido a ingresar
+
 			if len(contenido) > 25 {
+				runes1 := []rune(contenido)
+				subString1 := string(runes1[25:len(contenido)])
+				contenido = subString1
+			} else {
 				contenido = ""
 			}
 			Inodo.IArrayBloques[i] = SuperBloque.FirstFreeBloque
@@ -2813,6 +2807,7 @@ func CrearInodo(Inodo TablaInodo, NombreArchivo string, RutaDisco string, SuperB
 		 *  VERIFICAMOS SI LOS BLOQUES SON MAYOR A 4
 		 */
 		if Bloques > 4 {
+
 			Bloques = Bloques - 4
 			var InodoCopia TablaInodo
 			InodoCopia.ICountInodo = SuperBloque.FirstFreeInodo
@@ -2824,28 +2819,18 @@ func CrearInodo(Inodo TablaInodo, NombreArchivo string, RutaDisco string, SuperB
 			/*
 			 *	REESCRIBIMOS EL INODOS CON LOS CAMBIOS
 			 */
-			File.Seek(int64(SuperBloque.StartInodos+(Inodo.ICountInodo*int32(unsafe.Sizeof(Inodo)))), 0)
-			s4 := &Inodo
-			var binario4 bytes.Buffer
-			binary.Write(&binario4, binary.BigEndian, s4)
-			File.Write(binario4.Bytes())
+			File.Seek(int64(SuperBloque.StartInodos+(Inodo.ICountInodo*int32(unsafe.Sizeof(InodoCopia)))), 0)
+			WriteInode(File, InodoCopia)
 			/*
 			 *	ESCRIBIMOS UN 1 EN EL BITMAP DEL INODO
 			 */
 			File.Seek(int64(SuperBloque.StartBmInodos+InodoCopia.ICountInodo), 0)
-			var uno byte = '1'
-			s5 := &uno
-			var binario5 bytes.Buffer
-			binary.Write(&binario5, binary.BigEndian, s5)
-			File.Write(binario5.Bytes())
+			WriteOne(File, '1')
 			/*
 			 *	REESCRIBIMOS EL SUPERBLOQUE CON LOS CAMBIOS
 			 */
 			File.Seek(int64(SuperBloque.StartBmArbolDirectorio-int32(unsafe.Sizeof(SuperBloque))), 0)
-			s6 := &SuperBloque
-			var binario6 bytes.Buffer
-			binary.Write(&binario6, binary.BigEndian, s6)
-			File.Write(binario6.Bytes())
+			WriteSB(File, SuperBloque)
 			//TODO : Ver lo de los bloques
 			if Bloques <= 4 {
 				InodoCopia.ICountBloquesAsignados = int32(Bloques)
@@ -2914,42 +2899,44 @@ func InicializarBitacora(Bitacora Bitacora) Bitacora {
 
 //Login is ...
 func Login(user string, password string, id string) {
-	fmt.Println(user, password, id)
-	// TODO : Hacer login
 	var RutaDisco string = listaParticiones.GetDireccion(id)
 
 	if RutaDisco != "null" {
-		var PartName string = listaParticiones.GetPartName(id)
-		PosParticion := BuscarParticion(RutaDisco, PartName)
-
-		if PosParticion != -1 {
-
-			/*var masterboot MBR
-			var SuperBloque SB
-			var Inodo TablaInodo
-			File := getFile(RutaDisco)
-			masterboot = readMBR(File)
-			SuperBloque = readSuperBloque(File, int64(masterboot.Particion[PosParticion].PartStart))
-			Inodo = readInodo(File, int64(SuperBloque.StartInodos+int32(unsafe.Sizeof(Inodo))))
-
-			File.Seek(int64(SuperBloque.StartInodos+int32(unsafe.Sizeof(Inodo))), 0)
-
-			inodo.i_atime = time(nullptr)
-			fwrite(&inodo, sizeof(InodoTable), 1, fp)
-			fclose(fp)
-			currentSession.inicioSuper = masterboot.mbr_partition[index].part_start
-			currentSession.fit = masterboot.mbr_partition[index].part_fit
-			currentSession.inicioJournal = masterboot.mbr_partition[index].part_start+static_cast < int > (sizeof(SuperBloque))
-			currentSession.tipo_sistema = super.s_filesystem_type
-			return verificarDatos(user, password, direccion)*/
-
-		} else {
-
-		}
+		File := getFile(RutaDisco)
+		PartStart := listaParticiones.GetPartStart(id)
+		SuperBloque := readSuperBloque(File, int64(PartStart))
+		DetallDirectorioRoot := readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio))
+		Data := ObtenerDataUserTXT(DetallDirectorioRoot, File, SuperBloque)
+		VerificarDatos(Data, user, password)
 
 	} else {
 		ErrorMessage("[LOGIN] -> No se encuentra ninguna particion montada con ese id")
 	}
+}
+
+//ObtenerDataUserTXT is...
+func ObtenerDataUserTXT(DDroot DetalleDirectorio, File *os.File, SuperB SB) []string {
+	//Obtenemos el apuntador al Inodo
+	ApuntadorInodo := DDroot.DDArrayFiles[0].DDFileApInodo
+	var InodoB TablaInodo
+	//Leemos el Inodo
+	InodoB = readInodo(File, int64(SuperB.StartInodos+(ApuntadorInodo*int32(unsafe.Sizeof(InodoB)))))
+	//Obtenemos el apuntador al bloque
+	ApuntadorBloque := InodoB.IArrayBloques[0]
+	var Block Bloque
+	//Leemos el bloque
+	Block = readBloque(File, int64(SuperB.StartBloques+(ApuntadorBloque*int32(unsafe.Sizeof(Block)))))
+
+	ContenidoUserTxt := string(Block.Texto[:])
+	ContenidoUserTxt = strings.Replace(ContenidoUserTxt, "\x00", "", -1)
+	Split := strings.Split(ContenidoUserTxt, ",")
+
+	return Split
+}
+
+//VerificarDatos is...
+func VerificarDatos(data []string, user string, pass string) {
+	fmt.Println(data, user, pass)
 }
 
 //Logout is...
