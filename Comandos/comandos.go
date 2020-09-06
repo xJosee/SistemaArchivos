@@ -5,9 +5,11 @@ import (
 	"encoding/binary"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 	"unsafe"
@@ -296,13 +298,22 @@ func readEBR(file *os.File, seek int64) EBR {
 	if err != nil {
 		log.Fatal("binary.Read failed", err)
 	}
-	/*fmt.Println("Part Start", m.PartStart)
-	fmt.Println("Part Size", m.PartSize)
-	fmt.Println("Part Fit", string(m.PartFit))
-	fmt.Println("Part Name", string(m.PartName[:]))
-	fmt.Println("Part Next", m.PartNext)
-	fmt.Println("Part Status", string(m.PartStatus))
-	fmt.Println("")*/
+	return m
+}
+
+//readByte is...
+func readByte(file *os.File, seek int64) byte {
+	file.Seek(seek, 0)
+	var m byte
+	var size int = int(unsafe.Sizeof(m))
+
+	data := readNextBytes(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	err := binary.Read(buffer, binary.BigEndian, &m)
+	if err != nil {
+		log.Fatal("binary.Read failed", err)
+	}
 	return m
 }
 
@@ -1668,55 +1679,8 @@ func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.
 			*GraficaDD += "tblInodo" + NameInodo + "\n"
 
 			Inodo = readInodo(file, int64(super.StartInodos+(ApInodo*int32(unsafe.Sizeof(Inodo)))))
-			/*
-			 * TABLA INODO
-			 */
-			*GraficaDD += "tblInodo" + NameInodo
-			*GraficaDD += "[label=<\n"
-			*GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
-			*GraficaDD += "<tr><td bgcolor='darkorange' width='100' colspan='4'>" + nombreFile + "</td>\n"
-			*GraficaDD += "</tr>\n"
-			*GraficaDD += "<tr>\n"
-			*GraficaDD += "<td>1</td>\n"
-			*GraficaDD += "<td>2</td>\n"
-			*GraficaDD += "<td>3</td>\n"
-			*GraficaDD += "<td>4</td>\n"
-			*GraficaDD += "<td>5</td>\n"
-			*GraficaDD += "</tr>\n"
-			*GraficaDD += "<tr>\n"
-			var ptr1 string
-			ptr1 = fmt.Sprint(ptr1, Inodo.IApIndirecto)
-			*GraficaDD += "<td>" + ptr1 + "</td>\n"
-			for i := 0; i < 4; i++ {
-				var aux string
-				aux = fmt.Sprint(aux, Inodo.IArrayBloques[i])
-				*GraficaDD += "<td>" + aux + "</td>"
-			}
-			*GraficaDD += "</tr>\n"
-			*GraficaDD += "</table>\n>];"
+			GenerarReporteInodo(Inodo, file, super, GraficaDD, NameInodo, nombreFile)
 
-			for i := 0; i < 4; i++ {
-				ApBloque := Inodo.IArrayBloques[i]
-
-				if ApBloque != -1 {
-					var aux1 string
-					aux1 = fmt.Sprint(aux1, ApBloque)
-					var Block Bloque
-					Block = readBloque(file, int64(super.StartBloques+(ApBloque*int32(unsafe.Sizeof(Block)))))
-
-					texto := string(Block.Texto[:])
-					texto = strings.Replace(texto, "\x00", "", -1)
-
-					*GraficaDD += "tblInodo" + NameInodo + "->" + "tblBloque" + aux1 + "\n"
-					*GraficaDD += "tblBloque" + aux1 + "[label=<\n"
-					*GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
-					*GraficaDD += "<tr>\n"
-					*GraficaDD += "<td width='200' bgcolor= 'lightblue' >'" + texto + "'</td>\n"
-					*GraficaDD += "</tr>\n"
-					*GraficaDD += "</table>\n"
-					*GraficaDD += ">];\n"
-				}
-			}
 		}
 	}
 	if Detalle.DDApDetalleDirectorio != -1 {
@@ -1726,6 +1690,68 @@ func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.
 		*GraficaDD += "tbl" + Nombre + "-> " + "tbl" + aux + "DDDD" + ";\n"
 		aux += "DD"
 		GenerarDetalleDirectorio(aux, name, int(Detalle.DDApDetalleDirectorio), file, super, GraficaDD)
+	}
+}
+
+//GenerarReporteInodo is...
+func GenerarReporteInodo(Inodo TablaInodo, File *os.File, SuperBloque SB, GraficaDD *string, NameInodo string, nombreFile string) {
+	/*
+	 * TABLA INODO
+	 */
+	*GraficaDD += "tblInodo" + NameInodo
+	*GraficaDD += "[label=<\n"
+	*GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
+	*GraficaDD += "<tr><td bgcolor='darkorange' width='100' colspan='5'>" + nombreFile + "</td>\n"
+	*GraficaDD += "</tr>\n"
+	*GraficaDD += "<tr>\n"
+	*GraficaDD += "<td>1</td>\n"
+	*GraficaDD += "<td>2</td>\n"
+	*GraficaDD += "<td>3</td>\n"
+	*GraficaDD += "<td>4</td>\n"
+	*GraficaDD += "<td bgcolor='darkorange' width='25'>Inodo</td>\n"
+	*GraficaDD += "</tr>\n"
+	*GraficaDD += "<tr>\n"
+	var ptr1 string
+	ptr1 = fmt.Sprint(ptr1, Inodo.IApIndirecto)
+	*GraficaDD += "<td>" + ptr1 + "</td>\n"
+	for i := 0; i < 4; i++ {
+		var aux string
+		aux = fmt.Sprint(aux, Inodo.IArrayBloques[i])
+		*GraficaDD += "<td>" + aux + "</td>"
+	}
+	*GraficaDD += "</tr>\n"
+	*GraficaDD += "</table>\n>];"
+
+	for i := 0; i < 4; i++ {
+		ApBloque := Inodo.IArrayBloques[i]
+
+		if ApBloque != -1 {
+			var aux1 string
+			aux1 = fmt.Sprint(aux1, ApBloque)
+			var Block Bloque
+			Block = readBloque(File, int64(SuperBloque.StartBloques+(ApBloque*int32(unsafe.Sizeof(Block)))))
+
+			texto := string(Block.Texto[:])
+			texto = strings.Replace(texto, "\x00", "", -1)
+
+			*GraficaDD += "tblInodo" + NameInodo + "->" + "tblBloque" + aux1 + "\n"
+			*GraficaDD += "tblBloque" + aux1 + "[label=<\n"
+			*GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
+			*GraficaDD += "<tr>\n"
+			*GraficaDD += "<td width='200' bgcolor= 'lightblue' >'" + texto + "'</td>\n"
+			*GraficaDD += "</tr>\n"
+			*GraficaDD += "</table>\n"
+			*GraficaDD += ">];\n"
+		}
+	}
+	if Inodo.IApIndirecto != -1 {
+		var apunt string
+		apunt = fmt.Sprint(apunt, Inodo.IApIndirecto)
+		apunt += "Inode"
+		*GraficaDD += "tblInodo" + NameInodo + "->tblInodo" + apunt + "\n"
+		var InodoIndirecto TablaInodo
+		InodoIndirecto = readInodo(File, int64(SuperBloque.StartInodos+(Inodo.IApIndirecto*int32(unsafe.Sizeof(InodoIndirecto)))))
+		GenerarReporteInodo(InodoIndirecto, File, SuperBloque, GraficaDD, apunt, nombreFile)
 	}
 }
 
@@ -1871,21 +1897,155 @@ func WriteBloque(file *os.File, Block Bloque) {
 //ReporteBMarbdir is...
 func ReporteBMarbdir(path string, id string) {
 
+	RutaDisco := listaParticiones.GetDireccion(id)
+
+	if RutaDisco != "null" {
+
+		if VerificarRuta(RutaDisco) {
+			PartStart := listaParticiones.GetPartStart(id)
+			File := getFile(RutaDisco)
+			SuperBloque := readSuperBloque(File, int64(PartStart))
+			CantidadEstructuras := int(SuperBloque.MagicNum)
+			StartBitMap := int(SuperBloque.StartBmArbolDirectorio)
+
+			os.Create("Reportes/BitMapArbolDirectorio.txt")
+			BitMapTxt := getFile("Reportes/BitMapArbolDirectorio.txt")
+			var contador int
+			for i := 0; i < CantidadEstructuras; i++ {
+				contador++
+				i, _ := strconv.Atoi(string(readByte(File, int64(StartBitMap+i))))
+				var Byte string
+				Byte = fmt.Sprint(Byte, i)
+				if contador == 51 {
+					fmt.Fprintf(BitMapTxt, "\n")
+					contador = 0
+				} else {
+					fmt.Fprintf(BitMapTxt, Byte)
+				}
+			}
+
+		} else {
+			ErrorMessage("[REP] -> No se encuentra el disco")
+		}
+
+	} else {
+		ErrorMessage("[REP] -> No hay ninguna particion montada con ese id")
+	}
+
 }
 
 //ReporteBMdetdir is...
 func ReporteBMdetdir(path string, id string) {
+	RutaDisco := listaParticiones.GetDireccion(id)
 
+	if RutaDisco != "null" {
+
+		if VerificarRuta(RutaDisco) {
+			PartStart := listaParticiones.GetPartStart(id)
+			File := getFile(RutaDisco)
+			SuperBloque := readSuperBloque(File, int64(PartStart))
+			CantidadEstructuras := int(SuperBloque.MagicNum)
+			StartBitMap := int(SuperBloque.StartBmDetalleDirectorio)
+
+			os.Create("Reportes/BitMapDetalleDirectorio.txt")
+			BitMapTxt := getFile("Reportes/BitMapDetalleDirectorio.txt")
+			var contador int
+			for i := 0; i < CantidadEstructuras; i++ {
+				contador++
+				i, _ := strconv.Atoi(string(readByte(File, int64(StartBitMap+i))))
+				var Byte string
+				Byte = fmt.Sprint(Byte, i)
+				if contador == 51 {
+					fmt.Fprintf(BitMapTxt, "\n")
+					contador = 0
+				} else {
+					fmt.Fprintf(BitMapTxt, Byte)
+				}
+			}
+
+		} else {
+			ErrorMessage("[REP] -> No se encuentra el disco")
+		}
+
+	} else {
+		ErrorMessage("[REP] -> No hay ninguna particion montada con ese id")
+	}
 }
 
 //ReporteBMinode is...
 func ReporteBMinode(path string, id string) {
+	RutaDisco := listaParticiones.GetDireccion(id)
 
+	if RutaDisco != "null" {
+
+		if VerificarRuta(RutaDisco) {
+			PartStart := listaParticiones.GetPartStart(id)
+			File := getFile(RutaDisco)
+			SuperBloque := readSuperBloque(File, int64(PartStart))
+			CantidadEstructuras := int(SuperBloque.MagicNum)
+			StartBitMap := int(SuperBloque.StartBmInodos)
+
+			os.Create("Reportes/BitMapInode.txt")
+			BitMapTxt := getFile("Reportes/BitMapInode.txt")
+			var contador int
+			for i := 0; i < CantidadEstructuras; i++ {
+				contador++
+				i, _ := strconv.Atoi(string(readByte(File, int64(StartBitMap+i))))
+				var Byte string
+				Byte = fmt.Sprint(Byte, i)
+				if contador == 51 {
+					fmt.Fprintf(BitMapTxt, "\n")
+					contador = 0
+				} else {
+					fmt.Fprintf(BitMapTxt, Byte)
+				}
+			}
+
+		} else {
+			ErrorMessage("[REP] -> No se encuentra el disco")
+		}
+
+	} else {
+		ErrorMessage("[REP] -> No hay ninguna particion montada con ese id")
+	}
 }
 
 //ReporteBMblock is...
 func ReporteBMblock(path string, id string) {
+	RutaDisco := listaParticiones.GetDireccion(id)
 
+	if RutaDisco != "null" {
+
+		if VerificarRuta(RutaDisco) {
+			PartStart := listaParticiones.GetPartStart(id)
+			File := getFile(RutaDisco)
+			SuperBloque := readSuperBloque(File, int64(PartStart))
+			CantidadEstructuras := int(SuperBloque.MagicNum)
+			StartBitMap := int(SuperBloque.StartBmBloques)
+
+			os.Create("Reportes/BitMapBloque.txt")
+			BitMapTxt := getFile("Reportes/BitMapBloque.txt")
+			var contador int
+			for i := 0; i < CantidadEstructuras; i++ {
+				contador++
+				i, _ := strconv.Atoi(string(readByte(File, int64(StartBitMap+i))))
+				var Byte string
+				Byte = fmt.Sprint(Byte, i)
+				if contador == 51 {
+					fmt.Fprintf(BitMapTxt, "\n")
+					contador = 0
+				} else {
+					fmt.Fprintf(BitMapTxt, Byte)
+				}
+			}
+
+		} else {
+			ErrorMessage("[REP] -> No se encuentra el disco")
+		}
+
+	} else {
+		ErrorMessage("[REP] -> No hay ninguna particion montada con ese id")
+	}
 }
 
 /*
@@ -1993,7 +2153,7 @@ func Formatear(id string) {
 		SB.FirstFreeInodo = 0
 		SB.FirstFreeBloque = 0
 		//Magic Num
-		SB.MagicNum = 201807431
+		SB.MagicNum = int32(CantidadEstructuras)
 		//Struct Size
 		SB.SizeStructAvd = int32(unsafe.Sizeof(AVD))
 		SB.SizeStructDd = int32(unsafe.Sizeof(DD))
@@ -2111,7 +2271,7 @@ func Formatear(id string) {
 		/*
 		 *	MANDANDO A CREAR EL USER.TXT
 		 */
-		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 50, "1,G,root")
+		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 0, "1,G,root\n1,U,root,123\n2,G,Usuarios\n")
 
 		fmt.Println("----------------------------------------------------")
 		fmt.Println("-       Formateo LWH realizado correctamente       -")
@@ -2368,7 +2528,6 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, puntero 
 		//Le seteamos el nombre del AVD anterior
 		Nombre := string(AVD.AVDNombreDirectorio[:])
 		Nombre = strings.Replace(Nombre, "\x00", "", -1)
-		Nombre += "AVD"
 		copy(CopiaAVD.AVDNombreDirectorio[:], Nombre)
 		//Obtenemos la fecha actual
 		dt := time.Now()
@@ -2595,8 +2754,35 @@ func CrearArchivo(Archivo DetalleDirectorio, Rutas []string, apuntador int, Ruta
 				Inodo := InicializarInodo(TablaInodo{})
 				Inodo.ICountInodo = ApuntadorInodo
 				Inodo.ISizeArchivo = int32(size)
-				//Calculamos la cantidad de bloques
-				nBloques := size / 25
+				/*
+				 *	CALCULAMOS LA CANTIDAD
+				 */
+				var nBloques float64
+				var num float64 = 25
+
+				if count != "" && size == 0 { // EL CONTENIDO DEFINE LA CANTIDAD DE BLOQUES
+					nBloques = float64(len(count)) / num
+					if nBloques-math.Floor(nBloques) != 0 {
+						nBloques = nBloques + 1
+					}
+				} else if count == "" && size != 0 { // EL SIZE DEFINE LA CANTIDAD DE BLOQUES
+					nBloques = float64(size) / num
+					if nBloques-math.Floor(nBloques) != 0 {
+						nBloques = nBloques + 1
+					}
+				} else if count != "" && size != 0 { // SI LOS 2 VIENEN
+					if len(count) > size { // EL CONTENIDO DEFINE LA CANTIDAD DE BLOQUES
+						nBloques = float64(len(count)) / num
+						if nBloques-math.Floor(nBloques) != 0 {
+							nBloques = nBloques + 1
+						}
+					} else { // EL SIZE DEFINE LA CANTIDAD DE BLOQUES
+						nBloques = float64(size) / num
+						if nBloques-math.Floor(nBloques) != 0 {
+							nBloques = nBloques + 1
+						}
+					}
+				}
 				if nBloques <= 4 {
 					Inodo.ICountBloquesAsignados = int32(nBloques)
 				} else {
@@ -2747,21 +2933,19 @@ func CrearInodo(Inodo TablaInodo, NombreArchivo string, RutaDisco string, SuperB
 		for i := 0; i < int(Inodo.ICountBloquesAsignados); i++ {
 			//Verificamos si el contenido viene o no
 			if contenido == "" {
-				contenido = "abcdefghijklmnopqrstuvwx"
+				contenido = "abcdefghijklmnopqrstuvwxy"
 			}
 			/*
 			 * CREAMOS EL BLOQUE
 			 */
 			var BloqueDatos Bloque
-			runes := []rune(contenido)
-			subString := string(runes[0:25])
-			copy(BloqueDatos.Texto[:], subString)
+			Rune := []rune(contenido)
+			SubString := string(Rune[0:25])
+			copy(BloqueDatos.Texto[:], SubString)
 			//Verificamos el valor del contenido a ingresar
-
 			if len(contenido) > 25 {
-				runes1 := []rune(contenido)
-				subString1 := string(runes1[25:len(contenido)])
-				contenido = subString1
+				SubStringCont := string(Rune[25:len(contenido)])
+				contenido = SubStringCont
 			} else {
 				contenido = ""
 			}
@@ -2807,9 +2991,8 @@ func CrearInodo(Inodo TablaInodo, NombreArchivo string, RutaDisco string, SuperB
 		 *  VERIFICAMOS SI LOS BLOQUES SON MAYOR A 4
 		 */
 		if Bloques > 4 {
-
 			Bloques = Bloques - 4
-			var InodoCopia TablaInodo
+			InodoCopia := InicializarInodo(TablaInodo{})
 			InodoCopia.ICountInodo = SuperBloque.FirstFreeInodo
 			Inodo.IApIndirecto = InodoCopia.ICountInodo
 			InodoCopia.ISizeArchivo = Inodo.ISizeArchivo
@@ -2820,18 +3003,27 @@ func CrearInodo(Inodo TablaInodo, NombreArchivo string, RutaDisco string, SuperB
 			 *	REESCRIBIMOS EL INODOS CON LOS CAMBIOS
 			 */
 			File.Seek(int64(SuperBloque.StartInodos+(Inodo.ICountInodo*int32(unsafe.Sizeof(InodoCopia)))), 0)
-			WriteInode(File, InodoCopia)
+			s4 := &Inodo
+			var binario4 bytes.Buffer
+			binary.Write(&binario4, binary.BigEndian, s4)
+			File.Write(binario4.Bytes())
 			/*
 			 *	ESCRIBIMOS UN 1 EN EL BITMAP DEL INODO
 			 */
 			File.Seek(int64(SuperBloque.StartBmInodos+InodoCopia.ICountInodo), 0)
-			WriteOne(File, '1')
+			var uno byte = '1'
+			s5 := &uno
+			var binario5 bytes.Buffer
+			binary.Write(&binario5, binary.BigEndian, s5)
+			File.Write(binario5.Bytes())
 			/*
 			 *	REESCRIBIMOS EL SUPERBLOQUE CON LOS CAMBIOS
 			 */
 			File.Seek(int64(SuperBloque.StartBmArbolDirectorio-int32(unsafe.Sizeof(SuperBloque))), 0)
-			WriteSB(File, SuperBloque)
-			//TODO : Ver lo de los bloques
+			s6 := &SuperBloque
+			var binario6 bytes.Buffer
+			binary.Write(&binario6, binary.BigEndian, s6)
+			File.Write(binario6.Bytes())
 			if Bloques <= 4 {
 				InodoCopia.ICountBloquesAsignados = int32(Bloques)
 			} else {
@@ -2845,6 +3037,11 @@ func CrearInodo(Inodo TablaInodo, NombreArchivo string, RutaDisco string, SuperB
 	} else {
 		ErrorMessage("[MKFILE] -> No existe ningun disco en esta ruta")
 	}
+
+}
+
+//ComandoEditFile is...
+func ComandoEditFile() {
 
 }
 
