@@ -2122,6 +2122,15 @@ func Formatear(id string) {
 		 */
 		CrearRoot("/", id, 0) //TODO : Verficar cuando vandar true de la bitacora
 
+		File = getFile(pathD)
+		SuperBlock := readSuperBloque(File, int64(PartStart))
+		DDroot := readDetalleDirectorio(File, int64(SuperBlock.StartDetalleDirectorio))
+		Ruta := strings.Split("user.txt", "/")
+		/*
+		 *	MANDANDO A CREAR EL USER.TXT
+		 */
+		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 50, "HolaMundo")
+
 		fmt.Println("----------------------------------------------------")
 		fmt.Println("-       Formateo LWH realizado correctamente       -")
 		fmt.Println("----------------------------------------------------")
@@ -2489,7 +2498,14 @@ func MKFILE(id string, path string, p bool, size int, count string) {
 			SuperB := readSuperBloque(File1, int64(PartStart))
 
 			Raiz := readArbolVirtualDirectorio(File1, int64(SuperB.StartArbolDirectorio))
+			DetalleRoot := readDetalleDirectorio(File1, int64(SuperB.StartDetalleDirectorio))
+
 			File1.Close()
+
+			if len(RutasMKFILE) == 1 {
+				CrearArchivo(DetalleRoot, RutasMKFILE, 0, PathDisco, SuperB, size, count)
+				return
+			}
 
 			RecorrerArbol(Raiz, RutasMKFILE, PathDisco, SuperB, size, count)
 
@@ -2515,6 +2531,7 @@ func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB,
 
 		File := getFile(PathDisco) //Leemos el disco
 		var Apuntador int32 = 0
+
 		//recorremos los 6 subdirectorios del AVD
 		for i := 0; i < 6; i++ {
 			Apuntador = root.Subirectorios[i]
