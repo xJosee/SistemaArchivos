@@ -241,6 +241,30 @@ func VerificarComando(listaComandos []string) {
 		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan()
 
+	} else if strings.ToLower(listaComandos[0]) == "logout" {
+
+		comandos.Logout()
+
+	} else if strings.ToLower(listaComandos[0]) == "loss" {
+
+		if VerificarParametros(listaComandos) {
+			if id == "" {
+				ErrorMessage("[System] -> parametro -id no especificado")
+			} else {
+				comandos.SystemLoss(id)
+			}
+		}
+
+	} else if strings.ToLower(listaComandos[0]) == "recovery" {
+
+		if VerificarParametros(listaComandos) {
+			if id == "" {
+				ErrorMessage("[System] -> parametro -id no especificado")
+			} else {
+				comandos.SystemRecovery(id)
+			}
+		}
+
 	} else if strings.ToLower(listaComandos[0]) == "mkfs" {
 		if VerificarParametros(listaComandos) {
 			comandos.MKFS(id)
@@ -253,6 +277,28 @@ func VerificarComando(listaComandos []string) {
 				ErrorMessage("[MKDIR] -> Parametro -path no definido")
 			} else {
 				comandos.ComandoMKDIR(id, path, p)
+			}
+		}
+	} else if strings.ToLower(listaComandos[0]) == "mkgrp" {
+		if VerificarParametros(listaComandos) {
+			if id == "" {
+				ErrorMessage("[MKDIR] -> Parametro -id no definido")
+			} else if name == "" {
+				ErrorMessage("[MKDIR] -> Parametro -name no definido")
+			} else {
+				comandos.MKGRP(id, name)
+			}
+		}
+	} else if strings.ToLower(listaComandos[0]) == "mkusr" {
+		if VerificarParametros(listaComandos) {
+			if id == "" {
+				ErrorMessage("[MKDIR] -> Parametro -id no definido")
+			} else if user == "" {
+				ErrorMessage("[MKDIR] -> Parametro -user no definido")
+			} else if password == "" {
+				ErrorMessage("[MKDIR] -> Parametro -password no definido")
+			} else {
+				comandos.MKUSR(id, user, password)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "1" {

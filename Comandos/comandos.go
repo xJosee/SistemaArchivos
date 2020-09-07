@@ -99,8 +99,8 @@ type Bloque struct {
 type Bitacora struct {
 	TipoOp    [20]byte
 	Tipo      int32
-	Nombre    [20]byte
-	Contenido [20]byte
+	Nombre    [100]byte
+	Contenido [100]byte
 	Fecha     [10]byte
 	Size      int32
 }
@@ -163,6 +163,12 @@ var listaParticiones = Estructuras.Lista{
 
 var userLoggeado Usuario
 var isLogged bool = false
+
+/*
+ * V A R I A B L E S   G L O B A L E S
+ */
+var idGroup int = 3
+var idUser int = 2
 
 /*
  *  C O M A N D O S
@@ -2161,7 +2167,7 @@ func ReporteBitacora(path string, id string) {
 				fmt.Fprintf(logDot, "<td bgcolor='lightblue' width='200' >Nombre</td>\n")
 				nombrelog := string(log.Nombre[:])
 				nombrelog = strings.Replace(nombrelog, "\x00", "", -1)
-				fmt.Fprintf(logDot, "<td width='300' >%s</td>\n", nombrelog)
+				fmt.Fprintf(logDot, "<td width='600' >%s</td>\n", nombrelog)
 				fmt.Fprintf(logDot, "</tr>\n")
 				fmt.Fprintf(logDot, "<tr>\n")
 				//Contenido
@@ -2407,6 +2413,10 @@ func Formatear(id string) {
 		binary.Write(&binario2, binary.BigEndian, s1)
 		File.Write(binario2.Bytes())
 
+		/*
+		 *	COPIA SUPERBLOQUE
+		 */
+		WriteSB(File, SB)
 		File.Close()
 
 		/*
@@ -2799,6 +2809,24 @@ func MKFILE(id string, path string, p bool, size int, count string) {
 				Rutas = Rutas[1:]
 				Rutas = Rutas[:len(Rutas)-1]
 				RutasMKFILE = RutasMKFILE[1:]
+
+				/*
+				 *	CREAR LA BITACORA
+				 */
+				Bitacora := InicializarBitacora(Bitacora{})
+				dt := time.Now()
+				fecha := dt.Format("01-02-2020 15:04:05")
+				copy(Bitacora.Fecha[:], fecha)
+				copy(Bitacora.Nombre[:], path)
+				copy(Bitacora.TipoOp[:], "mkfile")
+				copy(Bitacora.Contenido[:], count)
+				Bitacora.Tipo = 1
+				Bitacora.Size = int32(size)
+				File.Seek(int64(SuperBloque.StartLog+(SuperBloque.FirstFreeBitacora*int32(unsafe.Sizeof(Bitacora)))), 0)
+				WriteBitacora(File, Bitacora)
+				SuperBloque.FirstFreeBitacora++
+				File.Seek(int64(PartStart), 0)
+				WriteSB(File, SuperBloque)
 
 				File.Close()
 
@@ -3218,6 +3246,75 @@ func ComandoEditFile() {
 
 }
 
+//SystemLoss is...
+func SystemLoss(id string) {
+
+	PathDisco := listaParticiones.GetDireccion(id)
+	if PathDisco != "null" {
+		PartName := listaParticiones.GetPartName(id)
+		PartStart := listaParticiones.GetPartStart(id)
+		ErrorMessage("--------------------------------------------------------")
+		ErrorMessage("   Se ha encontrado un fallo en la particion : " + PartName + "       ")
+		ErrorMessage("--------------------------------------------------------")
+		File := getFile(PathDisco)
+		SuperBloque := readSuperBloque(File, int64(PartStart))
+		/*
+		 *	LLENAR DE CEROS TODA LA PARTICION MENOS LA COPIA DE SB
+		 */
+		PosFinal := SuperBloque.StartLog + ((SuperBloque.FirstFreeBitacora - 1) * int32(unsafe.Sizeof(Bitacora{})))
+		for i := int(PartStart); i < int(PosFinal); i++ {
+			File.Seek(int64(i), 0)
+			WriteOne(File, '0')
+		}
+
+	}
+
+}
+
+//AnimacioniRecovery is...
+func AnimacioniRecovery() {
+	SuccessMessage("--------------------------------------------------------")
+	SuccessMessage("                 Recuperando Sistema. . .               ")
+	SuccessMessage("--------------------------------------------------------")
+	time.Sleep(1 * time.Second)
+	SuccessMessage("--------------------------------------------------------")
+	SuccessMessage("                 Recuperando Sistema 10%                ")
+	SuccessMessage("--------------------------------------------------------")
+	time.Sleep(1 * time.Second)
+	SuccessMessage("--------------------------------------------------------")
+	SuccessMessage("                 Recuperando Sistema 30%                ")
+	SuccessMessage("--------------------------------------------------------")
+	time.Sleep(1 * time.Second)
+	SuccessMessage("--------------------------------------------------------")
+	SuccessMessage("                 Recuperando Sistema 65%                ")
+	SuccessMessage("--------------------------------------------------------")
+	time.Sleep(1 * time.Second)
+	SuccessMessage("--------------------------------------------------------")
+	SuccessMessage("                 Recuperando Sistema 90%                ")
+	SuccessMessage("--------------------------------------------------------")
+	time.Sleep(1 * time.Second)
+	SuccessMessage("--------------------------------------------------------")
+	SuccessMessage("                 Recuperando Sistema 99%                ")
+	SuccessMessage("--------------------------------------------------------")
+	time.Sleep(1 * time.Second)
+	SuccessMessage("--------------------------------------------------------")
+	SuccessMessage("             Sistema Recuperado correctamente           ")
+	SuccessMessage("--------------------------------------------------------")
+	time.Sleep(1 * time.Second)
+}
+
+//SystemRecovery is...
+func SystemRecovery(id string) {
+	AnimacioniRecovery()
+	/*PathDisco := listaParticiones.GetDireccion(id)
+	if PathDisco != "null" {
+		PartStart := listaParticiones.GetPartStart(id)
+		File := getFile(PathDisco)
+		PosFinal := SuperBloque.StartLog + ((SuperBloque.FirstFreeBitacora - 1) * int32(unsafe.Sizeof(Bitacora{})))
+		SuperBloque := readSuperBloque(File, int64(PosFinal))
+	}*/
+}
+
 /*
  *  METODOS PARA INICIALIZAR LOS STRUCTS DE LA FASE 2
  */
@@ -3269,56 +3366,68 @@ func InicializarBitacora(Bitacora Bitacora) Bitacora {
 
 //Login is ...
 func Login(user string, password string, id string) {
-	var RutaDisco string = listaParticiones.GetDireccion(id)
+	if !isLogged {
+		var RutaDisco string = listaParticiones.GetDireccion(id)
 
-	if RutaDisco != "null" {
-		File := getFile(RutaDisco)
-		PartStart := listaParticiones.GetPartStart(id)
-		SuperBloque := readSuperBloque(File, int64(PartStart))
-		DetallDirectorioRoot := readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio))
-		ObtenerDataUserTXT(DetallDirectorioRoot, File, SuperBloque, user, password)
+		if RutaDisco != "null" {
+			File := getFile(RutaDisco)
+			PartStart := listaParticiones.GetPartStart(id)
+			SuperBloque := readSuperBloque(File, int64(PartStart))
+			DetallDirectorioRoot := readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio))
+			//Obtenemos el apuntador al Inodo
+			ApuntadorInodo := DetallDirectorioRoot.DDArrayFiles[0].DDFileApInodo
+			var InodoB TablaInodo
+			//Leemos el Inodo
+			InodoB = readInodo(File, int64(SuperBloque.StartInodos+(ApuntadorInodo*int32(unsafe.Sizeof(InodoB)))))
 
+			var Data string
+
+			ObtenerDataUserTXT(InodoB, File, SuperBloque, &Data)
+
+			var Split []string
+			Data = strings.Replace(Data, "\x00", "", -1)
+			Split = strings.Split(Data, "\n")
+
+			var Datos []string
+			var log bool
+			for i := 0; i < len(Split); i++ {
+				Datos = strings.Split(Split[i], ",")
+				if Datos[1] == "U" {
+					log = VerificarDatos(Datos[2], Datos[3], user, password, Datos[0])
+					if log {
+						SuccessMessage("[LOGIN] -> Loggeado Correctamente")
+						break
+					}
+				}
+			}
+			if !log {
+				ErrorMessage("[LOGIN] -> Datos Incorrectos")
+			}
+
+		} else {
+			ErrorMessage("[LOGIN] -> No se encuentra ninguna particion montada con ese id")
+		}
 	} else {
-		ErrorMessage("[LOGIN] -> No se encuentra ninguna particion montada con ese id")
+		ErrorMessage("[LOGIN] -> Ya hay una sesion iniciada")
 	}
 }
 
 //ObtenerDataUserTXT is...
-func ObtenerDataUserTXT(DDroot DetalleDirectorio, File *os.File, SuperB SB, user string, pass string) {
-	//Obtenemos el apuntador al Inodo
-	ApuntadorInodo := DDroot.DDArrayFiles[0].DDFileApInodo
-	var InodoB TablaInodo
-	//Leemos el Inodo
-	InodoB = readInodo(File, int64(SuperB.StartInodos+(ApuntadorInodo*int32(unsafe.Sizeof(InodoB)))))
-	//Obtenemos el apuntador al bloque
-	var Split []string
-	var ContenidoUserTxt string
+func ObtenerDataUserTXT(InodoB TablaInodo, File *os.File, SuperB SB, Cont *string) {
+
 	for i := 0; i < 4; i++ {
 		ApuntadorBloque := InodoB.IArrayBloques[i]
 		if ApuntadorBloque != -1 {
 			var Block Bloque
 			//Leemos el bloque
 			Block = readBloque(File, int64(SuperB.StartBloques+(ApuntadorBloque*int32(unsafe.Sizeof(Block)))))
-			ContenidoUserTxt += string(Block.Texto[:])
+			*Cont += string(Block.Texto[:])
 		}
 	}
-	ContenidoUserTxt = strings.Replace(ContenidoUserTxt, "\x00", "", -1)
-	Split = strings.Split(ContenidoUserTxt, "\n")
-
-	var Datos []string
-	var log bool
-	for i := 0; i < len(Split); i++ {
-		Datos = strings.Split(Split[i], ",")
-		if Datos[1] == "U" {
-			log = VerificarDatos(Datos[2], Datos[3], user, pass, Datos[0])
-			if log {
-				SuccessMessage("[LOGIN] -> Loggeado Correctamente")
-				break
-			}
-		}
-	}
-	if !log {
-		ErrorMessage("[LOGIN] -> Datos Incorrectos")
+	if InodoB.IApIndirecto != -1 {
+		var InodoIndirecto TablaInodo
+		InodoIndirecto = readInodo(File, int64(SuperB.StartInodos+(InodoB.IApIndirecto*int32(unsafe.Sizeof(InodoIndirecto)))))
+		ObtenerDataUserTXT(InodoIndirecto, File, SuperB, Cont)
 	}
 }
 
@@ -3337,9 +3446,249 @@ func VerificarDatos(u string, p string, user string, pass string, UserID string)
 	return false
 }
 
+/*
+ *	GRUPOS
+ */
+
+//MKGRP is...
+func MKGRP(id string, groupName string) {
+	var RutaDisco string = listaParticiones.GetDireccion(id)
+
+	if RutaDisco != "null" {
+		File := getFile(RutaDisco)
+		PartStart := listaParticiones.GetPartStart(id)
+		SuperBloque := readSuperBloque(File, int64(PartStart))
+		DetallDirectorioRoot := readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio))
+		ApuntadorInodo := DetallDirectorioRoot.DDArrayFiles[0].DDFileApInodo
+		var InodoB TablaInodo
+		InodoB = readInodo(File, int64(SuperBloque.StartInodos+int32(ApuntadorInodo*int32(unsafe.Sizeof(InodoB)))))
+
+		var Datos string
+		ObtenerDataUserTXT(InodoB, File, SuperBloque, &Datos)
+
+		var DatosSpliteadosSaltoLinea []string
+		DatosSpliteadosSaltoLinea = strings.Split(Datos, "\n")
+
+		if !GroupExist(DatosSpliteadosSaltoLinea, groupName) {
+			CrearGrupo(int(ApuntadorInodo), File, SuperBloque, groupName, PartStart)
+			File.Close()
+			SuccessMessage("[MKGRP] -> Grupo creado correctamente")
+		} else {
+			ErrorMessage("[MKGRP] -> El grupo ya existe")
+		}
+
+	} else {
+		ErrorMessage("[LOGIN] -> No se encuentra ninguna particion montada con ese id")
+	}
+}
+
+//GroupExist is
+func GroupExist(Data []string, name string) bool {
+	for i := 0; i < len(Data); i++ {
+		Split := strings.Split(Data[i], ",")
+		var nameByteG [16]byte
+		copy(nameByteG[:], Split[2])
+
+		var nameByte [16]byte
+		copy(nameByte[:], name)
+
+		if Split[1] == "G" {
+			if bytes.Compare(nameByteG[:], nameByte[:]) == 0 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+//CrearGrupo is...
+func CrearGrupo(Apuntador int, File *os.File, SuperBloque SB, groupName string, PartStart int) {
+	var InodoB TablaInodo
+	//Leemos el Inodo
+	InodoB = readInodo(File, int64(SuperBloque.StartInodos+int32(Apuntador*int(unsafe.Sizeof(InodoB)))))
+
+	for i := 0; i < 4; i++ {
+		ApuntadorBloque := InodoB.IArrayBloques[i]
+		if ApuntadorBloque == -1 {
+			var Texto string = "\n"
+			Texto = fmt.Sprint(Texto, idGroup)
+			Texto += ",G," + groupName
+			var Block Bloque
+			copy(Block.Texto[:], Texto)
+			InodoB.IArrayBloques[i] = SuperBloque.FirstFreeBloque
+			/*
+			 *  ESCRIBIMOS EL BLOQUE EN EL FILE
+			 */
+			File.Seek(int64(SuperBloque.StartBloques+(SuperBloque.FirstFreeBloque)*int32(unsafe.Sizeof(Block))), 0)
+			WriteBloque(File, Block)
+
+			File.Seek(int64(SuperBloque.StartBmBloques+SuperBloque.FirstFreeBloque), 0)
+			WriteOne(File, '1')
+
+			File.Seek(int64(SuperBloque.StartInodos+int32(Apuntador*int(unsafe.Sizeof(InodoB)))), 0)
+			WriteInode(File, InodoB)
+
+			SuperBloque.BloquesFree--
+			SuperBloque.FirstFreeBloque++
+
+			File.Seek(int64(PartStart), 0)
+			WriteSB(File, SuperBloque)
+
+			idGroup++
+
+			File.Close()
+			return
+		}
+	}
+	/*
+	 *	VERIFICAMOS EN EL INODO INDIRECTO
+	 */
+	if InodoB.IApIndirecto != -1 {
+		CrearGrupo(int(InodoB.IApIndirecto), File, SuperBloque, groupName, PartStart)
+		return
+	}
+	Inodocopia := InicializarInodo(TablaInodo{})
+	Inodocopia.ICountInodo = SuperBloque.FirstFreeInodo
+	InodoB.IApIndirecto = Inodocopia.ICountInodo
+	File.Seek(int64(SuperBloque.StartInodos+(Inodocopia.ICountInodo*int32(unsafe.Sizeof(Inodocopia)))), 0)
+	WriteInode(File, Inodocopia)
+
+	File.Seek(int64(SuperBloque.StartInodos+int32(Apuntador*int(unsafe.Sizeof(Inodocopia)))), 0)
+	WriteInode(File, InodoB)
+
+	File.Seek(int64(PartStart), 0)
+	WriteSB(File, SuperBloque)
+
+	CrearGrupo(int(InodoB.IApIndirecto), File, SuperBloque, groupName, PartStart)
+	return
+
+}
+
+/*
+ * CREAR USUARIOS
+ */
+
+//MKUSR is...
+func MKUSR(id string, user string, pass string) {
+
+	var RutaDisco string = listaParticiones.GetDireccion(id)
+
+	if RutaDisco != "null" {
+		File := getFile(RutaDisco)
+		PartStart := listaParticiones.GetPartStart(id)
+		SuperBloque := readSuperBloque(File, int64(PartStart))
+		DetallDirectorioRoot := readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio))
+		ApuntadorInodo := DetallDirectorioRoot.DDArrayFiles[0].DDFileApInodo
+		var InodoB TablaInodo
+		InodoB = readInodo(File, int64(SuperBloque.StartInodos+int32(ApuntadorInodo*int32(unsafe.Sizeof(InodoB)))))
+
+		var Datos string
+		ObtenerDataUserTXT(InodoB, File, SuperBloque, &Datos)
+
+		var DatosSpliteadosSaltoLinea []string
+		DatosSpliteadosSaltoLinea = strings.Split(Datos, "\n")
+
+		if !UserExist(DatosSpliteadosSaltoLinea, user) {
+			CrearUsuario(int(ApuntadorInodo), File, SuperBloque, user, pass, PartStart)
+			File.Close()
+			SuccessMessage("[MKGRP] -> usuario creado correctamente")
+		} else {
+			ErrorMessage("[MKGRP] -> El usuario ya existe")
+		}
+
+	} else {
+		ErrorMessage("[LOGIN] -> No se encuentra ninguna particion montada con ese id")
+	}
+
+}
+
+//UserExist is ...
+func UserExist(Data []string, user string) bool {
+	for i := 0; i < len(Data); i++ {
+		Split := strings.Split(Data[i], ",")
+		var nameByteG [16]byte
+		copy(nameByteG[:], Split[2])
+
+		var nameByte [16]byte
+		copy(nameByte[:], user)
+
+		if Split[1] == "U" {
+			if bytes.Compare(nameByteG[:], nameByte[:]) == 0 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+//CrearUsuario is...
+func CrearUsuario(Apuntador int, File *os.File, SuperBloque SB, user string, pass string, PartStart int) {
+	var InodoB TablaInodo
+	//Leemos el Inodo
+	InodoB = readInodo(File, int64(SuperBloque.StartInodos+int32(Apuntador*int(unsafe.Sizeof(InodoB)))))
+
+	for i := 0; i < 4; i++ {
+		ApuntadorBloque := InodoB.IArrayBloques[i]
+		if ApuntadorBloque == -1 {
+			var Texto string = "\n"
+			Texto = fmt.Sprint(Texto, idUser)
+			Texto += ",U," + user + "," + pass
+			var Block Bloque
+			copy(Block.Texto[:], Texto)
+			InodoB.IArrayBloques[i] = SuperBloque.FirstFreeBloque
+			/*
+			 *  ESCRIBIMOS EL BLOQUE EN EL FILE
+			 */
+			File.Seek(int64(SuperBloque.StartBloques+(SuperBloque.FirstFreeBloque)*int32(unsafe.Sizeof(Block))), 0)
+			WriteBloque(File, Block)
+
+			File.Seek(int64(SuperBloque.StartBmBloques+SuperBloque.FirstFreeBloque), 0)
+			WriteOne(File, '1')
+
+			File.Seek(int64(SuperBloque.StartInodos+int32(Apuntador*int(unsafe.Sizeof(InodoB)))), 0)
+			WriteInode(File, InodoB)
+
+			SuperBloque.BloquesFree--
+			SuperBloque.FirstFreeBloque++
+
+			File.Seek(int64(PartStart), 0)
+			WriteSB(File, SuperBloque)
+
+			idUser++
+
+			File.Close()
+			return
+		}
+	}
+	/*
+	 *	VERIFICAMOS EN EL INODO INDIRECTO
+	 */
+	if InodoB.IApIndirecto != -1 {
+		CrearUsuario(int(InodoB.IApIndirecto), File, SuperBloque, user, pass, PartStart)
+		return
+	}
+	Inodocopia := InicializarInodo(TablaInodo{})
+	Inodocopia.ICountInodo = SuperBloque.FirstFreeInodo
+	InodoB.IApIndirecto = Inodocopia.ICountInodo
+	File.Seek(int64(SuperBloque.StartInodos+(Inodocopia.ICountInodo*int32(unsafe.Sizeof(Inodocopia)))), 0)
+	WriteInode(File, Inodocopia)
+
+	File.Seek(int64(SuperBloque.StartInodos+int32(Apuntador*int(unsafe.Sizeof(Inodocopia)))), 0)
+	WriteInode(File, InodoB)
+
+	File.Seek(int64(PartStart), 0)
+	WriteSB(File, SuperBloque)
+
+	CrearUsuario(int(InodoB.IApIndirecto), File, SuperBloque, user, pass, PartStart)
+	return
+
+}
+
 //Logout is...
 func Logout() {
 	// TODO : Hacer logout
+	isLogged = false
+	SuccessMessage("[LOGOUT] -> Sesion cerrada correctamente")
 }
 
 /*
