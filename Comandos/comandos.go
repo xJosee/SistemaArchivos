@@ -147,17 +147,6 @@ type Usuario struct {
 	Group    [12]byte
 }
 
-//Sesion is...
-type Sesion struct {
-	IDUser        int32
-	IDGrupo       int32
-	InicioSupet   int32
-	InicioJournal int32
-	TipoSistema   int32
-	Direccion     string
-	Fit           byte
-}
-
 /*
  *  L I S T A   P A R T I C I O N E S   M O N T A D A S
  */
@@ -171,7 +160,7 @@ var listaParticiones = Estructuras.Lista{
  *  V A R I A B L E S   P A R A   E L   M A N E J O   D E   LA  S E S I O N
  */
 
-var sesionActual Sesion
+var userLoggeado Usuario
 var isLogged bool = false
 
 /*
@@ -1911,16 +1900,17 @@ func ReporteBMarbdir(path string, id string) {
 			os.Create("Reportes/BitMapArbolDirectorio.txt")
 			BitMapTxt := getFile("Reportes/BitMapArbolDirectorio.txt")
 			var contador int
+			fmt.Fprintf(BitMapTxt, "\n\nBitMap Arbol Virtual de Directorio\n\n")
 			for i := 0; i < CantidadEstructuras; i++ {
 				contador++
 				i, _ := strconv.Atoi(string(readByte(File, int64(StartBitMap+i))))
 				var Byte string
 				Byte = fmt.Sprint(Byte, i)
 				if contador == 51 {
-					fmt.Fprintf(BitMapTxt, "\n")
+					fmt.Fprintf(BitMapTxt, "|\n")
 					contador = 0
 				} else {
-					fmt.Fprintf(BitMapTxt, Byte)
+					fmt.Fprintf(BitMapTxt, "| "+Byte+" ")
 				}
 			}
 
@@ -1950,6 +1940,7 @@ func ReporteBMdetdir(path string, id string) {
 			os.Create("Reportes/BitMapDetalleDirectorio.txt")
 			BitMapTxt := getFile("Reportes/BitMapDetalleDirectorio.txt")
 			var contador int
+			fmt.Fprintf(BitMapTxt, "\n\nBitMap Arbol Detalle Directorio\n\n")
 			for i := 0; i < CantidadEstructuras; i++ {
 				contador++
 				i, _ := strconv.Atoi(string(readByte(File, int64(StartBitMap+i))))
@@ -1959,7 +1950,7 @@ func ReporteBMdetdir(path string, id string) {
 					fmt.Fprintf(BitMapTxt, "\n")
 					contador = 0
 				} else {
-					fmt.Fprintf(BitMapTxt, Byte)
+					fmt.Fprintf(BitMapTxt, "| "+Byte+" ")
 				}
 			}
 
@@ -1988,6 +1979,7 @@ func ReporteBMinode(path string, id string) {
 			os.Create("Reportes/BitMapInode.txt")
 			BitMapTxt := getFile("Reportes/BitMapInode.txt")
 			var contador int
+			fmt.Fprintf(BitMapTxt, "\n\nBitMap Inode\n\n")
 			for i := 0; i < CantidadEstructuras; i++ {
 				contador++
 				i, _ := strconv.Atoi(string(readByte(File, int64(StartBitMap+i))))
@@ -1997,7 +1989,7 @@ func ReporteBMinode(path string, id string) {
 					fmt.Fprintf(BitMapTxt, "\n")
 					contador = 0
 				} else {
-					fmt.Fprintf(BitMapTxt, Byte)
+					fmt.Fprintf(BitMapTxt, "| "+Byte+" ")
 				}
 			}
 
@@ -2026,6 +2018,7 @@ func ReporteBMblock(path string, id string) {
 			os.Create("Reportes/BitMapBloque.txt")
 			BitMapTxt := getFile("Reportes/BitMapBloque.txt")
 			var contador int
+			fmt.Fprintf(BitMapTxt, "\n\nBitMap Bloque")
 			for i := 0; i < CantidadEstructuras; i++ {
 				contador++
 				i, _ := strconv.Atoi(string(readByte(File, int64(StartBitMap+i))))
@@ -2035,7 +2028,7 @@ func ReporteBMblock(path string, id string) {
 					fmt.Fprintf(BitMapTxt, "\n")
 					contador = 0
 				} else {
-					fmt.Fprintf(BitMapTxt, Byte)
+					fmt.Fprintf(BitMapTxt, "| "+Byte+" ")
 				}
 			}
 
@@ -2271,7 +2264,7 @@ func Formatear(id string) {
 		/*
 		 *	MANDANDO A CREAR EL USER.TXT
 		 */
-		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 0, "1,G,root\n1,U,root,123\n2,G,Usuarios\n")
+		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 0, "1,G,root\n1,U,root,123\n2,G,Usuarios")
 
 		fmt.Println("----------------------------------------------------")
 		fmt.Println("-       Formateo LWH realizado correctamente       -")
@@ -2602,62 +2595,68 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, puntero 
 
 //MKFILE is...
 func MKFILE(id string, path string, p bool, size int, count string) {
-	if path == "" {
-		return
-	}
 
-	PathDisco := listaParticiones.GetDireccion(id)
-	if PathDisco != "null" {
+	if isLogged {
 
-		if VerificarRuta(PathDisco) {
-			File := getFile(PathDisco)
-			//PartSize := listaParticiones.GetPartSize(id)
-			PartStart := listaParticiones.GetPartStart(id)
-			//PartName := listaParticiones.GetPartName(id)
-
-			//Leemos el SuperBloque
-			var SuperBloque SB
-			SuperBloque = readSuperBloque(File, int64(PartStart))
-
-			Rutas := strings.Split(path, "/") // TODO : Eliminar si vienen / al inicio y final
-			RutasMKFILE := strings.Split(path, "/")
-
-			var Root Arbol
-			Root = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
-
-			//Eliminamos el espacio vacio y el nombre del archivo home/jose
-			Rutas = Rutas[1:]
-			Rutas = Rutas[:len(Rutas)-1]
-			RutasMKFILE = RutasMKFILE[1:]
-
-			File.Close()
-
-			//Mandamos a crear las carpetas si no estan creadas
-			MKDIR(Root, Rutas, PathDisco, SuperBloque, 0, p)
-
-			File1 := getFile(PathDisco)
-			SuperB := readSuperBloque(File1, int64(PartStart))
-
-			Raiz := readArbolVirtualDirectorio(File1, int64(SuperB.StartArbolDirectorio))
-			DetalleRoot := readDetalleDirectorio(File1, int64(SuperB.StartDetalleDirectorio))
-
-			File1.Close()
-
-			if len(RutasMKFILE) == 1 {
-				CrearArchivo(DetalleRoot, RutasMKFILE, 0, PathDisco, SuperB, size, count)
-				return
-			}
-
-			RecorrerArbol(Raiz, RutasMKFILE, PathDisco, SuperB, size, count)
-
-			SuccessMessage("[MKFILE] -> Archivo creado correctamente")
-
-		} else {
-			ErrorMessage("[MKFILE] -> No se encuentra ningun disco en esa ruta")
+		if path == "" {
+			return
 		}
 
+		PathDisco := listaParticiones.GetDireccion(id)
+		if PathDisco != "null" {
+
+			if VerificarRuta(PathDisco) {
+				File := getFile(PathDisco)
+				//PartSize := listaParticiones.GetPartSize(id)
+				PartStart := listaParticiones.GetPartStart(id)
+				//PartName := listaParticiones.GetPartName(id)
+
+				//Leemos el SuperBloque
+				var SuperBloque SB
+				SuperBloque = readSuperBloque(File, int64(PartStart))
+
+				Rutas := strings.Split(path, "/") // TODO : Eliminar si vienen / al inicio y final
+				RutasMKFILE := strings.Split(path, "/")
+
+				var Root Arbol
+				Root = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
+
+				//Eliminamos el espacio vacio y el nombre del archivo home/jose
+				Rutas = Rutas[1:]
+				Rutas = Rutas[:len(Rutas)-1]
+				RutasMKFILE = RutasMKFILE[1:]
+
+				File.Close()
+
+				//Mandamos a crear las carpetas si no estan creadas
+				MKDIR(Root, Rutas, PathDisco, SuperBloque, 0, p)
+
+				File1 := getFile(PathDisco)
+				SuperB := readSuperBloque(File1, int64(PartStart))
+
+				Raiz := readArbolVirtualDirectorio(File1, int64(SuperB.StartArbolDirectorio))
+				DetalleRoot := readDetalleDirectorio(File1, int64(SuperB.StartDetalleDirectorio))
+
+				File1.Close()
+
+				if len(RutasMKFILE) == 1 {
+					CrearArchivo(DetalleRoot, RutasMKFILE, 0, PathDisco, SuperB, size, count)
+					return
+				}
+
+				RecorrerArbol(Raiz, RutasMKFILE, PathDisco, SuperB, size, count)
+
+				SuccessMessage("[MKFILE] -> Archivo creado correctamente")
+
+			} else {
+				ErrorMessage("[MKFILE] -> No se encuentra ningun disco en esa ruta")
+			}
+
+		} else {
+			ErrorMessage("[MKFILE] -> No hay ninguna particion montada con ese id")
+		}
 	} else {
-		ErrorMessage("[MKFILE] -> No hay ninguna particion montada con ese id")
+		ErrorMessage("[MKFILE] -> Para ejecutar este comando tienes que estar loggeado")
 	}
 }
 
@@ -3103,8 +3102,7 @@ func Login(user string, password string, id string) {
 		PartStart := listaParticiones.GetPartStart(id)
 		SuperBloque := readSuperBloque(File, int64(PartStart))
 		DetallDirectorioRoot := readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio))
-		Data := ObtenerDataUserTXT(DetallDirectorioRoot, File, SuperBloque)
-		VerificarDatos(Data, user, password)
+		ObtenerDataUserTXT(DetallDirectorioRoot, File, SuperBloque, user, password)
 
 	} else {
 		ErrorMessage("[LOGIN] -> No se encuentra ninguna particion montada con ese id")
@@ -3112,28 +3110,57 @@ func Login(user string, password string, id string) {
 }
 
 //ObtenerDataUserTXT is...
-func ObtenerDataUserTXT(DDroot DetalleDirectorio, File *os.File, SuperB SB) []string {
+func ObtenerDataUserTXT(DDroot DetalleDirectorio, File *os.File, SuperB SB, user string, pass string) {
 	//Obtenemos el apuntador al Inodo
 	ApuntadorInodo := DDroot.DDArrayFiles[0].DDFileApInodo
 	var InodoB TablaInodo
 	//Leemos el Inodo
 	InodoB = readInodo(File, int64(SuperB.StartInodos+(ApuntadorInodo*int32(unsafe.Sizeof(InodoB)))))
 	//Obtenemos el apuntador al bloque
-	ApuntadorBloque := InodoB.IArrayBloques[0]
-	var Block Bloque
-	//Leemos el bloque
-	Block = readBloque(File, int64(SuperB.StartBloques+(ApuntadorBloque*int32(unsafe.Sizeof(Block)))))
-
-	ContenidoUserTxt := string(Block.Texto[:])
+	var Split []string
+	var ContenidoUserTxt string
+	for i := 0; i < 4; i++ {
+		ApuntadorBloque := InodoB.IArrayBloques[i]
+		if ApuntadorBloque != -1 {
+			var Block Bloque
+			//Leemos el bloque
+			Block = readBloque(File, int64(SuperB.StartBloques+(ApuntadorBloque*int32(unsafe.Sizeof(Block)))))
+			ContenidoUserTxt += string(Block.Texto[:])
+		}
+	}
 	ContenidoUserTxt = strings.Replace(ContenidoUserTxt, "\x00", "", -1)
-	Split := strings.Split(ContenidoUserTxt, ",")
+	Split = strings.Split(ContenidoUserTxt, "\n")
 
-	return Split
+	var Datos []string
+	var log bool
+	for i := 0; i < len(Split); i++ {
+		Datos = strings.Split(Split[i], ",")
+		if Datos[1] == "U" {
+			log = VerificarDatos(Datos[2], Datos[3], user, pass, Datos[0])
+			if log {
+				SuccessMessage("[LOGIN] -> Loggeado Correctamente")
+				break
+			}
+		}
+	}
+	if !log {
+		ErrorMessage("[LOGIN] -> Datos Incorrectos")
+	}
 }
 
 //VerificarDatos is...
-func VerificarDatos(data []string, user string, pass string) {
-	fmt.Println(data, user, pass)
+func VerificarDatos(u string, p string, user string, pass string, UserID string) bool {
+
+	if u == user && p == pass {
+		isLogged = true
+		copy(userLoggeado.UserName[:], user)
+		copy(userLoggeado.PassWord[:], pass)
+		i, _ := strconv.Atoi(UserID)
+		userLoggeado.IDUser = int32(i)
+		return true
+	}
+
+	return false
 }
 
 //Logout is...
