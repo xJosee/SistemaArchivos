@@ -13,3 +13,5 @@
 | mkfs | Make File System |
 | mkdir | Crear Carpetas |
 | mkfile | Crear archivos |
+| mkusr | Crear Usuarios |
+| mkgrp | Crear Grupo |
