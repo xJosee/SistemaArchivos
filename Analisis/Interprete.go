@@ -181,15 +181,22 @@ func VerificarComando(listaComandos []string) {
 				} else if strings.ToLower(nombre) == "bitacora" {
 					comandos.ReporteBitacora(path, id)
 					SuccessMessage("[REP] -> Reporte 'bitacora' Generado Correctamente")
+				} else if strings.ToLower(nombre) == "directorio" {
+					comandos.ReporteDirectorio(path, id)
+					SuccessMessage("[REP] -> Reporte 'directorio' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "tree_file" {
-					fmt.Print("Ingresa el nombre de la carpeta : ")
+					fmt.Print("Ingresa la ruta de la carpeta : ")
 					scanner := bufio.NewScanner(os.Stdin)
 					scanner.Scan()
 					Carpeta := scanner.Text()
 					comandos.ReporteTreeFile(Carpeta, id, path)
 					SuccessMessage("[REP] -> Reporte 'tree_file' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "tree_directorio" {
-					comandos.ReporteDirectorio(path, id)
+					fmt.Print("Ingresa la ruta de la carpeta : ")
+					scanner := bufio.NewScanner(os.Stdin)
+					scanner.Scan()
+					Carpeta := scanner.Text()
+					comandos.ReporteTreeDirectorio(Carpeta, path, id)
 					SuccessMessage("[REP] -> Reporte 'tree_directorio' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "tree_complete" {
 					comandos.ReporteTreeComplete(path, id)

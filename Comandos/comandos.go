@@ -86,6 +86,7 @@ type SB struct {
 	FirstFreeDd              int32
 	FirstFreeInodo           int32
 	FirstFreeBloque          int32
+	FirstFreeBitacora        int32
 	MagicNum                 int32 //= 201807431;
 }
 
@@ -191,9 +192,6 @@ func MKDISK(size int, fit byte, unit byte, path string, name string) bool {
 		//Metodo que escribe el disco(archivo)
 		os.MkdirAll(path, os.ModePerm)
 		writeFile(path+name+".dsk", CalcularSize(size, unit), Disco)
-		//Metodo para leer el struct MBR del Disco(archivo)
-		//readMBR(path + name + ".dsk")
-		//Crea una copia del disco (RAID)
 		writeFile(path+name+"_raid.dsk", CalcularSize(size, unit), Disco)
 
 		return true
@@ -1493,7 +1491,7 @@ func ReporteTreeComplete(path string, id string) {
 		fmt.Fprintf(graphDot, "digraph G{ \n")
 		fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
 
-		RecorrerArbolReporte(Root, SuperBloque, File, &Grafica, false, 0, false)
+		RecorrerArbolReporte(Root, SuperBloque, File, &Grafica, false, 0, false, true)
 
 		fmt.Fprintf(graphDot, Grafica)
 
@@ -1506,7 +1504,7 @@ func ReporteTreeComplete(path string, id string) {
 }
 
 //RecorrerArbolReporte is...
-func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *string, avd bool, ptr int, onlyAVD bool) {
+func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *string, avd bool, ptr int, onlyAVD bool, showInodes bool) {
 
 	//fmt.Println("Carpeta", string(arbol.AVDNombreDirectorio[:]))
 	var Graph string
@@ -1571,7 +1569,7 @@ func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *s
 		*Grafica += "tbl" + num
 		*Grafica += "->"
 		*Grafica += "tbl" + num + "DD\n"
-		GenerarDetalleDirectorio(num, texto+"DD", int(arbol.DetalleDirectorio), file, Superbloque, &Graph)
+		GenerarDetalleDirectorio(num, texto+"DD", int(arbol.DetalleDirectorio), file, Superbloque, &Graph, showInodes)
 		*Grafica += Graph
 	}
 
@@ -1588,7 +1586,7 @@ func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *s
 		num2 = fmt.Sprint(num2, ApuntadorAVDCopia)
 		*Grafica += "tbl" + num2 + "\n"
 
-		RecorrerArbolReporte(CopiaCarpeta, Superbloque, file, Grafica, true, int(ApuntadorAVDCopia), onlyAVD)
+		RecorrerArbolReporte(CopiaCarpeta, Superbloque, file, Grafica, true, int(ApuntadorAVDCopia), onlyAVD, showInodes)
 	}
 
 	/*
@@ -1610,14 +1608,14 @@ func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *s
 			/*
 			 * LLAMAMOS RECURSIVAMENTE AL METODO
 			 */
-			RecorrerArbolReporte(CarpetaHija, Superbloque, file, Grafica, false, int(Apuntador), onlyAVD)
+			RecorrerArbolReporte(CarpetaHija, Superbloque, file, Grafica, false, int(Apuntador), onlyAVD, showInodes)
 		}
 	}
 
 }
 
 //GenerarDetalleDirectorio is...
-func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.File, super SB, GraficaDD *string) {
+func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.File, super SB, GraficaDD *string, showInodes bool) {
 	var Detalle DetalleDirectorio
 	PosicionDD := super.StartDetalleDirectorio + int32(puntero*int(unsafe.Sizeof(Detalle)))
 	Detalle = readDetalleDirectorio(file, int64(PosicionDD))
@@ -1653,23 +1651,25 @@ func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.
 	}
 	*GraficaDD += "</table>\n>];\n"
 
-	for i := 0; i < 5; i++ {
+	if showInodes {
+		for i := 0; i < 5; i++ {
 
-		nombreFile := string(Detalle.DDArrayFiles[i].DDFileNombre[:])
-		nombreFile = strings.Replace(nombreFile, "\x00", "", -1)
+			nombreFile := string(Detalle.DDArrayFiles[i].DDFileNombre[:])
+			nombreFile = strings.Replace(nombreFile, "\x00", "", -1)
 
-		var Inodo TablaInodo
-		ApInodo := Detalle.DDArrayFiles[i].DDFileApInodo
+			var Inodo TablaInodo
+			ApInodo := Detalle.DDArrayFiles[i].DDFileApInodo
 
-		if ApInodo != -1 {
-			*GraficaDD += "tbl" + Nombre + "->"
-			var NameInodo string
-			NameInodo = fmt.Sprint(NameInodo, ApInodo)
-			*GraficaDD += "tblInodo" + NameInodo + "\n"
+			if ApInodo != -1 {
+				*GraficaDD += "tbl" + Nombre + "->"
+				var NameInodo string
+				NameInodo = fmt.Sprint(NameInodo, ApInodo)
+				*GraficaDD += "tblInodo" + NameInodo + "\n"
 
-			Inodo = readInodo(file, int64(super.StartInodos+(ApInodo*int32(unsafe.Sizeof(Inodo)))))
-			GenerarReporteInodo(Inodo, file, super, GraficaDD, NameInodo, nombreFile)
+				Inodo = readInodo(file, int64(super.StartInodos+(ApInodo*int32(unsafe.Sizeof(Inodo)))))
+				GenerarReporteInodo(Inodo, file, super, GraficaDD, NameInodo, nombreFile)
 
+			}
 		}
 	}
 	if Detalle.DDApDetalleDirectorio != -1 {
@@ -1678,7 +1678,7 @@ func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.
 		fmt.Println("Test", "tbl", aux, "DD")
 		*GraficaDD += "tbl" + Nombre + "-> " + "tbl" + aux + "DDDD" + ";\n"
 		aux += "DD"
-		GenerarDetalleDirectorio(aux, name, int(Detalle.DDApDetalleDirectorio), file, super, GraficaDD)
+		GenerarDetalleDirectorio(aux, name, int(Detalle.DDApDetalleDirectorio), file, super, GraficaDD, showInodes)
 	}
 }
 
@@ -1764,7 +1764,10 @@ func ReporteTreeFile(carpeta string, id string, path string) {
 		fmt.Fprintf(graphDot, "digraph G{ \n")
 		fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
 
-		BuscarCarpeta(Root, SuperBloque, File, false, 0, carpeta, &Grafica)
+		Rutas := strings.Split(carpeta, "/")
+		Rutas = Rutas[1:]
+		fmt.Println(Rutas)
+		BuscarCarpeta(Root, Rutas, PathDisco, SuperBloque, &Grafica, true)
 
 		fmt.Fprintf(graphDot, Grafica)
 
@@ -1776,21 +1779,58 @@ func ReporteTreeFile(carpeta string, id string, path string) {
 }
 
 //BuscarCarpeta is...
-func BuscarCarpeta(arbol Arbol, Superbloque SB, file *os.File, avd bool, ptr int, NombreCarpeta string, Grafica *string) {
-	var nameCarpeta [16]byte
-	copy(nameCarpeta[:], NombreCarpeta)
-	if bytes.Compare(arbol.AVDNombreDirectorio[:], nameCarpeta[:]) == 0 {
-		RecorrerArbolReporte(arbol, Superbloque, file, Grafica, false, int(ptr), false)
+func BuscarCarpeta(root Arbol, Rutas []string, PathDisco string, Superbloque SB, Grafica *string, mostrarInodes bool) {
+	if len(Rutas) == 0 {
+		return
 	}
-	for i := 0; i < 6; i++ {
-		Apuntador := arbol.Subirectorios[i]
 
-		if Apuntador != -1 {
+	if VerificarRuta(PathDisco) {
+
+		File := getFile(PathDisco) //Leemos el disco
+		var Apuntador int32 = 0
+
+		//recorremos los 6 subdirectorios del AVD
+		for i := 0; i < 6; i++ {
+			Apuntador = root.Subirectorios[i]
 			var CarpetaHija Arbol
-			CarpetaHija = readArbolVirtualDirectorio(file, int64(Superbloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
-			BuscarCarpeta(CarpetaHija, Superbloque, file, avd, int(Apuntador), NombreCarpeta, Grafica)
+			CarpetaHija = readArbolVirtualDirectorio(File, int64(Superbloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
+
+			//Verificamos el nombre de la carpeta
+			var nameCarpetaByte [16]byte
+			copy(nameCarpetaByte[:], Rutas[0])
+
+			if bytes.Compare(CarpetaHija.AVDNombreDirectorio[:], nameCarpetaByte[:]) == 0 {
+				Rutas = Rutas[1:]
+				if len(Rutas) == 0 {
+					Apuntador = CarpetaHija.DetalleDirectorio
+					var Archivos DetalleDirectorio
+					Archivos = readDetalleDirectorio(File, int64(Superbloque.StartDetalleDirectorio+(Apuntador*int32(unsafe.Sizeof(Archivos)))))
+					//Cerramos el archivo
+					if mostrarInodes {
+						RecorrerArbolReporte(CarpetaHija, Superbloque, File, Grafica, false, int(Apuntador), false, true)
+					} else {
+						RecorrerArbolReporte(CarpetaHija, Superbloque, File, Grafica, false, int(Apuntador), false, false)
+					}
+					return
+				}
+				File.Close()
+				BuscarCarpeta(CarpetaHija, Rutas, PathDisco, Superbloque, Grafica, mostrarInodes)
+				return
+			}
+
 		}
+		// Buscamos en la copia de la carpeta
+		Apuntador = root.VirtualDirectorio
+		var CopiaCarpeta Arbol
+		CopiaCarpeta = readArbolVirtualDirectorio(File, int64(Superbloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CopiaCarpeta)))))
+		File.Close()
+		/*
+		 * LLAMAMOS EL METODO RECURSIVAMENTE
+		 */
+		BuscarCarpeta(CopiaCarpeta, Rutas, PathDisco, Superbloque, Grafica, mostrarInodes)
+		return
 	}
+	ErrorMessage("[MKFILE] -> No hay ningun disco en la ruta indicada")
 }
 
 /*
@@ -1816,7 +1856,7 @@ func ReporteDirectorio(path string, id string) {
 		fmt.Fprintf(graphDot, "digraph G{ \n")
 		fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
 
-		RecorrerArbolReporte(Root, SuperBloque, File, &Grafica, false, 0, true)
+		RecorrerArbolReporte(Root, SuperBloque, File, &Grafica, false, 0, true, false)
 
 		fmt.Fprintf(graphDot, Grafica)
 
@@ -1825,6 +1865,41 @@ func ReporteDirectorio(path string, id string) {
 	} else {
 		ErrorMessage("[REP] -> Particion no montada")
 	}
+}
+
+//ReporteTreeDirectorio is...
+func ReporteTreeDirectorio(carpeta string, path string, id string) {
+	PathDisco := listaParticiones.GetDireccion(id)
+
+	if PathDisco != "null" {
+
+		var Grafica string
+
+		PartStart := listaParticiones.GetPartStart(id)
+		File := getFile(PathDisco)
+
+		SuperBloque := readSuperBloque(File, int64(PartStart))
+		Root := readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
+
+		os.Create("Reportes/graficaTreeDirectorio.dot")
+		graphDot := getFile("Reportes/graficaTreeDirectorio.dot")
+
+		fmt.Fprintf(graphDot, "digraph G{ \n")
+		fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
+
+		Rutas := strings.Split(carpeta, "/")
+		Rutas = Rutas[1:]
+		fmt.Println(Rutas)
+		BuscarCarpeta(Root, Rutas, PathDisco, SuperBloque, &Grafica, false)
+
+		fmt.Fprintf(graphDot, Grafica)
+
+		fmt.Fprintf(graphDot, "}")
+
+	} else {
+		ErrorMessage("[REP] -> Particion no montada")
+	}
+
 }
 
 /*
@@ -1874,6 +1949,14 @@ func WriteInode(file *os.File, Inode TablaInodo) {
 //WriteBloque is...
 func WriteBloque(file *os.File, Block Bloque) {
 	s1 := &Block
+	var binario2 bytes.Buffer
+	binary.Write(&binario2, binary.BigEndian, s1)
+	file.Write(binario2.Bytes())
+}
+
+//WriteBitacora is...
+func WriteBitacora(file *os.File, log Bitacora) {
+	s1 := &log
 	var binario2 bytes.Buffer
 	binary.Write(&binario2, binary.BigEndian, s1)
 	file.Write(binario2.Bytes())
@@ -2048,6 +2131,79 @@ func ReporteBMblock(path string, id string) {
 //ReporteBitacora is...
 func ReporteBitacora(path string, id string) {
 
+	RutaDisco := listaParticiones.GetDireccion(id)
+
+	if RutaDisco != "null" {
+
+		if VerificarRuta(RutaDisco) {
+
+			os.Create("Reportes/Bitacora.dot")
+			logDot := getFile("Reportes/Bitacora.dot")
+
+			PartStart := listaParticiones.GetPartStart(id)
+			File := getFile(RutaDisco)
+			SuperBloque := readSuperBloque(File, int64(PartStart))
+			var log Bitacora
+			fmt.Fprintf(logDot, "digraph G{\nrankdir=\"LR\"\nnode [shape=plaintext]\n")
+			for i := 0; i < int(SuperBloque.FirstFreeBitacora); i++ {
+				log = readBitacora(File, int64(SuperBloque.StartLog+int32(i*int(unsafe.Sizeof(log)))))
+				var Index string
+				Index = fmt.Sprint(Index, i)
+				fmt.Fprintf(logDot, "tbl"+Index+"[label=<\n")
+				fmt.Fprintf(logDot, "<table border='0' cellborder='1' cellspacing='0'>\n")
+				fmt.Fprintf(logDot, "<tr>\n")
+				var namelog string = "log "
+				namelog = fmt.Sprint(namelog, i+1)
+				fmt.Fprintf(logDot, "<td colspan='2' bgcolor= 'lightblue' >%s</td>\n", namelog)
+				fmt.Fprintf(logDot, "</tr>")
+				fmt.Fprintf(logDot, "<tr>\n")
+				//Nombre
+				fmt.Fprintf(logDot, "<td bgcolor='lightblue' width='200' >Nombre</td>\n")
+				nombrelog := string(log.Nombre[:])
+				nombrelog = strings.Replace(nombrelog, "\x00", "", -1)
+				fmt.Fprintf(logDot, "<td width='300' >%s</td>\n", nombrelog)
+				fmt.Fprintf(logDot, "</tr>\n")
+				fmt.Fprintf(logDot, "<tr>\n")
+				//Contenido
+				fmt.Fprintf(logDot, "<td bgcolor='lightblue' width='200' >Contenido</td>\n")
+				contenido := string(log.Contenido[:])
+				contenido = strings.Replace(contenido, "\x00", "", -1)
+				fmt.Fprintf(logDot, "<td width='300' >%s</td>\n", contenido)
+				fmt.Fprintf(logDot, "</tr>\n")
+				fmt.Fprintf(logDot, "<tr>\n")
+				//Fecha
+				fmt.Fprintf(logDot, "<td bgcolor='lightblue' width='200' >Fecha</td>\n")
+				date := string(log.Fecha[:])
+				date = strings.Replace(date, "\x00", "", -1)
+				fmt.Fprintf(logDot, "<td width='300' >%s</td>\n", date)
+				fmt.Fprintf(logDot, "</tr>\n")
+				fmt.Fprintf(logDot, "<tr>\n")
+				//TipoOperacion
+				fmt.Fprintf(logDot, "<td bgcolor='lightblue' width='200' >Tipo Operacion</td>\n")
+				tipoOp := string(log.TipoOp[:])
+				tipoOp = strings.Replace(tipoOp, "\x00", "", -1)
+				fmt.Fprintf(logDot, "<td width='300' >%s</td>\n", tipoOp)
+				fmt.Fprintf(logDot, "</tr>\n")
+				fmt.Fprintf(logDot, "<tr>\n")
+				//Tipo
+				fmt.Fprintf(logDot, "<td bgcolor='lightblue' width='200' >Tipo</td>\n")
+				fmt.Fprintf(logDot, "<td width='300' >%d</td>\n", log.Tipo)
+				fmt.Fprintf(logDot, "</tr>\n")
+				fmt.Fprintf(logDot, "<tr>\n")
+				//Size
+				fmt.Fprintf(logDot, "<td bgcolor='lightblue' width='200' >Size</td>\n")
+				fmt.Fprintf(logDot, "<td width='300' >%d</td>\n", log.Size)
+				fmt.Fprintf(logDot, "</tr>\n")
+				fmt.Fprintf(logDot, "</table>\n>];")
+			}
+			fmt.Fprintf(logDot, "\n}")
+		} else {
+			ErrorMessage("[REP] -> No se encuentra el disco")
+		}
+
+	} else {
+		ErrorMessage("[REP] -> No hay ninguna particion montada con ese id")
+	}
 }
 
 /*
@@ -2145,6 +2301,7 @@ func Formatear(id string) {
 		SB.FirstFreeDd = 0
 		SB.FirstFreeInodo = 0
 		SB.FirstFreeBloque = 0
+		SB.FirstFreeBitacora = 0
 		//Magic Num
 		SB.MagicNum = int32(CantidadEstructuras)
 		//Struct Size
@@ -2295,6 +2452,23 @@ func ComandoMKDIR(id string, path string, p bool) {
 
 		MKDIR(Root, Rutas, RutaDisco, SuperBloque, 0, p)
 		SuccessMessage("[MKDIR] -> Carpeta creada correctamente")
+
+		/*
+		 *	CREAR LA BITACORA
+		 */
+		File = getFile(RutaDisco)
+		Bitacora := InicializarBitacora(Bitacora{})
+		dt := time.Now()
+		fecha := dt.Format("01-02-2020 15:04:05")
+		copy(Bitacora.Fecha[:], fecha)
+		copy(Bitacora.Nombre[:], path)
+		copy(Bitacora.TipoOp[:], "mkdir")
+		Bitacora.Tipo = 0
+		File.Seek(int64(SuperBloque.StartLog+(SuperBloque.FirstFreeBitacora*int32(unsafe.Sizeof(Bitacora)))), 0)
+		WriteBitacora(File, Bitacora)
+		SuperBloque.FirstFreeBitacora++
+		File.Seek(int64(PartStart), 0)
+		WriteSB(File, SuperBloque)
 
 	} else {
 		ErrorMessage("[MKDIR] -> No existe ningun path asociado a ese id")
