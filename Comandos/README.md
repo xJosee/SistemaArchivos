@@ -17,3 +17,5 @@
 | mkgrp | Crear Grupo |
 | rmgrp | Eliminar Grupo |
 | rmusr | Eliminar Usuario |
+| chmod | Cambiar Permisos |
+| cat | Mostrar Contenido de un file |
