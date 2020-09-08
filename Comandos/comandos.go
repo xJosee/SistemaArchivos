@@ -167,7 +167,7 @@ var isLogged bool = false
 /*
  * V A R I A B L E S   G L O B A L E S
  */
-var idGroup int = 3
+var idGroup int = 2
 var idUser int = 2
 
 /*
@@ -1772,7 +1772,6 @@ func ReporteTreeFile(carpeta string, id string, path string) {
 
 		Rutas := strings.Split(carpeta, "/")
 		Rutas = Rutas[1:]
-		fmt.Println(Rutas)
 		BuscarCarpeta(Root, Rutas, PathDisco, SuperBloque, &Grafica, true)
 
 		fmt.Fprintf(graphDot, Grafica)
@@ -1895,7 +1894,6 @@ func ReporteTreeDirectorio(carpeta string, path string, id string) {
 
 		Rutas := strings.Split(carpeta, "/")
 		Rutas = Rutas[1:]
-		fmt.Println(Rutas)
 		BuscarCarpeta(Root, Rutas, PathDisco, SuperBloque, &Grafica, false)
 
 		fmt.Fprintf(graphDot, Grafica)
@@ -2431,8 +2429,13 @@ func Formatear(id string) {
 		/*
 		 *	MANDANDO A CREAR EL USER.TXT
 		 */
-		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 0, "1,G,root\n1,U,root,123\n2,G,Usuarios")
-
+		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 0, "1,G,root")
+		SuperB := readSuperBloque(File, int64(PartStart))
+		prt := DDroot.DDArrayFiles[0].DDFileApInodo
+		CrearUsuario(int(prt), File, SuperB, "root", "123", "1", PartStart)
+		fmt.Println("Si llego")
+		SuperB1 := readSuperBloque(File, int64(PartStart))
+		CrearGrupo(int(prt), File, SuperB1, "Usuarios", PartStart)
 		fmt.Println("----------------------------------------------------")
 		fmt.Println("-       Formateo LWH realizado correctamente       -")
 		fmt.Println("----------------------------------------------------")
@@ -2444,6 +2447,11 @@ func Formatear(id string) {
 
 //ComandoMKDIR is...
 func ComandoMKDIR(id string, path string, p bool) {
+
+	if !isLogged {
+		ErrorMessage("[MKDIR] -> Para ejecutar este comando debes estar loggeado")
+		return
+	}
 
 	RutaDisco := listaParticiones.GetDireccion(id)
 
@@ -3387,11 +3395,12 @@ func Login(user string, password string, id string) {
 			var Split []string
 			Data = strings.Replace(Data, "\x00", "", -1)
 			Split = strings.Split(Data, "\n")
-
+			fmt.Println(Split)
 			var Datos []string
 			var log bool
 			for i := 0; i < len(Split); i++ {
 				Datos = strings.Split(Split[i], ",")
+				fmt.Println(Datos)
 				if Datos[1] == "U" {
 					log = VerificarDatos(Datos[2], Datos[3], user, password, Datos[0])
 					if log {
@@ -3440,6 +3449,7 @@ func VerificarDatos(u string, p string, user string, pass string, UserID string)
 		copy(userLoggeado.PassWord[:], pass)
 		i, _ := strconv.Atoi(UserID)
 		userLoggeado.IDUser = int32(i)
+		userLoggeado.IDGrupo = int32(i)
 		return true
 	}
 
@@ -3452,6 +3462,12 @@ func VerificarDatos(u string, p string, user string, pass string, UserID string)
 
 //MKGRP is...
 func MKGRP(id string, groupName string) {
+
+	if !isLogged {
+		ErrorMessage("[MKGRP] -> Para ejecutar este comando debes estar loggeado")
+		return
+	}
+
 	var RutaDisco string = listaParticiones.GetDireccion(id)
 
 	if RutaDisco != "null" {
@@ -3501,6 +3517,25 @@ func GroupExist(Data []string, name string) bool {
 	return false
 }
 
+//getIdGroup is...
+func getIDGroup(Data []string, name string) string {
+	for i := 0; i < len(Data); i++ {
+		Split := strings.Split(Data[i], ",")
+		var nameByteG [16]byte
+		copy(nameByteG[:], Split[2])
+
+		var nameByte [16]byte
+		copy(nameByte[:], name)
+
+		if Split[1] == "G" {
+			if bytes.Compare(nameByteG[:], nameByte[:]) == 0 {
+				return Split[0]
+			}
+		}
+	}
+	return "null"
+}
+
 //CrearGrupo is...
 func CrearGrupo(Apuntador int, File *os.File, SuperBloque SB, groupName string, PartStart int) {
 	var InodoB TablaInodo
@@ -3536,7 +3571,6 @@ func CrearGrupo(Apuntador int, File *os.File, SuperBloque SB, groupName string, 
 
 			idGroup++
 
-			File.Close()
 			return
 		}
 	}
@@ -3569,7 +3603,12 @@ func CrearGrupo(Apuntador int, File *os.File, SuperBloque SB, groupName string, 
  */
 
 //MKUSR is...
-func MKUSR(id string, user string, pass string) {
+func MKUSR(id string, user string, Grupo string, pass string) {
+
+	if !isLogged {
+		ErrorMessage("[MKUSR] -> Para ejecutar este comando debes estar loggeado")
+		return
+	}
 
 	var RutaDisco string = listaParticiones.GetDireccion(id)
 
@@ -3589,9 +3628,14 @@ func MKUSR(id string, user string, pass string) {
 		DatosSpliteadosSaltoLinea = strings.Split(Datos, "\n")
 
 		if !UserExist(DatosSpliteadosSaltoLinea, user) {
-			CrearUsuario(int(ApuntadorInodo), File, SuperBloque, user, pass, PartStart)
-			File.Close()
-			SuccessMessage("[MKGRP] -> usuario creado correctamente")
+			if GroupExist(DatosSpliteadosSaltoLinea, Grupo) { //Verificando que el grupo exista
+				IDGrupo := getIDGroup(DatosSpliteadosSaltoLinea, Grupo)
+				CrearUsuario(int(ApuntadorInodo), File, SuperBloque, user, pass, IDGrupo, PartStart)
+				File.Close()
+				SuccessMessage("[MKGRP] -> usuario creado correctamente")
+			} else {
+				ErrorMessage("[MKUSR] -> El grupo no existe")
+			}
 		} else {
 			ErrorMessage("[MKGRP] -> El usuario ya existe")
 		}
@@ -3622,7 +3666,7 @@ func UserExist(Data []string, user string) bool {
 }
 
 //CrearUsuario is...
-func CrearUsuario(Apuntador int, File *os.File, SuperBloque SB, user string, pass string, PartStart int) {
+func CrearUsuario(Apuntador int, File *os.File, SuperBloque SB, user string, pass string, grp string, PartStart int) {
 	var InodoB TablaInodo
 	//Leemos el Inodo
 	InodoB = readInodo(File, int64(SuperBloque.StartInodos+int32(Apuntador*int(unsafe.Sizeof(InodoB)))))
@@ -3631,8 +3675,7 @@ func CrearUsuario(Apuntador int, File *os.File, SuperBloque SB, user string, pas
 		ApuntadorBloque := InodoB.IArrayBloques[i]
 		if ApuntadorBloque == -1 {
 			var Texto string = "\n"
-			Texto = fmt.Sprint(Texto, idUser)
-			Texto += ",U," + user + "," + pass
+			Texto += grp + ",U," + user + "," + pass
 			var Block Bloque
 			copy(Block.Texto[:], Texto)
 			InodoB.IArrayBloques[i] = SuperBloque.FirstFreeBloque
@@ -3656,7 +3699,6 @@ func CrearUsuario(Apuntador int, File *os.File, SuperBloque SB, user string, pas
 
 			idUser++
 
-			File.Close()
 			return
 		}
 	}
@@ -3664,7 +3706,7 @@ func CrearUsuario(Apuntador int, File *os.File, SuperBloque SB, user string, pas
 	 *	VERIFICAMOS EN EL INODO INDIRECTO
 	 */
 	if InodoB.IApIndirecto != -1 {
-		CrearUsuario(int(InodoB.IApIndirecto), File, SuperBloque, user, pass, PartStart)
+		CrearUsuario(int(InodoB.IApIndirecto), File, SuperBloque, user, pass, grp, PartStart)
 		return
 	}
 	Inodocopia := InicializarInodo(TablaInodo{})
@@ -3679,7 +3721,7 @@ func CrearUsuario(Apuntador int, File *os.File, SuperBloque SB, user string, pas
 	File.Seek(int64(PartStart), 0)
 	WriteSB(File, SuperBloque)
 
-	CrearUsuario(int(InodoB.IApIndirecto), File, SuperBloque, user, pass, PartStart)
+	CrearUsuario(int(InodoB.IApIndirecto), File, SuperBloque, user, pass, grp, PartStart)
 	return
 
 }
@@ -3687,8 +3729,147 @@ func CrearUsuario(Apuntador int, File *os.File, SuperBloque SB, user string, pas
 //Logout is...
 func Logout() {
 	// TODO : Hacer logout
-	isLogged = false
-	SuccessMessage("[LOGOUT] -> Sesion cerrada correctamente")
+	if !isLogged {
+		ErrorMessage("[LOGOUT] -> Para cerrar sesion debe haber una sesion activa")
+	} else {
+		isLogged = false
+		SuccessMessage("[LOGOUT] -> Sesion cerrada correctamente")
+	}
+}
+
+//EliminarGrupo is...
+func EliminarGrupo(id string, name string) {
+	if !isLogged {
+		ErrorMessage("[MKGRP] -> Para ejecutar este comando debes estar loggeado")
+		return
+	}
+	var UserName [12]byte
+	copy(UserName[:], name)
+
+	if bytes.Compare(UserName[:], userLoggeado.UserName[:]) == 0 {
+		ErrorMessage("[RMGRP] -> Solo el user root puede ejecutar este comando")
+		return
+	}
+
+	var RutaDisco string = listaParticiones.GetDireccion(id)
+
+	if RutaDisco != "null" {
+		File := getFile(RutaDisco)
+		PartStart := listaParticiones.GetPartStart(id)
+		SuperBloque := readSuperBloque(File, int64(PartStart))
+		DetallDirectorioRoot := readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio))
+		ApuntadorInodo := DetallDirectorioRoot.DDArrayFiles[0].DDFileApInodo
+		var InodoB TablaInodo
+		InodoB = readInodo(File, int64(SuperBloque.StartInodos+int32(ApuntadorInodo*int32(unsafe.Sizeof(InodoB)))))
+
+		var Datos string
+		ObtenerDataUserTXT(InodoB, File, SuperBloque, &Datos)
+
+		var DatosSpliteadosSaltoLinea []string
+		DatosSpliteadosSaltoLinea = strings.Split(Datos, "\n")
+
+		if GroupExist(DatosSpliteadosSaltoLinea, name) {
+			for i := 0; i < 4; i++ {
+				ptr := InodoB.IArrayBloques[i]
+
+				if ptr != -1 {
+					var Block Bloque
+					Block = readBloque(File, int64(SuperBloque.StartBloques+(ptr*int32(unsafe.Sizeof(Block)))))
+					DataBlock := string(Block.Texto[:])
+
+					DataSplit := strings.Split(DataBlock, ",")
+					var nameGroup [16]byte
+					copy(nameGroup[:], DataSplit[2])
+
+					var nameGroupParameter [16]byte
+					copy(nameGroupParameter[:], name)
+
+					if DataSplit[1] == "G" {
+						if bytes.Compare(nameGroup[:], nameGroupParameter[:]) == 0 {
+							InodoB.IArrayBloques[i] = -1
+							File.Seek(int64(SuperBloque.StartInodos+int32(ApuntadorInodo*int32(unsafe.Sizeof(InodoB)))), 0)
+							WriteInode(File, InodoB)
+							return
+						}
+					}
+				}
+			}
+
+		} else {
+			ErrorMessage("[MKGRP] -> El grupo no existe")
+		}
+
+	} else {
+		ErrorMessage("[LOGIN] -> No se encuentra ninguna particion montada con ese id")
+	}
+}
+
+//EliminarUsuario is...
+func EliminarUsuario(id string, name string) {
+	if !isLogged {
+		ErrorMessage("[MKGRP] -> Para ejecutar este comando debes estar loggeado")
+		return
+	}
+
+	var UserName [12]byte
+	copy(UserName[:], name)
+
+	if bytes.Compare(UserName[:], userLoggeado.UserName[:]) == 0 {
+		ErrorMessage("[RMGRP] -> Solo el user root puede ejecutar este comando")
+		return
+	}
+
+	var RutaDisco string = listaParticiones.GetDireccion(id)
+
+	if RutaDisco != "null" {
+		File := getFile(RutaDisco)
+		PartStart := listaParticiones.GetPartStart(id)
+		SuperBloque := readSuperBloque(File, int64(PartStart))
+		DetallDirectorioRoot := readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio))
+		ApuntadorInodo := DetallDirectorioRoot.DDArrayFiles[0].DDFileApInodo
+		var InodoB TablaInodo
+		InodoB = readInodo(File, int64(SuperBloque.StartInodos+int32(ApuntadorInodo*int32(unsafe.Sizeof(InodoB)))))
+
+		var Datos string
+		ObtenerDataUserTXT(InodoB, File, SuperBloque, &Datos)
+
+		var DatosSpliteadosSaltoLinea []string
+		DatosSpliteadosSaltoLinea = strings.Split(Datos, "\n")
+
+		if GroupExist(DatosSpliteadosSaltoLinea, name) {
+			for i := 0; i < 4; i++ {
+				ptr := InodoB.IArrayBloques[i]
+
+				if ptr != -1 {
+					var Block Bloque
+					Block = readBloque(File, int64(SuperBloque.StartBloques+(ptr*int32(unsafe.Sizeof(Block)))))
+					DataBlock := string(Block.Texto[:])
+
+					DataSplit := strings.Split(DataBlock, ",")
+					var nameGroup [16]byte
+					copy(nameGroup[:], DataSplit[2])
+
+					var nameGroupParameter [16]byte
+					copy(nameGroupParameter[:], name)
+
+					if DataSplit[1] == "U" {
+						if bytes.Compare(nameGroup[:], nameGroupParameter[:]) == 0 {
+							InodoB.IArrayBloques[i] = -1
+							File.Seek(int64(SuperBloque.StartInodos+int32(ApuntadorInodo*int32(unsafe.Sizeof(InodoB)))), 0)
+							WriteInode(File, InodoB)
+							return
+						}
+					}
+				}
+			}
+
+		} else {
+			ErrorMessage("[MKGRP] -> El grupo no existe")
+		}
+
+	} else {
+		ErrorMessage("[LOGIN] -> No se encuentra ninguna particion montada con ese id")
+	}
 }
 
 /*

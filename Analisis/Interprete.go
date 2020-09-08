@@ -27,6 +27,7 @@ var (
 	p        bool   = false
 	count    string = ""
 	nombre   string = ""
+	grupo    string = ""
 )
 
 //Analizar is...
@@ -53,6 +54,7 @@ func Analizar(comandos string) {
 	p = false
 	count = ""
 	nombre = ""
+	grupo = ""
 }
 
 //VerificarComando is...
@@ -297,8 +299,30 @@ func VerificarComando(listaComandos []string) {
 				ErrorMessage("[MKDIR] -> Parametro -user no definido")
 			} else if password == "" {
 				ErrorMessage("[MKDIR] -> Parametro -password no definido")
+			} else if grupo == "" {
+				ErrorMessage("[MKDIR] -> Parametro -grupo no definido")
 			} else {
-				comandos.MKUSR(id, user, password)
+				comandos.MKUSR(id, user, grupo, password)
+			}
+		}
+	} else if strings.ToLower(listaComandos[0]) == "rmgrp" {
+		if VerificarParametros(listaComandos) {
+			if id == "" {
+				ErrorMessage("[MKDIR] -> Parametro -id no definido")
+			} else if name == "" {
+				ErrorMessage("[MKDIR] -> Parametro -name no definido")
+			} else {
+				comandos.EliminarGrupo(id, name)
+			}
+		}
+	} else if strings.ToLower(listaComandos[0]) == "rmusr" {
+		if VerificarParametros(listaComandos) {
+			if id == "" {
+				ErrorMessage("[MKDIR] -> Parametro -id no definido")
+			} else if name == "" {
+				ErrorMessage("[MKDIR] -> Parametro -user no definido")
+			} else {
+				comandos.EliminarUsuario(id, name)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "1" {
@@ -374,6 +398,8 @@ func VerificarParametros(listaComandos []string) bool {
 			count = Paramatros[1]
 		case "-nombre":
 			nombre = Paramatros[1]
+		case "-grp":
+			grupo = Paramatros[1]
 		default:
 			ErrorMessage("[CONSOLA] -> Parametro [" + Paramatros[0] + "] incorrecto")
 			return false
