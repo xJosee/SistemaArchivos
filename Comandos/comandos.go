@@ -136,7 +136,9 @@ type Arbol struct {
 	Subirectorios       [6]int32
 	VirtualDirectorio   int32
 	DetalleDirectorio   int32
-	AVDProper           int32
+	AVDProper           int32 // Guarda el id del usuario
+	AVDGid              int32 // Guarda el id el grupo al que pertenece
+	AVDPerm             int32 // Guarda los permisos
 }
 
 //Usuario is...
@@ -1525,10 +1527,15 @@ func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *s
 	*Grafica += "<table border='0' cellborder='1' cellspacing='0'>\n"
 	*Grafica += "<tr>\n"
 	if !avd {
-		*Grafica += "<td colspan='8' bgcolor= 'lightblue' >" + texto + "</td>\n"
+		*Grafica += "<td colspan='8' bgcolor= 'lightblue3' >" + texto + "</td>\n"
 	} else {
 		*Grafica += "<td colspan='8' bgcolor= 'forestgreen' >" + texto + "</td>\n"
 	}
+	*Grafica += "</tr>\n"
+	*Grafica += "<tr>\n"
+	var Permisos string
+	Permisos = fmt.Sprint(Permisos, arbol.AVDPerm)
+	*Grafica += "<td colspan='8' >" + Permisos + "</td>\n"
 	*Grafica += "</tr>\n"
 	*Grafica += "<tr>\n"
 	*Grafica += "<td bgcolor='lightblue' width='20' >1</td>\n"
@@ -1631,10 +1638,10 @@ func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.
 	*GraficaDD += "tbl" + Nombre + "[label=<\n"
 	*GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
 	*GraficaDD += "<tr>"
-	*GraficaDD += "<td bgcolor='deepskyblue4' width='100' colspan='2'>" + name + "</td>\n"
+	*GraficaDD += "<td bgcolor='deepskyblue4' width='150' colspan='2'>" + name + "</td>\n"
 	*GraficaDD += "</tr>\n"
 	*GraficaDD += "<tr>\n"
-	*GraficaDD += "<td>Virtual</td>\n"
+	*GraficaDD += "<td bgcolor='deepskyblue3'>Virtual</td>\n"
 	var ptr string
 	ptr = fmt.Sprint(ptr, Detalle.DDApDetalleDirectorio)
 	*GraficaDD += "<td>" + ptr + "</td>\n"
@@ -1696,14 +1703,14 @@ func GenerarReporteInodo(Inodo TablaInodo, File *os.File, SuperBloque SB, Grafic
 	*GraficaDD += "tblInodo" + NameInodo
 	*GraficaDD += "[label=<\n"
 	*GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
-	*GraficaDD += "<tr><td bgcolor='darkorange' width='100' colspan='5'>" + nombreFile + "</td>\n"
+	*GraficaDD += "<tr><td bgcolor='darkorange' width='200' colspan='5'>" + nombreFile + "</td>\n"
 	*GraficaDD += "</tr>\n"
 	*GraficaDD += "<tr>\n"
 	*GraficaDD += "<td>1</td>\n"
 	*GraficaDD += "<td>2</td>\n"
 	*GraficaDD += "<td>3</td>\n"
 	*GraficaDD += "<td>4</td>\n"
-	*GraficaDD += "<td bgcolor='darkorange' width='25'>Inodo</td>\n"
+	*GraficaDD += "<td bgcolor='darkorange' width='50'>Inodo</td>\n"
 	*GraficaDD += "</tr>\n"
 	*GraficaDD += "<tr>\n"
 	var ptr1 string
@@ -1733,7 +1740,7 @@ func GenerarReporteInodo(Inodo TablaInodo, File *os.File, SuperBloque SB, Grafic
 			*GraficaDD += "tblBloque" + aux1 + "[label=<\n"
 			*GraficaDD += "<table border='0' cellborder='1' cellspacing='0'>\n"
 			*GraficaDD += "<tr>\n"
-			*GraficaDD += "<td width='200' bgcolor= 'lightblue' >'" + texto + "'</td>\n"
+			*GraficaDD += "<td width='400' bgcolor= 'lightblue' >'" + texto + "'</td>\n"
 			*GraficaDD += "</tr>\n"
 			*GraficaDD += "</table>\n"
 			*GraficaDD += ">];\n"
@@ -2610,6 +2617,10 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, puntero 
 			copy(Carpeta.AVDNombreDirectorio[:], paths[0]) //Le seteamos el nombre a la carpeta
 			copy(Carpeta.AVDFechaCreacion[:], fecha)       // Le seteamos la fecha
 
+			//Agregando la info del propietario
+			Carpeta.AVDGid = userLoggeado.IDGrupo
+			Carpeta.AVDProper = userLoggeado.IDUser
+
 			//El detalle directorio de la carpeta es la primera posicion libre del detalle directorio del superbloque
 			Carpeta.DetalleDirectorio = SuperBloque.FirstFreeDd
 			// Guardamos el puntero del DD
@@ -3335,6 +3346,8 @@ func InicializarAVD(Arbol Arbol) Arbol {
 	Arbol.AVDProper = -1
 	Arbol.VirtualDirectorio = -1
 	Arbol.DetalleDirectorio = 1
+	Arbol.AVDGid = -1
+	Arbol.AVDPerm = 664
 	return Arbol
 }
 
@@ -3870,6 +3883,80 @@ func EliminarUsuario(id string, name string) {
 	} else {
 		ErrorMessage("[LOGIN] -> No se encuentra ninguna particion montada con ese id")
 	}
+}
+
+//CHMOD is...
+func CHMOD(id string, path string, ugo int, R bool) {
+
+	PathDisco := listaParticiones.GetDireccion(id)
+
+	if PathDisco != "null" {
+		File := getFile(PathDisco)
+		PartStart := listaParticiones.GetPartStart(id)
+		SuperBloque := readSuperBloque(File, int64(PartStart))
+
+		Root := readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
+
+		var Rutas []string
+		Rutas = strings.Split(path, "/")
+		Rutas = Rutas[1:]
+
+		RecorrerRuta(Root, File, SuperBloque, Rutas, ugo, R, 0)
+
+	} else {
+		ErrorMessage("[CHMOD] -> No hay ninguna particion montada con ese id")
+	}
+
+}
+
+//TODO CHMOD Ver lo del parametro R
+
+//RecorrerRuta is...
+func RecorrerRuta(arbol Arbol, File *os.File, SuperBloque SB, Rutas []string, Permisos int, R bool, ptr int) {
+
+	if R {
+		arbol.AVDPerm = int32(Permisos)
+		//Reescribimos el AVD
+		File.Seek(int64(SuperBloque.StartArbolDirectorio+int32(ptr*int(unsafe.Sizeof(arbol)))), 0)
+		WriteAVD(File, arbol)
+	}
+
+	for i := 0; i < 6; i++ {
+		Apuntador := arbol.Subirectorios[i]
+		var CarpetaHija Arbol
+		CarpetaHija = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
+
+		//Verificamos el nombre de la carpeta
+		var nameCarpetaByte [16]byte
+		copy(nameCarpetaByte[:], Rutas[0])
+
+		if bytes.Compare(CarpetaHija.AVDNombreDirectorio[:], nameCarpetaByte[:]) == 0 {
+			Rutas = Rutas[1:]
+			if len(Rutas) == 0 {
+				/*
+				 *	CAMBIAR LOS PERMISOS
+				 */
+				CarpetaHija.AVDPerm = int32(Permisos)
+				File.Seek(int64(SuperBloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))), 0)
+				WriteAVD(File, CarpetaHija)
+				return
+			}
+
+			RecorrerRuta(CarpetaHija, File, SuperBloque, Rutas, Permisos, R, int(Apuntador))
+			return
+		}
+
+	}
+	// Buscamos en la copia de la carpeta
+	Apuntador := arbol.VirtualDirectorio
+	var CopiaCarpeta Arbol
+	CopiaCarpeta = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CopiaCarpeta)))))
+	/*
+	 * LLAMAMOS EL METODO RECURSIVAMENTE
+	 */
+	RecorrerRuta(CopiaCarpeta, File, SuperBloque, Rutas, Permisos, R, int(Apuntador))
+	return
+
 }
 
 /*
