@@ -181,7 +181,7 @@ func VerificarComando(listaComandos []string) {
 					comandos.ReporteBMblock(path, id)
 					SuccessMessage("[REP] -> Reporte 'bm_block' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "bitacora" {
-					comandos.ReporteBitacora(path, id)
+					//comandos.ReporteBitacora(path, id)
 					SuccessMessage("[REP] -> Reporte 'bitacora' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "directorio" {
 					comandos.ReporteDirectorio(path, id)
