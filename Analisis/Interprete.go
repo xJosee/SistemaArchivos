@@ -30,6 +30,7 @@ var (
 	grupo    string = ""
 	r        bool   = false
 	ugo      int    = 0
+	file     string = ""
 )
 
 //Analizar is...
@@ -59,6 +60,7 @@ func Analizar(comandos string) {
 	grupo = ""
 	r = false
 	ugo = 0
+	file = ""
 }
 
 //VerificarComando is...
@@ -341,6 +343,16 @@ func VerificarComando(listaComandos []string) {
 				comandos.CHMOD(id, path, ugo, r)
 			}
 		}
+	} else if strings.ToLower(listaComandos[0]) == "cat" {
+		if VerificarParametros(listaComandos) {
+			if id == "" {
+				ErrorMessage("[CAT] -> Parametro -id no definido")
+			} else if file == "" {
+				ErrorMessage("[CAT] -> Parametro -file no definido")
+			} else {
+				comandos.ComandoCat(file, id)
+			}
+		}
 	} else if strings.ToLower(listaComandos[0]) == "1" {
 		fmt.Println("")
 		fmt.Println(" - mkdisk")
@@ -421,6 +433,8 @@ func VerificarParametros(listaComandos []string) bool {
 			ugo = Aux
 		case "-r":
 			r = true
+		case "-file":
+			file = Paramatros[1]
 		default:
 			ErrorMessage("[CONSOLA] -> Parametro [" + Paramatros[0] + "] incorrecto")
 			return false

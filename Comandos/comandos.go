@@ -3939,6 +3939,7 @@ func RecorrerRuta(arbol Arbol, File *os.File, SuperBloque SB, Rutas []string, Pe
 				CarpetaHija.AVDPerm = int32(Permisos)
 				File.Seek(int64(SuperBloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))), 0)
 				WriteAVD(File, CarpetaHija)
+				SuccessMessage("[CHMOD] -> Permisos actualizados correctamente")
 				return
 			}
 
@@ -3957,6 +3958,127 @@ func RecorrerRuta(arbol Arbol, File *os.File, SuperBloque SB, Rutas []string, Pe
 	RecorrerRuta(CopiaCarpeta, File, SuperBloque, Rutas, Permisos, R, int(Apuntador))
 	return
 
+}
+
+//ComandoCat is...
+func ComandoCat(path string, id string) {
+	PathDisco := listaParticiones.GetDireccion(id)
+
+	if PathDisco != "null" {
+		File := getFile(PathDisco)
+		PartStart := listaParticiones.GetPartStart(id)
+		SuperBloque := readSuperBloque(File, int64(PartStart))
+		Root := readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
+
+		var Rutas []string
+		Rutas = strings.Split(path, "/")
+		Rutas = Rutas[1:]
+
+		BuscarFile(Root, Rutas, File, SuperBloque)
+
+	} else {
+		ErrorMessage("[CAT] -> No hay ningun particion montada con ese id")
+	}
+
+}
+
+//BuscarFile is...
+func BuscarFile(arbol Arbol, Rutas []string, File *os.File, SuperBloque SB) {
+	for i := 0; i < 6; i++ {
+		Apuntador := arbol.Subirectorios[i]
+		var CarpetaHija Arbol
+		CarpetaHija = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
+
+		//Verificamos el nombre de la carpeta
+		var nameCarpetaByte [16]byte
+		copy(nameCarpetaByte[:], Rutas[0])
+
+		if bytes.Compare(CarpetaHija.AVDNombreDirectorio[:], nameCarpetaByte[:]) == 0 {
+			Rutas = Rutas[1:]
+			if len(Rutas) == 1 {
+				/*
+				 * Buscar el file
+				 */
+				var Detalle DetalleDirectorio
+				Detalle = readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio+(CarpetaHija.DetalleDirectorio*int32(unsafe.Sizeof(Detalle)))))
+
+				var Bandera bool
+				Bandera = BuscarData(Detalle, Rutas[0], File, SuperBloque)
+
+				if Detalle.DDApDetalleDirectorio != -1 {
+					var DetalleVirtual DetalleDirectorio
+					DetalleVirtual = readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio+(Detalle.DDApDetalleDirectorio*int32(unsafe.Sizeof(DetalleVirtual)))))
+					Bandera = BuscarData(DetalleVirtual, Rutas[0], File, SuperBloque)
+				}
+
+				if !Bandera {
+					ErrorMessage("[CAT] -> No se encuentra el archivo")
+					return
+				}
+
+				return
+			}
+
+			BuscarFile(CarpetaHija, Rutas, File, SuperBloque)
+			return
+		}
+
+	}
+	// Buscamos en la copia de la carpeta
+	Apuntador := arbol.VirtualDirectorio
+	var CopiaCarpeta Arbol
+	CopiaCarpeta = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CopiaCarpeta)))))
+	/*
+	 * LLAMAMOS EL METODO RECURSIVAMENTE
+	 */
+	BuscarFile(CopiaCarpeta, Rutas, File, SuperBloque)
+	return
+}
+
+//BuscarData is...
+func BuscarData(Detalle DetalleDirectorio, name string, File *os.File, SuperBloque SB) bool {
+	for i := 0; i < 4; i++ {
+		Nombre := Detalle.DDArrayFiles[i].DDFileNombre
+		var nameByte [16]byte
+		copy(nameByte[:], name)
+
+		if bytes.Compare(Nombre[:], nameByte[:]) == 0 {
+			ptrInodo := Detalle.DDArrayFiles[i].DDFileApInodo
+			var Inodo TablaInodo
+			Inodo = readInodo(File, int64(SuperBloque.StartInodos+(ptrInodo*int32(unsafe.Sizeof(Inodo)))))
+			var Data string
+			BuscarDataInodos(Inodo, File, SuperBloque, &Data)
+			if Inodo.IApIndirecto != -1 {
+				var InodoIndirecto TablaInodo
+				InodoIndirecto = readInodo(File, int64(SuperBloque.StartInodos+(Inodo.IApIndirecto*int32(unsafe.Sizeof(Inodo)))))
+				BuscarDataInodos(InodoIndirecto, File, SuperBloque, &Data)
+			}
+			texto := string(Data)
+			texto = strings.Replace(texto, "\x00", "", -1)
+			fmt.Println("----------------------------------------------")
+			fmt.Println("                 ", name)
+			fmt.Println("----------------------------------------------")
+			fmt.Println(texto)
+			fmt.Println("----------------------------------------------")
+			return true
+		}
+
+	}
+
+	return false
+}
+
+//BuscarDataInodos is...
+func BuscarDataInodos(Inodo TablaInodo, File *os.File, SuperBloque SB, Data *string) {
+	for i := 0; i < 4; i++ {
+		//TODO : Hacer recursivo esto para los virtuales
+		ptrBloque := Inodo.IArrayBloques[i]
+		if ptrBloque != -1 {
+			var Block Bloque
+			Block = readBloque(File, int64(SuperBloque.StartBloques+(ptrBloque*int32(unsafe.Sizeof(Block)))))
+			*Data += string(Block.Texto[:]) + "\n"
+		}
+	}
 }
 
 /*
