@@ -2133,7 +2133,7 @@ func ReporteBMblock(path string, id string) {
  */
 
 //ReporteBitacora is...
-func ReporteBitacora(path string, id string) {
+/*func ReporteBitacora(path string, id string) {
 
 	RutaDisco := listaParticiones.GetDireccion(id)
 
@@ -2208,7 +2208,7 @@ func ReporteBitacora(path string, id string) {
 	} else {
 		ErrorMessage("[REP] -> No hay ninguna particion montada con ese id")
 	}
-}
+}*/
 
 /*
  *	REPORTE LS
@@ -2474,7 +2474,7 @@ func ComandoMKDIR(id string, path string, p bool) {
 		/*
 		 *	CREAR LA BITACORA
 		 */
-		File = getFile(RutaDisco)
+		/*File = getFile(RutaDisco)
 		Bitacora := InicializarBitacora(Bitacora{})
 		dt := time.Now()
 		fecha := dt.Format("01-02-2020 15:04:05")
@@ -2486,7 +2486,7 @@ func ComandoMKDIR(id string, path string, p bool) {
 		WriteBitacora(File, Bitacora)
 		SuperBloque.FirstFreeBitacora++
 		File.Seek(int64(PartStart), 0)
-		WriteSB(File, SuperBloque)
+		WriteSB(File, SuperBloque)*/
 
 	} else {
 		ErrorMessage("[MKDIR] -> No existe ningun path asociado a ese id")
@@ -2821,7 +2821,7 @@ func MKFILE(id string, path string, p bool, size int, count string) {
 				/*
 				 *	CREAR LA BITACORA
 				 */
-				Bitacora := InicializarBitacora(Bitacora{})
+				/*Bitacora := InicializarBitacora(Bitacora{})
 				dt := time.Now()
 				fecha := dt.Format("01-02-2020 15:04:05")
 				copy(Bitacora.Fecha[:], fecha)
@@ -2834,7 +2834,7 @@ func MKFILE(id string, path string, p bool, size int, count string) {
 				WriteBitacora(File, Bitacora)
 				SuperBloque.FirstFreeBitacora++
 				File.Seek(int64(PartStart), 0)
-				WriteSB(File, SuperBloque)
+				WriteSB(File, SuperBloque)*/
 
 				File.Close()
 
