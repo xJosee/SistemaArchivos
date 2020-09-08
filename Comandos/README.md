@@ -15,3 +15,5 @@
 | mkfile | Crear archivos |
 | mkusr | Crear Usuarios |
 | mkgrp | Crear Grupo |
+| rmgrp | Eliminar Grupo |
+| rmusr | Eliminar Usuario |
