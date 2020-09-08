@@ -153,7 +153,7 @@ func VerificarComando(listaComandos []string) {
 		if VerificarParametros(listaComandos) {
 
 			if nombre == "" {
-				ErrorMessage("")
+				ErrorMessage("[REP] -> Parametro -nombre no defino")
 			} else if id == "" {
 
 			} else if path == "" {

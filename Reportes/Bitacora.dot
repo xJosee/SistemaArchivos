@@ -1,0 +1,440 @@
+digraph G{
+rankdir="LR"
+node [shape=plaintext]
+tbl0[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 1</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta1</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl1[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 2</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta1</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl2[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 3</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta2</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl3[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 4</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta3</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl4[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 5</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta4</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl5[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 6</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta5</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl6[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 7</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta6</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl7[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 8</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta7</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl8[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 9</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta8</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl9[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 10</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta9</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl10[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 11</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta10</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl11[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 12</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta11</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl12[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 13</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta12</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl13[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 14</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta13</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];tbl14[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='2' bgcolor= 'lightblue' >log 15</td>
+</tr><tr>
+<td bgcolor='lightblue' width='200' >Nombre</td>
+<td width='600' >home/carpeta14</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Contenido</td>
+<td width='300' ></td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Fecha</td>
+<td width='300' >09-07-7070</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo Operacion</td>
+<td width='300' >mkdir</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Tipo</td>
+<td width='300' >0</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='200' >Size</td>
+<td width='300' >0</td>
+</tr>
+</table>
+>];
+}
