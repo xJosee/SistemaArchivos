@@ -30,7 +30,9 @@ var (
 	grupo    string = ""
 	r        bool   = false
 	ugo      int    = 0
-	file     string = ""
+	file     []string
+	rf       bool   = false
+	ruta     string = ""
 )
 
 //Analizar is...
@@ -40,7 +42,7 @@ func Analizar(comandos string) {
 			Comandos := strings.Split(comandos, " ")
 			VerificarComando(Comandos)
 		} else {
-			Comentario(comandos)
+			//Comentario(comandos)
 		}
 	}
 	size = 0
@@ -60,7 +62,9 @@ func Analizar(comandos string) {
 	grupo = ""
 	r = false
 	ugo = 0
-	file = ""
+	file = nil
+	rf = false
+	ruta = ""
 }
 
 //VerificarComando is...
@@ -160,19 +164,17 @@ func VerificarComando(listaComandos []string) {
 
 			if nombre == "" {
 				ErrorMessage("[REP] -> Parametro -nombre no defino")
-			} else if id == "" {
-
 			} else if path == "" {
 
 			} else {
 				if strings.ToLower(nombre) == "mbr" {
-					comandos.ReporteEBR(path)
+					comandos.ReporteEBR(path, ruta)
 					SuccessMessage("[REP] -> Reporte 'mbr' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "disk" {
-					comandos.ReporteDisco(path)
+					comandos.ReporteDisco(path, ruta)
 					SuccessMessage("[REP] -> Reporte 'disk' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "sb" {
-					comandos.ReporteSuperBloque(id)
+					comandos.ReporteSuperBloque(id, path)
 					SuccessMessage("[REP] -> Reporte 'sb' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "bm_arbdir" {
 					comandos.ReporteBMarbdir(path, id)
@@ -347,10 +349,20 @@ func VerificarComando(listaComandos []string) {
 		if VerificarParametros(listaComandos) {
 			if id == "" {
 				ErrorMessage("[CAT] -> Parametro -id no definido")
-			} else if file == "" {
+			} else if len(file) == 0 {
 				ErrorMessage("[CAT] -> Parametro -file no definido")
 			} else {
 				comandos.ComandoCat(file, id)
+			}
+		}
+	} else if strings.ToLower(listaComandos[0]) == "rm" {
+		if VerificarParametros(listaComandos) {
+			if id == "" {
+				ErrorMessage("[CAT] -> Parametro -id no definido")
+			} else if path == "" {
+				ErrorMessage("[CAT] -> Parametro -path no definido")
+			} else {
+				comandos.ComandoRM(id, path, rf)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "1" {
@@ -378,6 +390,8 @@ func VerificarComando(listaComandos []string) {
 		fmt.Println(" - tree_complete")
 		fmt.Println(" - ls")
 		fmt.Println("")
+	} else if strings.ToLower(listaComandos[0]) == " " {
+
 	} else {
 		ErrorMessage("[CONSOLA] -> Comando [" + listaComandos[0] + "] incorrecto")
 	}
@@ -434,7 +448,11 @@ func VerificarParametros(listaComandos []string) bool {
 		case "-r":
 			r = true
 		case "-file":
-			file = Paramatros[1]
+			file = append(file, Paramatros[1])
+		case "-rf":
+			rf = true
+		case "-ruta":
+			ruta = Paramatros[1]
 		default:
 			ErrorMessage("[CONSOLA] -> Parametro [" + Paramatros[0] + "] incorrecto")
 			return false
@@ -455,8 +473,13 @@ func EXEC(path string) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		if scanner.Text() != "" {
-			Comando("[CONSOLA] -> " + scanner.Text())
-			Analizar(scanner.Text())
+
+			if !strings.HasPrefix(scanner.Text(), "#") {
+				Comando("[CONSOLA] -> " + scanner.Text())
+				Analizar(scanner.Text())
+			} else {
+				Comentario(scanner.Text())
+			}
 		}
 	}
 

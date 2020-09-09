@@ -31,7 +31,7 @@ func Menu() {
 		scanner.Scan()
 		Comando := scanner.Text()
 		if strings.ToLower(Comando) == "salir" {
-			break
+			return
 		}
 		parser.Analizar(Comando)
 	}

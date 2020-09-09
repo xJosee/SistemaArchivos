@@ -4,36 +4,36 @@ tbl[
 label=<
 <table border='0' cellborder='1' cellspacing='0' width='300'  height='200' >
  <tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>Super Bloque</font></b></td></tr><tr>  <td width='230'> <b>Atributo</b> </td> <td width='230'> <b>Valor</b> </td>  </tr>
-<tr>  <td>NombreHD</td><td>part2</td>  </tr>
-<tr>  <td>ArbolVirtualCount</td><td>3170</td>  </tr>
-<tr>  <td>DetalleDirectorioCount</td><td>3170</td>  </tr>
-<tr>  <td>InodosCount</td><td>15850</td>  </tr>
-<tr>  <td>BloquesCount</td><td>63400</td>  </tr>
-<tr>  <td>ArbolVirtualFree</td><td>3149</td>  </tr>
-<tr>  <td>DetalleDirectorioFree</td><td>3149</td>  </tr>
-<tr>  <td>InodosFree</td><td>15845</td>  </tr>
-<tr>  <td>BloquesFree</td><td>63386</td>  </tr>
-<tr>  <td>FechaCreacion</td><td>09-07-2020 22:41:17</td>  </tr>
-<tr>  <td>FechaUltimoMontaje</td><td>09-07-2020 22:41:17</td>  </tr>
+<tr>  <td>NombreHD</td><td>part1</td>  </tr>
+<tr>  <td>ArbolVirtualCount</td><td>1584</td>  </tr>
+<tr>  <td>DetalleDirectorioCount</td><td>1584</td>  </tr>
+<tr>  <td>InodosCount</td><td>7920</td>  </tr>
+<tr>  <td>BloquesCount</td><td>31680</td>  </tr>
+<tr>  <td>ArbolVirtualFree</td><td>1563</td>  </tr>
+<tr>  <td>DetalleDirectorioFree</td><td>1563</td>  </tr>
+<tr>  <td>InodosFree</td><td>7913</td>  </tr>
+<tr>  <td>BloquesFree</td><td>31661</td>  </tr>
+<tr>  <td>FechaCreacion</td><td>09-09-2020 15:19:13</td>  </tr>
+<tr>  <td>FechaUltimoMontaje</td><td>09-09-2020 15:19:13</td>  </tr>
 <tr>  <td>MontajesCount</td><td>0</td>  </tr>
-<tr>  <td>StartBmArbolDirectorio</td><td>2097464</td>  </tr>
-<tr>  <td>StartArbolDirectorio</td><td>2100634</td>  </tr>
-<tr>  <td>StartBmArbolDirectorio</td><td>2328874</td>  </tr>
-<tr>  <td>StartDetalleDirectorio</td><td>2332044</td>  </tr>
-<tr>  <td>StartBmInodos</td><td>3295724</td>  </tr>
-<tr>  <td>StartInodos</td><td>3311574</td>  </tr>
-<tr>  <td>StartBmBloques</td><td>3882174</td>  </tr>
-<tr>  <td>StartBloques</td><td>3945574</td>  </tr>
-<tr>  <td>StartBitacora</td><td>5530574</td>  </tr>
+<tr>  <td>StartBmArbolDirectorio</td><td>312</td>  </tr>
+<tr>  <td>StartArbolDirectorio</td><td>1896</td>  </tr>
+<tr>  <td>StartBmArbolDirectorio</td><td>115944</td>  </tr>
+<tr>  <td>StartDetalleDirectorio</td><td>117528</td>  </tr>
+<tr>  <td>StartBmInodos</td><td>599064</td>  </tr>
+<tr>  <td>StartInodos</td><td>606984</td>  </tr>
+<tr>  <td>StartBmBloques</td><td>892104</td>  </tr>
+<tr>  <td>StartBloques</td><td>923784</td>  </tr>
+<tr>  <td>StartBitacora</td><td>1715784</td>  </tr>
 <tr>  <td>SizeAVD</td><td>72</td>  </tr>
 <tr>  <td>SizeDD</td><td>304</td>  </tr>
 <tr>  <td>SizeInodo</td><td>36</td>  </tr>
 <tr>  <td>SizeBloque</td><td>25</td>  </tr>
 <tr>  <td>FirstFreeAVD</td><td>21</td>  </tr>
 <tr>  <td>FirstFreeDD</td><td>21</td>  </tr>
-<tr>  <td>FirstFreeInodos</td><td>5</td>  </tr>
-<tr>  <td>FirstFreeBloque</td><td>5</td>  </tr>
-<tr>  <td>MagicNum</td><td>3170</td>  </tr>
+<tr>  <td>FirstFreeInodos</td><td>7</td>  </tr>
+<tr>  <td>FirstFreeBloque</td><td>7</td>  </tr>
+<tr>  <td>MagicNum</td><td>1584</td>  </tr>
 </table>
 >];
 }

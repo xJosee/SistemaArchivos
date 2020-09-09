@@ -1,6 +1,7 @@
 package comandos
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/binary"
 	"fmt"
@@ -452,9 +453,18 @@ func VerificarRuta(name string) bool {
 //RMDISK is...
 func RMDISK(path string) bool {
 	if VerificarRuta(path) {
-		app := "rm"
-		cmd := exec.Command(app, path)
-		cmd.Output()
+		fmt.Print("Seguro que deseas eliminar el disco [S/N]")
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		Eliminar := scanner.Text()
+		if Eliminar == "S" || Eliminar == "s" {
+			app := "rm"
+			cmd := exec.Command(app, path)
+			cmd.Output()
+		} else {
+			SuccessMessage("[RMDISK] -> Operacion cancelada correctamente")
+		}
+
 	} else {
 		ErrorMessage("[RMDISK] -> El disco que desea eliminar no existe")
 		return false
@@ -1230,203 +1240,239 @@ func ParticionLogicaExist(path string, name string) int {
 //**** FASE 1 ****/
 
 //ReporteEBR is...
-func ReporteEBR(path string) {
+func ReporteEBR(path string, pathDisco string) {
 
-	if VerificarRuta(path) {
+	var DatosReporte []string
+	DatosReporte = strings.Split(path, "/")
+	DatosReporte = DatosReporte[1:]
 
-		File := getFile(path)
-		os.Create("Reportes/graficaEBR.dot")
-		graphDot := getFile("Reportes/graficaEBR.dot")
+	NombreReporte := DatosReporte[len(DatosReporte)-1]
+	Ruta := DatosReporte[:len(DatosReporte)-1]
+	Extension := strings.Split(NombreReporte, ".")
+	Ext := Extension[1]
 
-		fmt.Fprintf(graphDot, "digraph G{ \n")
-		fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
-		fmt.Fprintf(graphDot, "tbl[\nlabel=<\n")
-		fmt.Fprintf(graphDot, "<table border='0' cellborder='1' cellspacing='0' width='300'  height='200' >\n")
-		fmt.Fprintf(graphDot, " <tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>MBR</font></b></td></tr>")
-		fmt.Fprintf(graphDot, "<tr>  <td width='150'> <b>Nombre</b> </td> <td width='150'> <b>Valor</b> </td>  </tr>\n")
+	var RutaReporte string = "/"
+	for i := 0; i < len(Ruta); i++ {
+		RutaReporte += Ruta[i] + "/"
+	}
+	os.MkdirAll(RutaReporte, os.ModePerm)
 
-		var MB MBR
+	File := getFile(pathDisco)
+	os.Create("Reportes/graficaEBR.dot")
+	graphDot := getFile("Reportes/graficaEBR.dot")
+
+	fmt.Fprintf(graphDot, "digraph G{ \n")
+	fmt.Fprintf(graphDot, "node [shape=plaintext]\n")
+	fmt.Fprintf(graphDot, "tbl[\nlabel=<\n")
+	fmt.Fprintf(graphDot, "<table border='0' cellborder='1' cellspacing='0' width='300'  height='200' >\n")
+	fmt.Fprintf(graphDot, " <tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>MBR</font></b></td></tr>")
+	fmt.Fprintf(graphDot, "<tr>  <td width='150'> <b>Nombre</b> </td> <td width='150'> <b>Valor</b> </td>  </tr>\n")
+
+	var MB MBR
+	File.Seek(0, 0)
+	MB = readMBR(File)
+
+	var tamano int = int(MB.Size)
+
+	fmt.Fprintf(graphDot, "<tr>  <td>Size</td><td>%d</td>  </tr>\n", tamano)
+
+	//Obteniendo la fehca
+	dt := time.Now()
+	fecha := dt.Format("01-02-2006 15:04:05")
+
+	fmt.Fprintf(graphDot, "<tr>  <td>Fecha</td> <td>%s</td>  </tr>\n", string(fecha))
+	fmt.Fprintf(graphDot, "<tr>  <td>Signature</td> <td>%d</td>  </tr>\n", MB.DiskSignature)
+	fmt.Fprintf(graphDot, "<tr>  <td>Fit</td> <td>%c</td>  </tr>\n", MB.DiskFit)
+
+	var posExtendida int = -1
+
+	for i := 0; i < 4; i++ {
+
+		if MB.Particion[i].PartStart != -1 && MB.Particion[i].PartStatus != '1' {
+			if MB.Particion[i].PartType == 'E' {
+				posExtendida = i
+			}
+			var status string
+			if MB.Particion[i].PartStatus == '0' {
+				status = "0"
+			} else if MB.Particion[i].PartStatus == '2' {
+				status = "2"
+			} else if MB.Particion[i].PartStatus == '1' {
+				status = "1"
+			}
+
+			fmt.Fprintf(graphDot, "<tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>Particion%d</font></b></td></tr>\n", (i + 1))
+			fmt.Fprintf(graphDot, "<tr>  <td>Status</td> <td>%s</td>  </tr>\n", status)
+			fmt.Fprintf(graphDot, "<tr>  <td>Type</td> <td>%c</td>  </tr>\n", MB.Particion[i].PartType)
+			fmt.Fprintf(graphDot, "<tr>  <td>Fit</td> <td>%c</td>  </tr>\n", MB.Particion[i].PartFit)
+			fmt.Fprintf(graphDot, "<tr>  <td>Start</td> <td>%d</td>  </tr>\n", MB.Particion[i].PartStart)
+			fmt.Fprintf(graphDot, "<tr>  <td>Size</td> <td>%d</td>  </tr>\n", MB.Particion[i].PartSize)
+			PartName := string(MB.Particion[i].PartName[:])
+			PartName = strings.Replace(PartName, "\x00", "", -1)
+			fmt.Fprintf(graphDot, "<tr>  <td>Name</td> <td>%s</td>  </tr>\n", PartName)
+		}
+	}
+
+	fmt.Fprintf(graphDot, "</table>\n")
+	fmt.Fprintf(graphDot, ">];\n")
+
+	if posExtendida != -1 {
+
+		var posEBR int = 1
+		var extendedBoot EBR
 		File.Seek(0, 0)
-		MB = readMBR(File)
+		extendedBoot = readEBR(File, int64(MB.Particion[posExtendida].PartStart))
 
-		var tamano int = int(MB.Size)
+		for extendedBoot.PartNext != -1 && (extendedBoot.PartNext < MB.Particion[posExtendida].PartStart+MB.Particion[posExtendida].PartSize) {
+			if extendedBoot.PartStatus != '1' {
 
-		fmt.Fprintf(graphDot, "<tr>  <td>Size</td><td>%d</td>  </tr>\n", tamano)
-
-		//Obteniendo la fehca
-		dt := time.Now()
-		fecha := dt.Format("01-02-2006 15:04:05")
-
-		fmt.Fprintf(graphDot, "<tr>  <td>Fecha</td> <td>%s</td>  </tr>\n", string(fecha))
-		fmt.Fprintf(graphDot, "<tr>  <td>Signature</td> <td>%d</td>  </tr>\n", MB.DiskSignature)
-		fmt.Fprintf(graphDot, "<tr>  <td>Fit</td> <td>%c</td>  </tr>\n", MB.DiskFit)
-
-		var posExtendida int = -1
-
-		for i := 0; i < 4; i++ {
-
-			if MB.Particion[i].PartStart != -1 && MB.Particion[i].PartStatus != '1' {
-				if MB.Particion[i].PartType == 'E' {
-					posExtendida = i
-				}
+				fmt.Fprintf(graphDot, "\ntbl_%d[\nlabel=<\n ", posEBR)
+				fmt.Fprintf(graphDot, "<table border='0' cellborder='1' cellspacing='0'  width='300' height='160' >\n ")
+				fmt.Fprintf(graphDot, "<tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>EBR</font></b></td></tr>")
+				fmt.Fprintf(graphDot, "<tr ><td width='150'><b>Nombre</b></td> <td width='150'><b>Valor</b></td>  </tr>\n")
 				var status string
-				if MB.Particion[i].PartStatus == '0' {
+				if extendedBoot.PartStatus == '0' {
 					status = "0"
-				} else if MB.Particion[i].PartStatus == '2' {
+				} else if extendedBoot.PartStatus == '2' {
 					status = "2"
-				} else if MB.Particion[i].PartStatus == '1' {
+				} else if extendedBoot.PartStatus == '1' {
 					status = "1"
 				}
 
-				fmt.Fprintf(graphDot, "<tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>Particion%d</font></b></td></tr>\n", (i + 1))
-				fmt.Fprintf(graphDot, "<tr>  <td>Status</td> <td>%s</td>  </tr>\n", status)
-				fmt.Fprintf(graphDot, "<tr>  <td>Type</td> <td>%c</td>  </tr>\n", MB.Particion[i].PartType)
-				fmt.Fprintf(graphDot, "<tr>  <td>Fit</td> <td>%c</td>  </tr>\n", MB.Particion[i].PartFit)
-				fmt.Fprintf(graphDot, "<tr>  <td>Start</td> <td>%d</td>  </tr>\n", MB.Particion[i].PartStart)
-				fmt.Fprintf(graphDot, "<tr>  <td>Size</td> <td>%d</td>  </tr>\n", MB.Particion[i].PartSize)
-				PartName := string(MB.Particion[i].PartName[:])
-				PartName = strings.Replace(PartName, "\x00", "", -1)
-				fmt.Fprintf(graphDot, "<tr>  <td>Name</td> <td>%s</td>  </tr>\n", PartName)
+				fmt.Fprintf(graphDot, "<tr>  <td>Status</td> <td>%s</td>  </tr>\n", string(status[:]))
+				fmt.Fprintf(graphDot, "<tr>  <td>Fit</td> <td>%c</td>  </tr>\n", extendedBoot.PartFit)
+				fmt.Fprintf(graphDot, "<tr>  <td>Start</td> <td>%d</td>  </tr>\n", extendedBoot.PartStart)
+				fmt.Fprintf(graphDot, "<tr>  <td>Size</td> <td>%d</td>  </tr>\n", extendedBoot.PartSize)
+				fmt.Fprintf(graphDot, "<tr>  <td>Next</td> <td>%d</td>  </tr>\n", extendedBoot.PartNext)
+				PartNameExt := string(extendedBoot.PartName[:])
+				PartNameExt = strings.Replace(PartNameExt, "\x00", "", -1)
+				fmt.Fprintf(graphDot, "<tr>  <td>Name</td> <td>%s</td>  </tr>\n", PartNameExt)
+				fmt.Fprintf(graphDot, "</table>\n")
+				fmt.Fprintf(graphDot, ">];\n")
+
+				posEBR++
+
 			}
-		}
-
-		fmt.Fprintf(graphDot, "</table>\n")
-		fmt.Fprintf(graphDot, ">];\n")
-
-		if posExtendida != -1 {
-
-			var posEBR int = 1
-			var extendedBoot EBR
-			File.Seek(0, 0)
-			extendedBoot = readEBR(File, int64(MB.Particion[posExtendida].PartStart))
-
-			for extendedBoot.PartNext != -1 && (extendedBoot.PartNext < MB.Particion[posExtendida].PartStart+MB.Particion[posExtendida].PartSize) {
-				if extendedBoot.PartStatus != '1' {
-
-					fmt.Fprintf(graphDot, "\ntbl_%d[\nlabel=<\n ", posEBR)
-					fmt.Fprintf(graphDot, "<table border='0' cellborder='1' cellspacing='0'  width='300' height='160' >\n ")
-					fmt.Fprintf(graphDot, "<tr ><td colspan='2' bgcolor= 'lightblue' ><b><font color='blue'>EBR</font></b></td></tr>")
-					fmt.Fprintf(graphDot, "<tr ><td width='150'><b>Nombre</b></td> <td width='150'><b>Valor</b></td>  </tr>\n")
-					var status string
-					if extendedBoot.PartStatus == '0' {
-						status = "0"
-					} else if extendedBoot.PartStatus == '2' {
-						status = "2"
-					} else if extendedBoot.PartStatus == '1' {
-						status = "1"
-					}
-
-					fmt.Fprintf(graphDot, "<tr>  <td>Status</td> <td>%s</td>  </tr>\n", string(status[:]))
-					fmt.Fprintf(graphDot, "<tr>  <td>Fit</td> <td>%c</td>  </tr>\n", extendedBoot.PartFit)
-					fmt.Fprintf(graphDot, "<tr>  <td>Start</td> <td>%d</td>  </tr>\n", extendedBoot.PartStart)
-					fmt.Fprintf(graphDot, "<tr>  <td>Size</td> <td>%d</td>  </tr>\n", extendedBoot.PartSize)
-					fmt.Fprintf(graphDot, "<tr>  <td>Next</td> <td>%d</td>  </tr>\n", extendedBoot.PartNext)
-					PartNameExt := string(extendedBoot.PartName[:])
-					PartNameExt = strings.Replace(PartNameExt, "\x00", "", -1)
-					fmt.Fprintf(graphDot, "<tr>  <td>Name</td> <td>%s</td>  </tr>\n", PartNameExt)
-					fmt.Fprintf(graphDot, "</table>\n")
-					fmt.Fprintf(graphDot, ">];\n")
-
-					posEBR++
-
-				}
-				if extendedBoot.PartNext == -1 {
-				} else {
-					extendedBoot = readEBR(File, int64(extendedBoot.PartNext))
-				}
-
+			if extendedBoot.PartNext == -1 {
+			} else {
+				extendedBoot = readEBR(File, int64(extendedBoot.PartNext))
 			}
 
 		}
 
-		fmt.Fprintf(graphDot, "}\n")
-		graphDot.Close()
-		File.Close()
-		exec.Command("dot", "-Tpng", "-o", "/home/jose/Escritorio/graficaEBR.png", "Reportes/graficaEBR.dot").Output()
 	}
+
+	fmt.Fprintf(graphDot, "}\n")
+	graphDot.Close()
+	File.Close()
+	exec.Command("dot", "-T"+Ext, "-o", RutaReporte+NombreReporte, "Reportes/graficaEBR.dot").Output()
 
 }
 
 //ReporteDisco is...
-func ReporteDisco(direccion string) {
+func ReporteDisco(direccion string, Path string) {
 
-	var auxDir string = direccion
+	var DatosReporte []string
+	DatosReporte = strings.Split(direccion, "/")
+	DatosReporte = DatosReporte[1:]
 
-	if VerificarRuta(auxDir) {
-		fp := getFile(auxDir)
-		os.Create("Reportes/graficaDisco.dot")
-		graphDot := getFile("Reportes/graficaDisco.dot")
+	NombreReporte := DatosReporte[len(DatosReporte)-1]
+	Ruta := DatosReporte[:len(DatosReporte)-1]
+	Extension := strings.Split(NombreReporte, ".")
+	Ext := Extension[1]
 
-		fmt.Fprintf(graphDot, "digraph G{\n")
-		fmt.Fprintf(graphDot, "  tbl [\n    shape=box\n    label=<\n")
-		fmt.Fprintf(graphDot, "     <table border='0' cellborder='1' width='600' height='200' color='lightblue'>\n")
-		fmt.Fprintf(graphDot, "     <tr>\n")
-		fmt.Fprintf(graphDot, "     <td  cellspacing= '0' height='200' width='100'> MBR </td>\n")
+	var RutaReporte string = "/"
+	for i := 0; i < len(Ruta); i++ {
+		RutaReporte += Ruta[i] + "/"
+	}
+	os.MkdirAll(RutaReporte, os.ModePerm)
 
-		var masterboot MBR
-		fp.Seek(0, 0)
-		masterboot = readMBR(fp)
+	fp := getFile(Path)
+	os.Create("Reportes/graficaDisco.dot")
+	graphDot := getFile("Reportes/graficaDisco.dot")
 
-		for i := 0; i < 4; i++ {
+	fmt.Fprintf(graphDot, "digraph G{\n")
+	fmt.Fprintf(graphDot, "  tbl [\n    shape=box\n    label=<\n")
+	fmt.Fprintf(graphDot, "     <table border='0' cellborder='1' width='600' height='200' color='lightblue'>\n")
+	fmt.Fprintf(graphDot, "     <tr>\n")
+	fmt.Fprintf(graphDot, "     <td  cellspacing= '0' height='200' width='100'> MBR </td>\n")
 
-			if masterboot.Particion[i].PartStart != -1 {
+	var masterboot MBR
+	fp.Seek(0, 0)
+	masterboot = readMBR(fp)
 
-				if masterboot.Particion[i].PartStatus != '1' {
+	for i := 0; i < 4; i++ {
 
-					if masterboot.Particion[i].PartType == 'P' { //Verificar Primaria
+		if masterboot.Particion[i].PartStart != -1 {
 
-						fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='200' width='200'>PRIMARIA </td>\n")
+			if masterboot.Particion[i].PartStatus != '1' {
 
-					} else {
-						//Particion Extendida
+				if masterboot.Particion[i].PartType == 'P' { //Verificar Primaria
 
-						fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='200' width='200'>\n     <table border='0'  height='200' WIDTH='200' cellborder='1'>\n")
-						fmt.Fprintf(graphDot, "     <tr>  <td height='60' colspan='15'>EXTENDIDA</td>  </tr>\n     <tr>\n")
+					fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='200' width='200'>PRIMARIA </td>\n")
 
-						var extendedBoot EBR
-						fp.Seek(0, 0)
-						extendedBoot = readEBR(fp, int64(masterboot.Particion[i].PartStart))
+				} else {
+					//Particion Extendida
 
-						if extendedBoot.PartSize != 0 { //Si hay mas de alguna logica
+					fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='200' width='200'>\n     <table border='0'  height='200' WIDTH='200' cellborder='1'>\n")
+					fmt.Fprintf(graphDot, "     <tr>  <td height='60' colspan='15'>EXTENDIDA</td>  </tr>\n     <tr>\n")
 
-							for extendedBoot.PartNext != -1 && (extendedBoot.PartNext < (masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)) {
+					var extendedBoot EBR
+					fp.Seek(0, 0)
+					extendedBoot = readEBR(fp, int64(masterboot.Particion[i].PartStart))
 
-								fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='140'>EBR</td>\n")
-								fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='140'>LOGICA</td>\n")
+					if extendedBoot.PartSize != 0 { //Si hay mas de alguna logica
 
-								if extendedBoot.PartNext == -1 {
+						for extendedBoot.PartNext != -1 && (extendedBoot.PartNext < (masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)) {
 
-								} else {
-									extendedBoot = readEBR(fp, int64(extendedBoot.PartNext))
-								}
+							fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='140'>EBR</td>\n")
+							fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='140'>LOGICA</td>\n")
+
+							if extendedBoot.PartNext == -1 {
+
+							} else {
+								extendedBoot = readEBR(fp, int64(extendedBoot.PartNext))
 							}
-						} else {
-							fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='140'></td>")
 						}
-
-						fmt.Fprintf(graphDot, "     </tr>\n     </table>\n     </td>\n")
-
+					} else {
+						fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='140'></td>")
 					}
+
+					fmt.Fprintf(graphDot, "     </tr>\n     </table>\n     </td>\n")
+
 				}
 			}
 		}
-
-		fmt.Fprintf(graphDot, "     <td height='200'> LIBRE </td>")
-
-		fmt.Fprintf(graphDot, "     </tr> \n     </table>        \n>];\n\n}")
-		graphDot.Close()
-		fp.Close()
-		exec.Command("dot", "-Tpng", "-o", "/home/jose/Escritorio/grafica.png", "Reportes/graficaDisco.dot").Output()
-	} else {
-		ErrorMessage("[REP] -> No se encuentra el disco")
 	}
+
+	fmt.Fprintf(graphDot, "     <td height='200'> LIBRE </td>")
+
+	fmt.Fprintf(graphDot, "     </tr> \n     </table>        \n>];\n\n}")
+	graphDot.Close()
+	fp.Close()
+	exec.Command("dot", "-T"+Ext, "-o", RutaReporte+NombreReporte, "Reportes/graficaDisco.dot").Output()
 }
 
 /*** FASE 2 ****/
 
 //ReporteSuperBloque is...
-func ReporteSuperBloque(ID string) {
-	//TODO : Reporte SuperBloque
+func ReporteSuperBloque(ID string, Path string) {
+
+	var DatosReporte []string
+	DatosReporte = strings.Split(Path, "/")
+	DatosReporte = DatosReporte[1:]
+
+	NombreReporte := DatosReporte[len(DatosReporte)-1]
+	Ruta := DatosReporte[:len(DatosReporte)-1]
+	Extension := strings.Split(NombreReporte, ".")
+	Ext := Extension[1]
+
+	var RutaReporte string = "/"
+	for i := 0; i < len(Ruta); i++ {
+		RutaReporte += Ruta[i] + "/"
+	}
+	os.MkdirAll(RutaReporte, os.ModePerm)
+
 	PartStart := listaParticiones.GetPartStart(ID)
 	PathDisco := listaParticiones.GetDireccion(ID)
 	File := getFile(PathDisco)
@@ -1477,10 +1523,29 @@ func ReporteSuperBloque(ID string) {
 
 	fmt.Fprintf(graphDot, "</table>\n")
 	fmt.Fprintf(graphDot, ">];\n}")
+
+	graphDot.Close()
+	File.Close()
+	exec.Command("dot", "-T"+Ext, "-o", RutaReporte+NombreReporte, "Reportes/graficaSuperBloque.dot").Output()
 }
 
 //ReporteTreeComplete is...
 func ReporteTreeComplete(path string, id string) {
+
+	var DatosReporte []string
+	DatosReporte = strings.Split(path, "/")
+	DatosReporte = DatosReporte[1:]
+
+	NombreReporte := DatosReporte[len(DatosReporte)-1]
+	Ruta := DatosReporte[:len(DatosReporte)-1]
+	Extension := strings.Split(NombreReporte, ".")
+	Ext := Extension[1]
+
+	var RutaReporte string = "/"
+	for i := 0; i < len(Ruta); i++ {
+		RutaReporte += Ruta[i] + "/"
+	}
+	os.MkdirAll(RutaReporte, os.ModePerm)
 
 	RutaDisco := listaParticiones.GetDireccion(id)
 	var Grafica string
@@ -1505,6 +1570,10 @@ func ReporteTreeComplete(path string, id string) {
 
 		fmt.Fprintf(graphDot, "}")
 
+		graphDot.Close()
+		File.Close()
+		exec.Command("dot", "-T"+Ext, "-o", RutaReporte+NombreReporte, "Reportes/graficaTreeComplete.dot").Output()
+
 	} else {
 		ErrorMessage("[REP] -> Particion no montada")
 	}
@@ -1514,7 +1583,6 @@ func ReporteTreeComplete(path string, id string) {
 //RecorrerArbolReporte is...
 func RecorrerArbolReporte(arbol Arbol, Superbloque SB, file *os.File, Grafica *string, avd bool, ptr int, onlyAVD bool, showInodes bool) {
 
-	//fmt.Println("Carpeta", string(arbol.AVDNombreDirectorio[:]))
 	var Graph string
 	texto := string(arbol.AVDNombreDirectorio[:])
 	texto = strings.Replace(texto, "\x00", "", -1)
@@ -1759,6 +1827,22 @@ func GenerarReporteInodo(Inodo TablaInodo, File *os.File, SuperBloque SB, Grafic
 
 //ReporteTreeFile is...
 func ReporteTreeFile(carpeta string, id string, path string) {
+
+	var DatosReporte []string
+	DatosReporte = strings.Split(path, "/")
+	DatosReporte = DatosReporte[1:]
+
+	NombreReporte := DatosReporte[len(DatosReporte)-1]
+	Ruta := DatosReporte[:len(DatosReporte)-1]
+	Extension := strings.Split(NombreReporte, ".")
+	Ext := Extension[1]
+
+	var RutaReporte string = "/"
+	for i := 0; i < len(Ruta); i++ {
+		RutaReporte += Ruta[i] + "/"
+	}
+	os.MkdirAll(RutaReporte, os.ModePerm)
+
 	PathDisco := listaParticiones.GetDireccion(id)
 
 	if PathDisco != "null" {
@@ -1784,6 +1868,10 @@ func ReporteTreeFile(carpeta string, id string, path string) {
 		fmt.Fprintf(graphDot, Grafica)
 
 		fmt.Fprintf(graphDot, "}")
+
+		graphDot.Close()
+		File.Close()
+		exec.Command("dot", "-T"+Ext, "-o", RutaReporte+NombreReporte, "Reportes/graficaTreeFile.dot").Output()
 
 	} else {
 		ErrorMessage("[REP] -> Particion no montada")
@@ -1851,6 +1939,22 @@ func BuscarCarpeta(root Arbol, Rutas []string, PathDisco string, Superbloque SB,
 
 //ReporteDirectorio is...
 func ReporteDirectorio(path string, id string) {
+
+	var DatosReporte []string
+	DatosReporte = strings.Split(path, "/")
+	DatosReporte = DatosReporte[1:]
+
+	NombreReporte := DatosReporte[len(DatosReporte)-1]
+	Ruta := DatosReporte[:len(DatosReporte)-1]
+	Extension := strings.Split(NombreReporte, ".")
+	Ext := Extension[1]
+
+	var RutaReporte string = "/"
+	for i := 0; i < len(Ruta); i++ {
+		RutaReporte += Ruta[i] + "/"
+	}
+	os.MkdirAll(RutaReporte, os.ModePerm)
+
 	RutaDisco := listaParticiones.GetDireccion(id)
 	var Grafica string
 
@@ -1874,6 +1978,10 @@ func ReporteDirectorio(path string, id string) {
 
 		fmt.Fprintf(graphDot, "}")
 
+		graphDot.Close()
+		File.Close()
+		exec.Command("dot", "-T"+Ext, "-o", RutaReporte+NombreReporte, "Reportes/graficaDirectorio.dot").Output()
+
 	} else {
 		ErrorMessage("[REP] -> Particion no montada")
 	}
@@ -1881,6 +1989,22 @@ func ReporteDirectorio(path string, id string) {
 
 //ReporteTreeDirectorio is...
 func ReporteTreeDirectorio(carpeta string, path string, id string) {
+
+	var DatosReporte []string
+	DatosReporte = strings.Split(path, "/")
+	DatosReporte = DatosReporte[1:]
+
+	NombreReporte := DatosReporte[len(DatosReporte)-1]
+	Ruta := DatosReporte[:len(DatosReporte)-1]
+	Extension := strings.Split(NombreReporte, ".")
+	Ext := Extension[1]
+
+	var RutaReporte string = "/"
+	for i := 0; i < len(Ruta); i++ {
+		RutaReporte += Ruta[i] + "/"
+	}
+	os.MkdirAll(RutaReporte, os.ModePerm)
+
 	PathDisco := listaParticiones.GetDireccion(id)
 
 	if PathDisco != "null" {
@@ -1906,6 +2030,10 @@ func ReporteTreeDirectorio(carpeta string, path string, id string) {
 		fmt.Fprintf(graphDot, Grafica)
 
 		fmt.Fprintf(graphDot, "}")
+
+		graphDot.Close()
+		File.Close()
+		exec.Command("dot", "-T"+Ext, "-o", RutaReporte+NombreReporte, "Reportes/graficaTreeDirectorio.dot").Output()
 
 	} else {
 		ErrorMessage("[REP] -> Particion no montada")
@@ -1980,6 +2108,19 @@ func WriteBitacora(file *os.File, log Bitacora) {
 //ReporteBMarbdir is...
 func ReporteBMarbdir(path string, id string) {
 
+	var DatosReporte []string
+	DatosReporte = strings.Split(path, "/")
+	DatosReporte = DatosReporte[1:]
+
+	NombreReporte := DatosReporte[len(DatosReporte)-1]
+	Ruta := DatosReporte[:len(DatosReporte)-1]
+
+	var RutaReporte string = "/"
+	for i := 0; i < len(Ruta); i++ {
+		RutaReporte += Ruta[i] + "/"
+	}
+	os.MkdirAll(RutaReporte, os.ModePerm)
+
 	RutaDisco := listaParticiones.GetDireccion(id)
 
 	if RutaDisco != "null" {
@@ -1991,8 +2132,8 @@ func ReporteBMarbdir(path string, id string) {
 			CantidadEstructuras := int(SuperBloque.MagicNum)
 			StartBitMap := int(SuperBloque.StartBmArbolDirectorio)
 
-			os.Create("Reportes/BitMapArbolDirectorio.txt")
-			BitMapTxt := getFile("Reportes/BitMapArbolDirectorio.txt")
+			os.Create(RutaReporte + NombreReporte)
+			BitMapTxt := getFile(RutaReporte + NombreReporte)
 			var contador int
 			fmt.Fprintf(BitMapTxt, "\n\nBitMap Arbol Virtual de Directorio\n\n")
 			for i := 0; i < CantidadEstructuras; i++ {
@@ -2008,6 +2149,8 @@ func ReporteBMarbdir(path string, id string) {
 				}
 			}
 
+			File.Close()
+
 		} else {
 			ErrorMessage("[REP] -> No se encuentra el disco")
 		}
@@ -2020,6 +2163,20 @@ func ReporteBMarbdir(path string, id string) {
 
 //ReporteBMdetdir is...
 func ReporteBMdetdir(path string, id string) {
+
+	var DatosReporte []string
+	DatosReporte = strings.Split(path, "/")
+	DatosReporte = DatosReporte[1:]
+
+	NombreReporte := DatosReporte[len(DatosReporte)-1]
+	Ruta := DatosReporte[:len(DatosReporte)-1]
+
+	var RutaReporte string = "/"
+	for i := 0; i < len(Ruta); i++ {
+		RutaReporte += Ruta[i] + "/"
+	}
+	os.MkdirAll(RutaReporte, os.ModePerm)
+
 	RutaDisco := listaParticiones.GetDireccion(id)
 
 	if RutaDisco != "null" {
@@ -2031,8 +2188,8 @@ func ReporteBMdetdir(path string, id string) {
 			CantidadEstructuras := int(SuperBloque.MagicNum)
 			StartBitMap := int(SuperBloque.StartBmDetalleDirectorio)
 
-			os.Create("Reportes/BitMapDetalleDirectorio.txt")
-			BitMapTxt := getFile("Reportes/BitMapDetalleDirectorio.txt")
+			os.Create(RutaReporte + NombreReporte)
+			BitMapTxt := getFile(RutaReporte + NombreReporte)
 			var contador int
 			fmt.Fprintf(BitMapTxt, "\n\nBitMap Arbol Detalle Directorio\n\n")
 			for i := 0; i < CantidadEstructuras; i++ {
@@ -2048,6 +2205,8 @@ func ReporteBMdetdir(path string, id string) {
 				}
 			}
 
+			File.Close()
+
 		} else {
 			ErrorMessage("[REP] -> No se encuentra el disco")
 		}
@@ -2059,6 +2218,20 @@ func ReporteBMdetdir(path string, id string) {
 
 //ReporteBMinode is...
 func ReporteBMinode(path string, id string) {
+
+	var DatosReporte []string
+	DatosReporte = strings.Split(path, "/")
+	DatosReporte = DatosReporte[1:]
+
+	NombreReporte := DatosReporte[len(DatosReporte)-1]
+	Ruta := DatosReporte[:len(DatosReporte)-1]
+
+	var RutaReporte string = "/"
+	for i := 0; i < len(Ruta); i++ {
+		RutaReporte += Ruta[i] + "/"
+	}
+	os.MkdirAll(RutaReporte, os.ModePerm)
+
 	RutaDisco := listaParticiones.GetDireccion(id)
 
 	if RutaDisco != "null" {
@@ -2070,8 +2243,8 @@ func ReporteBMinode(path string, id string) {
 			CantidadEstructuras := int(SuperBloque.MagicNum)
 			StartBitMap := int(SuperBloque.StartBmInodos)
 
-			os.Create("Reportes/BitMapInode.txt")
-			BitMapTxt := getFile("Reportes/BitMapInode.txt")
+			os.Create(RutaReporte + NombreReporte)
+			BitMapTxt := getFile(RutaReporte + NombreReporte)
 			var contador int
 			fmt.Fprintf(BitMapTxt, "\n\nBitMap Inode\n\n")
 			for i := 0; i < CantidadEstructuras; i++ {
@@ -2087,6 +2260,8 @@ func ReporteBMinode(path string, id string) {
 				}
 			}
 
+			File.Close()
+
 		} else {
 			ErrorMessage("[REP] -> No se encuentra el disco")
 		}
@@ -2098,6 +2273,20 @@ func ReporteBMinode(path string, id string) {
 
 //ReporteBMblock is...
 func ReporteBMblock(path string, id string) {
+
+	var DatosReporte []string
+	DatosReporte = strings.Split(path, "/")
+	DatosReporte = DatosReporte[1:]
+
+	NombreReporte := DatosReporte[len(DatosReporte)-1]
+	Ruta := DatosReporte[:len(DatosReporte)-1]
+
+	var RutaReporte string = "/"
+	for i := 0; i < len(Ruta); i++ {
+		RutaReporte += Ruta[i] + "/"
+	}
+	os.MkdirAll(RutaReporte, os.ModePerm)
+
 	RutaDisco := listaParticiones.GetDireccion(id)
 
 	if RutaDisco != "null" {
@@ -2109,8 +2298,8 @@ func ReporteBMblock(path string, id string) {
 			CantidadEstructuras := int(SuperBloque.MagicNum)
 			StartBitMap := int(SuperBloque.StartBmBloques)
 
-			os.Create("Reportes/BitMapBloque.txt")
-			BitMapTxt := getFile("Reportes/BitMapBloque.txt")
+			os.Create(RutaReporte + NombreReporte)
+			BitMapTxt := getFile(RutaReporte + NombreReporte)
 			var contador int
 			fmt.Fprintf(BitMapTxt, "\n\nBitMap Bloque")
 			for i := 0; i < CantidadEstructuras; i++ {
@@ -2125,6 +2314,8 @@ func ReporteBMblock(path string, id string) {
 					fmt.Fprintf(BitMapTxt, "| "+Byte+" ")
 				}
 			}
+
+			File.Close()
 
 		} else {
 			ErrorMessage("[REP] -> No se encuentra el disco")
@@ -2427,7 +2618,7 @@ func Formatear(id string) {
 		/*
 		 * SE CREA EL AVD QUE REPRESENTA AL ROOT
 		 */
-		CrearRoot("/", id, 0) //TODO : Verficar cuando vandar true de la bitacora
+		CrearRoot("/", id, 0)
 
 		File = getFile(pathD)
 		SuperBlock := readSuperBloque(File, int64(PartStart))
@@ -2440,7 +2631,6 @@ func Formatear(id string) {
 		SuperB := readSuperBloque(File, int64(PartStart))
 		prt := DDroot.DDArrayFiles[0].DDFileApInodo
 		CrearUsuario(int(prt), File, SuperB, "root", "123", "1", PartStart)
-		fmt.Println("Si llego")
 		SuperB1 := readSuperBloque(File, int64(PartStart))
 		CrearGrupo(int(prt), File, SuperB1, "Usuarios", PartStart)
 		fmt.Println("----------------------------------------------------")
@@ -3413,7 +3603,6 @@ func Login(user string, password string, id string) {
 			var log bool
 			for i := 0; i < len(Split); i++ {
 				Datos = strings.Split(Split[i], ",")
-				fmt.Println(Datos)
 				if Datos[1] == "U" {
 					log = VerificarDatos(Datos[2], Datos[3], user, password, Datos[0])
 					if log {
@@ -3741,7 +3930,7 @@ func CrearUsuario(Apuntador int, File *os.File, SuperBloque SB, user string, pas
 
 //Logout is...
 func Logout() {
-	// TODO : Hacer logout
+
 	if !isLogged {
 		ErrorMessage("[LOGOUT] -> Para cerrar sesion debe haber una sesion activa")
 	} else {
@@ -3752,6 +3941,9 @@ func Logout() {
 
 //EliminarGrupo is...
 func EliminarGrupo(id string, name string) {
+
+	//TODOD : Eliminar todos los usuarios de ese grupo
+
 	if !isLogged {
 		ErrorMessage("[MKGRP] -> Para ejecutar este comando debes estar loggeado")
 		return
@@ -3909,8 +4101,6 @@ func CHMOD(id string, path string, ugo int, R bool) {
 
 }
 
-//TODO CHMOD Ver lo del parametro R
-
 //RecorrerRuta is...
 func RecorrerRuta(arbol Arbol, File *os.File, SuperBloque SB, Rutas []string, Permisos int, R bool, ptr int) {
 
@@ -3961,7 +4151,8 @@ func RecorrerRuta(arbol Arbol, File *os.File, SuperBloque SB, Rutas []string, Pe
 }
 
 //ComandoCat is...
-func ComandoCat(path string, id string) {
+func ComandoCat(Rutas []string, id string) {
+
 	PathDisco := listaParticiones.GetDireccion(id)
 
 	if PathDisco != "null" {
@@ -3970,11 +4161,21 @@ func ComandoCat(path string, id string) {
 		SuperBloque := readSuperBloque(File, int64(PartStart))
 		Root := readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
 
-		var Rutas []string
-		Rutas = strings.Split(path, "/")
-		Rutas = Rutas[1:]
+		var Data string
+		var Titulo string
 
-		BuscarFile(Root, Rutas, File, SuperBloque)
+		for i := 0; i < len(Rutas); i++ {
+			var Path []string
+			Path = strings.Split(Rutas[i], "/")
+			Path = Path[1:]
+			Titulo += Path[len(Path)-1] + " - "
+			BuscarFile(Root, Path, File, SuperBloque, &Data)
+		}
+		fmt.Println("---------------------------------------")
+		fmt.Println(Titulo)
+		fmt.Println("---------------------------------------")
+		fmt.Println(Data)
+		fmt.Println("---------------------------------------")
 
 	} else {
 		ErrorMessage("[CAT] -> No hay ningun particion montada con ese id")
@@ -3982,13 +4183,15 @@ func ComandoCat(path string, id string) {
 
 }
 
+//TODO : Verificar los permisos de lectura
+
 //BuscarFile is...
-func BuscarFile(arbol Arbol, Rutas []string, File *os.File, SuperBloque SB) {
+func BuscarFile(arbol Arbol, Rutas []string, File *os.File, SuperBloque SB, data *string) {
+
 	for i := 0; i < 6; i++ {
 		Apuntador := arbol.Subirectorios[i]
 		var CarpetaHija Arbol
 		CarpetaHija = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
-
 		//Verificamos el nombre de la carpeta
 		var nameCarpetaByte [16]byte
 		copy(nameCarpetaByte[:], Rutas[0])
@@ -4003,13 +4206,7 @@ func BuscarFile(arbol Arbol, Rutas []string, File *os.File, SuperBloque SB) {
 				Detalle = readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio+(CarpetaHija.DetalleDirectorio*int32(unsafe.Sizeof(Detalle)))))
 
 				var Bandera bool
-				Bandera = BuscarData(Detalle, Rutas[0], File, SuperBloque)
-
-				if Detalle.DDApDetalleDirectorio != -1 {
-					var DetalleVirtual DetalleDirectorio
-					DetalleVirtual = readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio+(Detalle.DDApDetalleDirectorio*int32(unsafe.Sizeof(DetalleVirtual)))))
-					Bandera = BuscarData(DetalleVirtual, Rutas[0], File, SuperBloque)
-				}
+				Bandera = BuscarData(Detalle, Rutas[0], File, SuperBloque, data)
 
 				if !Bandera {
 					ErrorMessage("[CAT] -> No se encuentra el archivo")
@@ -4019,7 +4216,7 @@ func BuscarFile(arbol Arbol, Rutas []string, File *os.File, SuperBloque SB) {
 				return
 			}
 
-			BuscarFile(CarpetaHija, Rutas, File, SuperBloque)
+			BuscarFile(CarpetaHija, Rutas, File, SuperBloque, data)
 			return
 		}
 
@@ -4031,12 +4228,12 @@ func BuscarFile(arbol Arbol, Rutas []string, File *os.File, SuperBloque SB) {
 	/*
 	 * LLAMAMOS EL METODO RECURSIVAMENTE
 	 */
-	BuscarFile(CopiaCarpeta, Rutas, File, SuperBloque)
+	BuscarFile(CopiaCarpeta, Rutas, File, SuperBloque, data)
 	return
 }
 
 //BuscarData is...
-func BuscarData(Detalle DetalleDirectorio, name string, File *os.File, SuperBloque SB) bool {
+func BuscarData(Detalle DetalleDirectorio, name string, File *os.File, SuperBloque SB, Data *string) bool {
 	for i := 0; i < 4; i++ {
 		Nombre := Detalle.DDArrayFiles[i].DDFileNombre
 		var nameByte [16]byte
@@ -4046,23 +4243,16 @@ func BuscarData(Detalle DetalleDirectorio, name string, File *os.File, SuperBloq
 			ptrInodo := Detalle.DDArrayFiles[i].DDFileApInodo
 			var Inodo TablaInodo
 			Inodo = readInodo(File, int64(SuperBloque.StartInodos+(ptrInodo*int32(unsafe.Sizeof(Inodo)))))
-			var Data string
-			BuscarDataInodos(Inodo, File, SuperBloque, &Data)
-			if Inodo.IApIndirecto != -1 {
-				var InodoIndirecto TablaInodo
-				InodoIndirecto = readInodo(File, int64(SuperBloque.StartInodos+(Inodo.IApIndirecto*int32(unsafe.Sizeof(Inodo)))))
-				BuscarDataInodos(InodoIndirecto, File, SuperBloque, &Data)
-			}
-			texto := string(Data)
-			texto = strings.Replace(texto, "\x00", "", -1)
-			fmt.Println("----------------------------------------------")
-			fmt.Println("                 ", name)
-			fmt.Println("----------------------------------------------")
-			fmt.Println(texto)
-			fmt.Println("----------------------------------------------")
+			BuscarDataInodos(Inodo, File, SuperBloque, Data)
 			return true
 		}
 
+	}
+
+	if Detalle.DDApDetalleDirectorio != -1 {
+		var DetalleVirtual DetalleDirectorio
+		DetalleVirtual = readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio+(Detalle.DDApDetalleDirectorio*int32(unsafe.Sizeof(DetalleVirtual)))))
+		BuscarData(DetalleVirtual, name, File, SuperBloque, Data)
 	}
 
 	return false
@@ -4071,7 +4261,6 @@ func BuscarData(Detalle DetalleDirectorio, name string, File *os.File, SuperBloq
 //BuscarDataInodos is...
 func BuscarDataInodos(Inodo TablaInodo, File *os.File, SuperBloque SB, Data *string) {
 	for i := 0; i < 4; i++ {
-		//TODO : Hacer recursivo esto para los virtuales
 		ptrBloque := Inodo.IArrayBloques[i]
 		if ptrBloque != -1 {
 			var Block Bloque
@@ -4079,6 +4268,30 @@ func BuscarDataInodos(Inodo TablaInodo, File *os.File, SuperBloque SB, Data *str
 			*Data += string(Block.Texto[:]) + "\n"
 		}
 	}
+	if Inodo.IApIndirecto != -1 {
+		var InodoIndirecto TablaInodo
+		InodoIndirecto = readInodo(File, int64(SuperBloque.StartInodos+(Inodo.IApIndirecto*int32(unsafe.Sizeof(Inodo)))))
+		BuscarDataInodos(InodoIndirecto, File, SuperBloque, Data)
+	}
+}
+
+//ComandoRM is...
+func ComandoRM(id string, path string, rf bool) {
+	PathDisco := listaParticiones.GetDireccion(id)
+	if PathDisco != "null" {
+		File := getFile(PathDisco)
+		PartStart := listaParticiones.GetPartStart(id)
+		SuperBloque := readSuperBloque(File, int64(PartStart))
+		Root := readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
+		EliminarCarpetaArchivo(Root, SuperBloque, File)
+	} else {
+		ErrorMessage("[RM] -> No hay ningun particion montada con ese id")
+	}
+}
+
+//EliminarCarpetaArchivo is...
+func EliminarCarpetaArchivo(arbol Arbol, SuperBloque SB, File *os.File) {
+
 }
 
 /*
