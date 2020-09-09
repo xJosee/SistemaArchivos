@@ -4205,13 +4205,7 @@ func BuscarFile(arbol Arbol, Rutas []string, File *os.File, SuperBloque SB, data
 				var Detalle DetalleDirectorio
 				Detalle = readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio+(CarpetaHija.DetalleDirectorio*int32(unsafe.Sizeof(Detalle)))))
 
-				var Bandera bool
-				Bandera = BuscarData(Detalle, Rutas[0], File, SuperBloque, data)
-
-				if !Bandera {
-					ErrorMessage("[CAT] -> No se encuentra el archivo")
-					return
-				}
+				BuscarData(Detalle, Rutas[0], File, SuperBloque, data)
 
 				return
 			}
@@ -4265,7 +4259,7 @@ func BuscarDataInodos(Inodo TablaInodo, File *os.File, SuperBloque SB, Data *str
 		if ptrBloque != -1 {
 			var Block Bloque
 			Block = readBloque(File, int64(SuperBloque.StartBloques+(ptrBloque*int32(unsafe.Sizeof(Block)))))
-			*Data += string(Block.Texto[:]) + "\n"
+			*Data += string(Block.Texto[:])
 		}
 	}
 	if Inodo.IApIndirecto != -1 {
@@ -4292,6 +4286,122 @@ func ComandoRM(id string, path string, rf bool) {
 //EliminarCarpetaArchivo is...
 func EliminarCarpetaArchivo(arbol Arbol, SuperBloque SB, File *os.File) {
 
+}
+
+//ComandoCopy is...
+func ComandoCopy(id string, origin string, dest string) {
+
+	PathDisco := listaParticiones.GetDireccion(id)
+
+	if PathDisco != "null" {
+		if VerificarRuta(PathDisco) {
+
+			File := getFile(PathDisco)
+			PartStart := listaParticiones.GetPartStart(id)
+			SuperBloque := readSuperBloque(File, int64(PartStart))
+			Root := readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
+			var Rutas []string
+			Rutas = strings.Split(origin, "/")
+			Rutas = Rutas[1:]
+			var NombreArchivo string
+			Nombre := Rutas[len(Rutas)-1:]
+			NombreArchivo = Nombre[0]
+			var Data string
+
+			aux := strings.Split(NombreArchivo, ".")
+			/*
+			 *	VERIFICAMOS SI ES FILE O CARPETA
+			 */
+			if aux[1] == "txt" {
+				fmt.Println("Entro")
+				BuscarFile(Root, Rutas, File, SuperBloque, &Data)
+				MKFILE(id, dest+"/"+NombreArchivo, true, 0, Data)
+				SuccessMessage("[CP] -> File copiado Correctamente")
+				return
+			}
+			var RutasMKDIR []string
+			RutasMKDIR = strings.Split(dest+origin, "/")
+			RutasMKDIR = RutasMKDIR[1:]
+			MKDIR(Root, RutasMKDIR, PathDisco, SuperBloque, 0, true)
+			var RutasRecorrer []string
+			RutasRecorrer = strings.Split(origin, "/")
+			RutasRecorrer = RutasRecorrer[1:]
+			EncontrarDetalleDirectorio(Root, RutasRecorrer, File, SuperBloque, id, dest+origin)
+			SuccessMessage("[CP] -> Carpeta copiada Correctamente")
+
+		} else {
+			ErrorMessage("[CP] -> No hay ningun disco en esa ruta")
+		}
+	} else {
+		ErrorMessage("[CP] -> No hay ninguna particion montada con ese id")
+	}
+
+}
+
+//EncontrarDetalleDirectorio is...
+func EncontrarDetalleDirectorio(arbol Arbol, Rutas []string, File *os.File, SuperBloque SB, id string, dest string) {
+	for i := 0; i < 6; i++ {
+		Apuntador := arbol.Subirectorios[i]
+		var CarpetaHija Arbol
+		CarpetaHija = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
+		//Verificamos el nombre de la carpeta
+		var nameCarpetaByte [16]byte
+		copy(nameCarpetaByte[:], Rutas[0])
+
+		if bytes.Compare(CarpetaHija.AVDNombreDirectorio[:], nameCarpetaByte[:]) == 0 {
+			Rutas = Rutas[1:]
+			if len(Rutas) == 0 {
+				/*
+				 * Buscar el file
+				 */
+				var Detalle DetalleDirectorio
+				Detalle = readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio+(CarpetaHija.DetalleDirectorio*int32(unsafe.Sizeof(Detalle)))))
+
+				/*
+				 * RECORRERMOS EL DETALLEDIRECTORIO
+				 */
+				fmt.Println(string(CarpetaHija.AVDNombreDirectorio[:]))
+				RecorrerDD(Detalle, File, SuperBloque, id, dest)
+				return
+			}
+
+			EncontrarDetalleDirectorio(CarpetaHija, Rutas, File, SuperBloque, id, dest)
+			return
+		}
+
+	}
+	// Buscamos en la copia de la carpeta
+	Apuntador := arbol.VirtualDirectorio
+	var CopiaCarpeta Arbol
+	CopiaCarpeta = readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CopiaCarpeta)))))
+	/*
+	 * LLAMAMOS EL METODO RECURSIVAMENTE
+	 */
+	EncontrarDetalleDirectorio(CopiaCarpeta, Rutas, File, SuperBloque, id, dest)
+	return
+}
+
+//RecorrerDD is...
+func RecorrerDD(Detalle DetalleDirectorio, File *os.File, SuperBloque SB, id string, dest string) {
+	for i := 0; i < 4; i++ {
+		Apuntador := Detalle.DDArrayFiles[i].DDFileApInodo
+		var Data string
+		if Apuntador != -1 {
+			var Nombre string
+			Nombre = string(Detalle.DDArrayFiles[i].DDFileNombre[:])
+			Nombre = strings.Replace(Nombre, "\x00", "", -1)
+			var Inodo TablaInodo
+			Inodo = readInodo(File, int64(SuperBloque.StartInodos+(Apuntador*int32(unsafe.Sizeof(Inodo)))))
+			BuscarDataInodos(Inodo, File, SuperBloque, &Data)
+			MKFILE(id, dest+"/"+Nombre, true, 0, Data)
+		}
+	}
+
+	if Detalle.DDApDetalleDirectorio != -1 {
+		var DetalleVirtual DetalleDirectorio
+		DetalleVirtual = readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio+(Detalle.DDApDetalleDirectorio*int32(unsafe.Sizeof(DetalleVirtual)))))
+		RecorrerDD(DetalleVirtual, File, SuperBloque, id, dest)
+	}
 }
 
 /*

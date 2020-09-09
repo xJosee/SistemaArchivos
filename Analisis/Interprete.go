@@ -33,6 +33,7 @@ var (
 	file     []string
 	rf       bool   = false
 	ruta     string = ""
+	dest     string = ""
 )
 
 //Analizar is...
@@ -65,6 +66,7 @@ func Analizar(comandos string) {
 	file = nil
 	rf = false
 	ruta = ""
+	dest = ""
 }
 
 //VerificarComando is...
@@ -358,11 +360,23 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "rm" {
 		if VerificarParametros(listaComandos) {
 			if id == "" {
-				ErrorMessage("[CAT] -> Parametro -id no definido")
+				ErrorMessage("[RM] -> Parametro -id no definido")
 			} else if path == "" {
-				ErrorMessage("[CAT] -> Parametro -path no definido")
+				ErrorMessage("[RM] -> Parametro -path no definido")
 			} else {
 				comandos.ComandoRM(id, path, rf)
+			}
+		}
+	} else if strings.ToLower(listaComandos[0]) == "cp" {
+		if VerificarParametros(listaComandos) {
+			if id == "" {
+				ErrorMessage("[CP] -> Parametro -id no definido")
+			} else if path == "" {
+				ErrorMessage("[CP] -> Parametro -path no definido")
+			} else if dest == "" {
+				ErrorMessage("[CP] -> Parametro -dest no definido")
+			} else {
+				comandos.ComandoCopy(id, path, dest)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "1" {
@@ -453,6 +467,8 @@ func VerificarParametros(listaComandos []string) bool {
 			rf = true
 		case "-ruta":
 			ruta = Paramatros[1]
+		case "-dest":
+			dest = Paramatros[1]
 		default:
 			ErrorMessage("[CONSOLA] -> Parametro [" + Paramatros[0] + "] incorrecto")
 			return false
