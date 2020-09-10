@@ -538,7 +538,7 @@ func EliminarParticion(path string, name string, delete string) {
 			masterboot = readMBR(File)
 			var index int = -1
 			var flagExtendida bool = false
-			//int index_Extendida = -1
+			var indexExtendida int = -1
 
 			for i := 0; i < 4; i++ {
 				var nameByte [16]byte
@@ -551,13 +551,13 @@ func EliminarParticion(path string, name string, delete string) {
 					}
 					break
 				} else if masterboot.Particion[i].PartType == 'E' {
-					//index_Extendida = i
+					indexExtendida = i
 				}
 			}
 
-			/*fmt.Println("[FDISK] -> Seguro que desea eliminar la particion? (S/N)")
+			fmt.Print("Seguro que deseas eliminar la particon? [S/N] ")
 			scanner := bufio.NewScanner(os.Stdin)
-			scanner.Scan()*/
+			scanner.Scan()
 
 			if index != -1 {
 				if !flagExtendida {
@@ -568,8 +568,8 @@ func EliminarParticion(path string, name string, delete string) {
 						masterboot.Particion[index].PartFit = '0'
 						masterboot.Particion[index].PartSize = 0
 						masterboot.Particion[index].PartStart = -1
-						copy(masterboot.Particion[index].PartName[:], "")
-
+						var Nombre [16]byte
+						masterboot.Particion[index].PartName = Nombre
 						reWriteMBR(File, masterboot)
 						SuccessMessage("[FDISK] -> Particion eliminada correctamente")
 					} else {
@@ -578,11 +578,12 @@ func EliminarParticion(path string, name string, delete string) {
 						masterboot.Particion[index].PartFit = '0'
 						masterboot.Particion[index].PartSize = 0
 						masterboot.Particion[index].PartStart = -1
-						copy(masterboot.Particion[index].PartName[:], "")
+						var Nombre [16]byte
+						masterboot.Particion[index].PartName = Nombre
 						reWriteMBR(File, masterboot)
 						File.Seek(int64(masterboot.Particion[index].PartStart), 0)
 						for i := 0; i < int(masterboot.Particion[index].PartSize); i++ {
-							File.Write([]byte{0})
+							WriteOne(File, '0')
 						}
 						SuccessMessage("[FDISK] -> Particion eliminada correctamente")
 					}
@@ -594,7 +595,8 @@ func EliminarParticion(path string, name string, delete string) {
 						masterboot.Particion[index].PartFit = '0'
 						masterboot.Particion[index].PartSize = 0
 						masterboot.Particion[index].PartStart = -1
-						copy(masterboot.Particion[index].PartName[:], "")
+						var Nombre [16]byte
+						masterboot.Particion[index].PartName = Nombre
 						reWriteMBR(File, masterboot)
 						SuccessMessage("[FDISK] -> Particion eliminada correctamente")
 
@@ -604,15 +606,38 @@ func EliminarParticion(path string, name string, delete string) {
 						masterboot.Particion[index].PartFit = '0'
 						masterboot.Particion[index].PartSize = 0
 						masterboot.Particion[index].PartStart = -1
-						copy(masterboot.Particion[index].PartName[:], "")
+						var Nombre [16]byte
+						masterboot.Particion[index].PartName = Nombre
 						reWriteMBR(File, masterboot)
 						File.Seek(int64(masterboot.Particion[index].PartStart), 0)
 						for i := 0; i < int(masterboot.Particion[index].PartSize); i++ {
-							File.Write([]byte{0})
+							WriteOne(File, '0')
 						}
 						SuccessMessage("[FDISK] -> Particion eliminada correctamente")
 					}
 
+				}
+			} else {
+				//Eliminar Particione Logicas
+				if indexExtendida != -1 {
+
+					var Logica EBR
+					Logica = readEBR(File, int64(masterboot.Particion[indexExtendida].PartStart))
+					for Logica.PartNext != -1 {
+						var nameByte [16]byte
+						copy(nameByte[:], name)
+						if bytes.Compare(nameByte[:], Logica.PartName[:]) == 0 {
+							Logica.PartStatus = '1'
+							Logica.PartSize = 0
+							reWriteEBR(File, Logica, int64(masterboot.Particion[indexExtendida].PartStart))
+							SuccessMessage("[FDISK] -> Particion Logica Eliminada correctamente")
+							return
+						}
+						Logica = readEBR(File, int64(Logica.PartNext))
+					}
+
+				} else {
+					ErrorMessage("[FDISK] -> No se encuentra la particion a eliminar")
 				}
 			}
 
@@ -1402,7 +1427,6 @@ func ReporteDisco(direccion string, Path string) {
 	masterboot = readMBR(fp)
 
 	for i := 0; i < 4; i++ {
-
 		if masterboot.Particion[i].PartStart != -1 {
 
 			if masterboot.Particion[i].PartStatus != '1' {
@@ -1413,29 +1437,25 @@ func ReporteDisco(direccion string, Path string) {
 
 				} else {
 					//Particion Extendida
-
-					fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='200' width='200'>\n     <table border='0'  height='200' WIDTH='200' cellborder='1'>\n")
-					fmt.Fprintf(graphDot, "     <tr>  <td height='60' colspan='15'>EXTENDIDA</td>  </tr>\n     <tr>\n")
-
 					var extendedBoot EBR
 					fp.Seek(0, 0)
 					extendedBoot = readEBR(fp, int64(masterboot.Particion[i].PartStart))
 
-					if extendedBoot.PartSize != 0 { //Si hay mas de alguna logica
+					fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='200' width='200'>\n     <table border='0'  height='200' WIDTH='200' cellborder='1'>\n")
+					fmt.Fprintf(graphDot, "     <tr>  <td height='60' colspan='15'>EXTENDIDA</td>  </tr>\n     <tr>\n")
 
-						for extendedBoot.PartNext != -1 && (extendedBoot.PartNext < (masterboot.Particion[i].PartStart + masterboot.Particion[i].PartSize)) {
+					for extendedBoot.PartNext != -1 && (extendedBoot.PartNext < masterboot.Particion[i].PartStart+masterboot.Particion[i].PartSize) {
+						if extendedBoot.PartStatus != '1' {
 
 							fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='140'>EBR</td>\n")
 							fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='140'>LOGICA</td>\n")
 
-							if extendedBoot.PartNext == -1 {
-
-							} else {
-								extendedBoot = readEBR(fp, int64(extendedBoot.PartNext))
-							}
 						}
-					} else {
-						fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='140'></td>")
+						if extendedBoot.PartNext == -1 {
+						} else {
+							extendedBoot = readEBR(fp, int64(extendedBoot.PartNext))
+						}
+
 					}
 
 					fmt.Fprintf(graphDot, "     </tr>\n     </table>\n     </td>\n")
