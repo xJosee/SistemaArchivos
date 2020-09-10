@@ -4244,6 +4244,11 @@ func BuscarData(Detalle *DetalleDirectorio, name string, File *os.File, SuperBlo
 
 			if Eliminar {
 				Detalle.DDArrayFiles[i].DDFileApInodo = -1
+				var Nombre [16]byte
+				Detalle.DDArrayFiles[i].DDFileNombre = Nombre
+				var Fecha [20]byte
+				Detalle.DDArrayFiles[i].DDFileDateCreacion = Fecha
+				Detalle.DDArrayFiles[i].DDFileDateModificacion = Fecha
 			}
 
 			return true
@@ -4282,14 +4287,44 @@ func BuscarDataInodos(Inodo TablaInodo, File *os.File, SuperBloque SB, Data *str
 //ComandoRM is...
 func ComandoRM(id string, path string, rf bool) {
 	PathDisco := listaParticiones.GetDireccion(id)
+
 	if PathDisco != "null" {
-		File := getFile(PathDisco)
-		PartStart := listaParticiones.GetPartStart(id)
-		SuperBloque := readSuperBloque(File, int64(PartStart))
-		Root := readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
-		EliminarCarpetaArchivo(Root, SuperBloque, File)
+		if VerificarRuta(PathDisco) {
+
+			File := getFile(PathDisco)
+			PartStart := listaParticiones.GetPartStart(id)
+			SuperBloque := readSuperBloque(File, int64(PartStart))
+			Root := readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
+			var Rutas []string
+			Rutas = strings.Split(path, "/")
+			Rutas = Rutas[1:]
+			var NombreArchivo string
+			Nombre := Rutas[len(Rutas)-1:]
+			NombreArchivo = Nombre[0]
+			var Data string
+
+			aux := strings.Split(NombreArchivo, ".")
+			/*
+			 *	VERIFICAMOS SI ES FILE O CARPETA
+			 */
+			if aux[1] == "txt" {
+				BuscarFile(Root, Rutas, File, SuperBloque, &Data, true)
+				SuccessMessage("[RM] -> File Eliminado Correctamente")
+				return
+			}
+			var RutasRecorrer []string
+			RutasRecorrer = strings.Split(path, "/")
+			RutasRecorrer = RutasRecorrer[1:]
+			EncontrarDetalleDirectorio(&Root, RutasRecorrer, File, SuperBloque, id, "", true, true)
+			File.Seek(int64(SuperBloque.StartBmArbolDirectorio), 0)
+			WriteAVD(File, Root)
+			SuccessMessage("[RM] -> Carpeta Eliminada Correctamente")
+
+		} else {
+			ErrorMessage("[RM] -> No hay ningun disco en esa ruta")
+		}
 	} else {
-		ErrorMessage("[RM] -> No hay ningun particion montada con ese id")
+		ErrorMessage("[RM] -> No hay ninguna particion montada con ese id")
 	}
 }
 
@@ -4336,7 +4371,7 @@ func ComandoCopy(id string, origin string, dest string) {
 			var RutasRecorrer []string
 			RutasRecorrer = strings.Split(origin, "/")
 			RutasRecorrer = RutasRecorrer[1:]
-			EncontrarDetalleDirectorio(&Root, RutasRecorrer, File, SuperBloque, id, dest+"/"+Origin[len(Origin)-1], false)
+			EncontrarDetalleDirectorio(&Root, RutasRecorrer, File, SuperBloque, id, dest+"/"+Origin[len(Origin)-1], false, false)
 			SuccessMessage("[CP] -> Carpeta copiada Correctamente")
 
 		} else {
@@ -4349,7 +4384,7 @@ func ComandoCopy(id string, origin string, dest string) {
 }
 
 //EncontrarDetalleDirectorio is...
-func EncontrarDetalleDirectorio(arbol *Arbol, Rutas []string, File *os.File, SuperBloque SB, id string, dest string, Eliminar bool) {
+func EncontrarDetalleDirectorio(arbol *Arbol, Rutas []string, File *os.File, SuperBloque SB, id string, dest string, Eliminar bool, ComandoRM bool) {
 	for i := 0; i < 6; i++ {
 		Apuntador := arbol.Subirectorios[i]
 		var CarpetaHija Arbol
@@ -4370,14 +4405,14 @@ func EncontrarDetalleDirectorio(arbol *Arbol, Rutas []string, File *os.File, Sup
 				/*
 				 * RECORRERMOS EL DETALLEDIRECTORIO
 				 */
-				RecorrerDD(Detalle, File, SuperBloque, id, dest)
+				RecorrerDD(Detalle, File, SuperBloque, id, dest, ComandoRM)
 				if Eliminar {
 					arbol.Subirectorios[i] = -1
 				}
 				return
 			}
 
-			EncontrarDetalleDirectorio(&CarpetaHija, Rutas, File, SuperBloque, id, dest, Eliminar)
+			EncontrarDetalleDirectorio(&CarpetaHija, Rutas, File, SuperBloque, id, dest, Eliminar, ComandoRM)
 			File.Seek(int64(SuperBloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))), 0)
 			WriteAVD(File, CarpetaHija)
 			return
@@ -4391,14 +4426,14 @@ func EncontrarDetalleDirectorio(arbol *Arbol, Rutas []string, File *os.File, Sup
 	/*
 	 * LLAMAMOS EL METODO RECURSIVAMENTE
 	 */
-	EncontrarDetalleDirectorio(&CopiaCarpeta, Rutas, File, SuperBloque, id, dest, Eliminar)
+	EncontrarDetalleDirectorio(&CopiaCarpeta, Rutas, File, SuperBloque, id, dest, Eliminar, ComandoRM)
 	File.Seek(int64(SuperBloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CopiaCarpeta)))), 0)
 	WriteAVD(File, CopiaCarpeta)
 	return
 }
 
 //RecorrerDD is...
-func RecorrerDD(Detalle DetalleDirectorio, File *os.File, SuperBloque SB, id string, dest string) {
+func RecorrerDD(Detalle DetalleDirectorio, File *os.File, SuperBloque SB, id string, dest string, ComandoRM bool) {
 	for i := 0; i < 4; i++ {
 		Apuntador := Detalle.DDArrayFiles[i].DDFileApInodo
 		var Data string
@@ -4408,15 +4443,17 @@ func RecorrerDD(Detalle DetalleDirectorio, File *os.File, SuperBloque SB, id str
 			Nombre = strings.Replace(Nombre, "\x00", "", -1)
 			var Inodo TablaInodo
 			Inodo = readInodo(File, int64(SuperBloque.StartInodos+(Apuntador*int32(unsafe.Sizeof(Inodo)))))
-			BuscarDataInodos(Inodo, File, SuperBloque, &Data)
-			MKFILE(id, dest+"/"+Nombre, true, 0, Data)
+			if !ComandoRM {
+				BuscarDataInodos(Inodo, File, SuperBloque, &Data)
+				MKFILE(id, dest+"/"+Nombre, true, 0, Data)
+			}
 		}
 	}
 
 	if Detalle.DDApDetalleDirectorio != -1 {
 		var DetalleVirtual DetalleDirectorio
 		DetalleVirtual = readDetalleDirectorio(File, int64(SuperBloque.StartDetalleDirectorio+(Detalle.DDApDetalleDirectorio*int32(unsafe.Sizeof(DetalleVirtual)))))
-		RecorrerDD(DetalleVirtual, File, SuperBloque, id, dest)
+		RecorrerDD(DetalleVirtual, File, SuperBloque, id, dest, ComandoRM)
 	}
 }
 
@@ -4446,7 +4483,7 @@ func ComandoMove(id string, origin string, dest string) {
 			if aux[1] == "txt" {
 				BuscarFile(Root, Rutas, File, SuperBloque, &Data, true)
 				MKFILE(id, dest+"/"+NombreArchivo, true, 0, Data)
-				SuccessMessage("[CP] -> File copiado Correctamente")
+				SuccessMessage("[MV] -> File Movido Correctamente")
 				return
 			}
 			Origin := strings.Split(origin, "/")
@@ -4457,16 +4494,16 @@ func ComandoMove(id string, origin string, dest string) {
 			var RutasRecorrer []string
 			RutasRecorrer = strings.Split(origin, "/")
 			RutasRecorrer = RutasRecorrer[1:]
-			EncontrarDetalleDirectorio(&Root, RutasRecorrer, File, SuperBloque, id, dest+"/"+Origin[len(Origin)-1], true)
+			EncontrarDetalleDirectorio(&Root, RutasRecorrer, File, SuperBloque, id, dest+"/"+Origin[len(Origin)-1], true, false)
 			File.Seek(int64(SuperBloque.StartBmArbolDirectorio), 0)
 			WriteAVD(File, Root)
-			SuccessMessage("[CP] -> Carpeta copiada Correctamente")
+			SuccessMessage("[MV] -> Carpeta Movida Correctamente")
 
 		} else {
-			ErrorMessage("[CP] -> No hay ningun disco en esa ruta")
+			ErrorMessage("[MV] -> No hay ningun disco en esa ruta")
 		}
 	} else {
-		ErrorMessage("[CP] -> No hay ninguna particion montada con ese id")
+		ErrorMessage("[MV] -> No hay ninguna particion montada con ese id")
 	}
 }
 
