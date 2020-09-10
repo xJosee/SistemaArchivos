@@ -19,3 +19,5 @@
 | rmusr | Eliminar Usuario |
 | chmod | Cambiar Permisos |
 | cat | Mostrar Contenido de un file |
+| mv | Mover una carpeta o un file |
+| cp | Copiar una carpeta o un file |
