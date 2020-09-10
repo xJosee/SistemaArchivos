@@ -44,12 +44,12 @@ tbl0DD[label=<
 <td>0</td>
 </tr>
 <tr>
-<td>-1</td>
-<td>-1</td>
+<td>hola.txt</td>
+<td>6</td>
 </tr>
 <tr>
-<td>-1</td>
-<td>-1</td>
+<td>Adios.txt</td>
+<td>7</td>
 </tr>
 <tr>
 <td>-1</td>
@@ -100,6 +100,70 @@ tblBloque2[label=<
 <tr>
 <td width='400' bgcolor= 'lightblue' >'
 2,G,Usuarios'</td>
+</tr>
+</table>
+>];
+tbl0DD->tblInodo6
+tblInodo6[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='darkorange' width='200' colspan='5'>hola.txt</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td bgcolor='darkorange' width='50'>Inodo</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>12</td><td>13</td><td>-1</td><td>-1</td></tr>
+</table>
+>];tblInodo6->tblBloque12
+tblBloque12[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='400' bgcolor= 'lightblue' >'abcdefghijklmnopqrstuvwxy'</td>
+</tr>
+</table>
+>];
+tblInodo6->tblBloque13
+tblBloque13[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='400' bgcolor= 'lightblue' >'abcdefghijklmnopqrstuvwxy'</td>
+</tr>
+</table>
+>];
+tbl0DD->tblInodo7
+tblInodo7[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='darkorange' width='200' colspan='5'>Adios.txt</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td bgcolor='darkorange' width='50'>Inodo</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>14</td><td>15</td><td>-1</td><td>-1</td></tr>
+</table>
+>];tblInodo7->tblBloque14
+tblBloque14[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='400' bgcolor= 'lightblue' >'abcdefghijklmnopqrstuvwxy'</td>
+</tr>
+</table>
+>];
+tblInodo7->tblBloque15
+tblBloque15[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='400' bgcolor= 'lightblue' >'abcdefghijklmnopqrstuvwxy'</td>
 </tr>
 </table>
 >];
@@ -1023,7 +1087,7 @@ tbl5[label=<
 <td bgcolor='forestgreen' width='20' >AVD</td>
 </tr>
 <tr>
-<td width='20'>-1</td>
+<td width='20'>20</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
 <td width='20'>-1</td>
@@ -1062,6 +1126,132 @@ tbl5DD[label=<
 <tr>
 <td>-1</td>
 <td>-1</td>
+</tr>
+</table>
+>];
+tbl5->tbl20
+tbl20[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td colspan='8' bgcolor= 'lightblue3' >CarpetaSexual</td>
+</tr>
+<tr>
+<td colspan='8' >664</td>
+</tr>
+<tr>
+<td bgcolor='lightblue' width='20' >1</td>
+<td bgcolor='lightblue' width='20' >2</td>
+<td bgcolor='lightblue' width='20' >3</td>
+<td bgcolor='lightblue' width='20' >4</td>
+<td bgcolor='lightblue' width='20' >5</td>
+<td bgcolor='lightblue' width='20' >6</td>
+<td bgcolor='deepskyblue4' width='30' >DD</td>
+<td bgcolor='forestgreen' width='20' >AVD</td>
+</tr>
+<tr>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>-1</td>
+<td width='20'>20</td>
+<td width='20'>-1</td>
+</tr>
+</table>
+>];
+tbl20->tbl20DD
+tbl20DD[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='deepskyblue4' width='150' colspan='2'>CarpetaSexualDD</td>
+</tr>
+<tr>
+<td bgcolor='deepskyblue3'>Virtual</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>hola.txt</td>
+<td>4</td>
+</tr>
+<tr>
+<td>Adios.txt</td>
+<td>5</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-1</td>
+</tr>
+</table>
+>];
+tbl20DD->tblInodo4
+tblInodo4[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='darkorange' width='200' colspan='5'>hola.txt</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td bgcolor='darkorange' width='50'>Inodo</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>8</td><td>9</td><td>-1</td><td>-1</td></tr>
+</table>
+>];tblInodo4->tblBloque8
+tblBloque8[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='400' bgcolor= 'lightblue' >'abcdefghijklmnopqrstuvwxy'</td>
+</tr>
+</table>
+>];
+tblInodo4->tblBloque9
+tblBloque9[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='400' bgcolor= 'lightblue' >'abcdefghijklmnopqrstuvwxy'</td>
+</tr>
+</table>
+>];
+tbl20DD->tblInodo5
+tblInodo5[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr><td bgcolor='darkorange' width='200' colspan='5'>Adios.txt</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td bgcolor='darkorange' width='50'>Inodo</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>10</td><td>11</td><td>-1</td><td>-1</td></tr>
+</table>
+>];tblInodo5->tblBloque10
+tblBloque10[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='400' bgcolor= 'lightblue' >'abcdefghijklmnopqrstuvwxy'</td>
+</tr>
+</table>
+>];
+tblInodo5->tblBloque11
+tblBloque11[label=<
+<table border='0' cellborder='1' cellspacing='0'>
+<tr>
+<td width='400' bgcolor= 'lightblue' >'abcdefghijklmnopqrstuvwxy'</td>
 </tr>
 </table>
 >];

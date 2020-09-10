@@ -382,13 +382,25 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "mv" {
 		if VerificarParametros(listaComandos) {
 			if id == "" {
-				ErrorMessage("[CP] -> Parametro -id no definido")
+				ErrorMessage("[MV] -> Parametro -id no definido")
 			} else if path == "" {
-				ErrorMessage("[CP] -> Parametro -path no definido")
+				ErrorMessage("[MV] -> Parametro -path no definido")
 			} else if dest == "" {
-				ErrorMessage("[CP] -> Parametro -dest no definido")
+				ErrorMessage("[MV] -> Parametro -dest no definido")
 			} else {
 				comandos.ComandoMove(id, path, dest)
+			}
+		}
+	} else if strings.ToLower(listaComandos[0]) == "ren" {
+		if VerificarParametros(listaComandos) {
+			if id == "" {
+				ErrorMessage("[REN] -> Parametro -id no definido")
+			} else if path == "" {
+				ErrorMessage("[REN] -> Parametro -path no definido")
+			} else if name == "" {
+				ErrorMessage("[REN] -> Parametro -name no definido")
+			} else {
+				comandos.ComandoRenombrar(id, path, name)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "1" {
