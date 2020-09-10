@@ -182,6 +182,7 @@ func MKDISK(size int, fit byte, unit byte, path string, name string) bool {
 	//Creando una instancia del struct MBR que representa al disco
 	dt := time.Now()
 	fecha := dt.Format("01-02-2006 15:04:05")
+	fmt.Println(fecha)
 	Disco := MBR{}
 	Disco.Size = int32(CalcularSize(size, unit))
 	copy(Disco.FechaCreacion[:], fecha)
@@ -1892,6 +1893,9 @@ func BuscarCarpeta(root Arbol, Rutas []string, PathDisco string, Superbloque SB,
 		//recorremos los 6 subdirectorios del AVD
 		for i := 0; i < 6; i++ {
 			Apuntador = root.Subirectorios[i]
+			if Apuntador == -1 {
+				return
+			}
 			var CarpetaHija Arbol
 			CarpetaHija = readArbolVirtualDirectorio(File, int64(Superbloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
 
@@ -2331,7 +2335,22 @@ func ReporteBMblock(path string, id string) {
  */
 
 //ReporteBitacora is...
-/*func ReporteBitacora(path string, id string) {
+func ReporteBitacora(path string, id string) {
+
+	var DatosReporte []string
+	DatosReporte = strings.Split(path, "/")
+	DatosReporte = DatosReporte[1:]
+
+	NombreReporte := DatosReporte[len(DatosReporte)-1]
+	Ruta := DatosReporte[:len(DatosReporte)-1]
+	Extension := strings.Split(NombreReporte, ".")
+	Ext := Extension[1]
+
+	var RutaReporte string = "/"
+	for i := 0; i < len(Ruta); i++ {
+		RutaReporte += Ruta[i] + "/"
+	}
+	os.MkdirAll(RutaReporte, os.ModePerm)
 
 	RutaDisco := listaParticiones.GetDireccion(id)
 
@@ -2399,6 +2418,9 @@ func ReporteBMblock(path string, id string) {
 				fmt.Fprintf(logDot, "</table>\n>];")
 			}
 			fmt.Fprintf(logDot, "\n}")
+			logDot.Close()
+			File.Close()
+			exec.Command("dot", "-T"+Ext, "-o", RutaReporte+NombreReporte, "Reportes/Bitacora.dot").Output()
 		} else {
 			ErrorMessage("[REP] -> No se encuentra el disco")
 		}
@@ -2406,7 +2428,7 @@ func ReporteBMblock(path string, id string) {
 	} else {
 		ErrorMessage("[REP] -> No hay ninguna particion montada con ese id")
 	}
-}*/
+}
 
 /*
  *	REPORTE LS
@@ -2671,10 +2693,11 @@ func ComandoMKDIR(id string, path string, p bool) {
 		/*
 		 *	CREAR LA BITACORA
 		 */
-		/*File = getFile(RutaDisco)
+		File = getFile(RutaDisco)
 		Bitacora := InicializarBitacora(Bitacora{})
 		dt := time.Now()
-		fecha := dt.Format("01-02-2020 15:04:05")
+		fecha := dt.Format("01-02-2006 15:04:05")
+		fmt.Println(fecha)
 		copy(Bitacora.Fecha[:], fecha)
 		copy(Bitacora.Nombre[:], path)
 		copy(Bitacora.TipoOp[:], "mkdir")
@@ -2683,7 +2706,7 @@ func ComandoMKDIR(id string, path string, p bool) {
 		WriteBitacora(File, Bitacora)
 		SuperBloque.FirstFreeBitacora++
 		File.Seek(int64(PartStart), 0)
-		WriteSB(File, SuperBloque)*/
+		WriteSB(File, SuperBloque)
 
 	} else {
 		ErrorMessage("[MKDIR] -> No existe ningun path asociado a ese id")
@@ -3086,6 +3109,10 @@ func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB,
 		//recorremos los 6 subdirectorios del AVD
 		for i := 0; i < 6; i++ {
 			Apuntador = root.Subirectorios[i]
+
+			if Apuntador == -1 {
+				return
+			}
 			var CarpetaHija Arbol
 			CarpetaHija = readArbolVirtualDirectorio(File, int64(Superbloque.StartArbolDirectorio+(Apuntador*int32(unsafe.Sizeof(CarpetaHija)))))
 
@@ -3470,18 +3497,205 @@ func SystemLoss(id string) {
 		/*
 		 *	LLENAR DE CEROS TODA LA PARTICION MENOS LA COPIA DE SB
 		 */
-		PosFinal := SuperBloque.StartLog + ((SuperBloque.FirstFreeBitacora - 1) * int32(unsafe.Sizeof(Bitacora{})))
-		for i := int(PartStart); i < int(PosFinal); i++ {
-			File.Seek(int64(i), 0)
-			WriteOne(File, '0')
-		}
+		reFormatear(id, SuperBloque)
 
 	}
 
 }
 
+func reFormatear(id string, SB SB) {
+	pathD := listaParticiones.GetDireccion(id) //Obtenemos la direccion del disco
+
+	if pathD != "null" {
+
+		/*
+		 *   INSTANCIANDO LOS STRUCTS
+		 */
+		AVD := InicializarAVD(Arbol{})
+		DD := InicializarDD(DetalleDirectorio{})
+		Inodo := InicializarInodo(TablaInodo{})
+		Bloque := InicializarBloque(Bloque{})
+		Bitacora := InicializarBitacora(Bitacora{})
+		/*
+		 *  OBTENIENDO EL SIZE
+		 */
+		SBSize := int(unsafe.Sizeof(SB))
+		AVDSize := int(unsafe.Sizeof(AVD))
+		DDSize := int(unsafe.Sizeof(DD))
+		InodoSize := int(unsafe.Sizeof(Inodo))
+		BloqueSize := int(unsafe.Sizeof(Bloque))
+		BitacoraSize := int(unsafe.Sizeof(Bitacora))
+
+		File := getFile(pathD)                         //Obtenemos el disco
+		PartName := listaParticiones.GetPartName(id)   // Obtenemos el PartName
+		PartSize := listaParticiones.GetPartSize(id)   // Obtenemos el PartSize
+		PartStart := listaParticiones.GetPartStart(id) // Obtenemos el partStart
+
+		//fmt.Println("PartStart", PartStart)
+
+		//Formula de Cantidad de estructuras
+		var CantidadEstructuras int = (PartSize - (2 * SBSize)) / (27 + AVDSize + DDSize + (5*InodoSize + (20 * BloqueSize) + BitacoraSize))
+
+		//Cantidad de elementos de cada Struct
+		var CantidadAVD int = CantidadEstructuras
+		var CantidadDD int = CantidadEstructuras
+		var CantidadInodos int = 5 * CantidadEstructuras
+		var CantidadBloques int = 20 * CantidadEstructuras
+		//var CantidadBitacora int = CantidadEstructuras
+		//fmt.Println(CantidadAVD, CantidadDD, CantidadInodos, CantidadBloques, CantidadBitacora)
+		/*
+		 *  INICIALIZANDO EL SUPER BLOQUE
+		 */
+		copy(SB.NombreHD[:], PartName)
+		//Cantidad de elementos
+		SB.ArbolVirtualCount = int32(CantidadAVD)
+		SB.DetalleDirectorioCount = int32(CantidadDD)
+		SB.InodosCount = int32(CantidadInodos)
+		SB.BloquesCount = int32(CantidadBloques)
+		SB.ArbolVirtualFree = int32(CantidadAVD)     //Se crea carpeta raiz.
+		SB.DetalleDirectorioFree = int32(CantidadDD) //Detalle de directorio de la carpeta raiz
+		SB.InodosFree = int32(CantidadInodos)
+		SB.BloquesFree = int32(CantidadBloques)
+		//Obtenemos fecha actual
+		dt := time.Now()
+		fecha := dt.Format("01-02-2006 15:04:05")
+		copy(SB.DateCreacion[:], fecha)
+		copy(SB.DateUltimoMontaje[:], fecha)
+		SB.MontajesCount = 0
+		//Start Cada Struct
+		SB.StartBmArbolDirectorio = int32(PartStart + int(unsafe.Sizeof(SB)))
+		SB.StartArbolDirectorio = SB.StartBmArbolDirectorio + int32(CantidadEstructuras)
+		SB.StartBmDetalleDirectorio = SB.StartArbolDirectorio + int32((CantidadEstructuras * int(unsafe.Sizeof(AVD))))
+		SB.StartDetalleDirectorio = SB.StartBmDetalleDirectorio + int32(CantidadEstructuras)
+		SB.StartBmInodos = SB.StartDetalleDirectorio + int32((CantidadEstructuras * int(unsafe.Sizeof(DD))))
+		SB.StartInodos = SB.StartBmInodos + int32((5 * CantidadEstructuras))
+		SB.StartBmBloques = SB.StartInodos + int32((5 * CantidadEstructuras * int(unsafe.Sizeof(Inodo))))
+		SB.StartBloques = SB.StartBmBloques + int32((20 * CantidadEstructuras))
+		SB.StartLog = SB.StartBloques + int32((20 * CantidadEstructuras * int(unsafe.Sizeof(Bloque)))) //Bitacora.
+		//Espacios Libres
+		SB.FirstFreeAvd = 0
+		SB.FirstFreeDd = 0
+		SB.FirstFreeInodo = 0
+		SB.FirstFreeBloque = 0
+		//Magic Num
+		SB.MagicNum = int32(CantidadEstructuras)
+		//Struct Size
+		SB.SizeStructAvd = int32(unsafe.Sizeof(AVD))
+		SB.SizeStructDd = int32(unsafe.Sizeof(DD))
+		SB.SizeStructInodo = int32(unsafe.Sizeof(Inodo))
+		SB.SizeStructBloque = int32(unsafe.Sizeof(Bloque))
+
+		//fmt.Println("Inicio Bitacora", SB.StartLog+int32(CantidadEstructuras))
+
+		//Escribo el super bloque al inicio de la particion
+		reWriteSuperBloque(File, SB, int64(PartStart))
+
+		//BitMap AVD
+		for i := 0; i < CantidadEstructuras; i++ {
+			File.Seek(int64((SB.StartBmArbolDirectorio + int32(i))), 0)
+			var cero = '0'
+			s1 := &cero
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
+		}
+
+		//AVD = Arbol
+		for i := 0; i < CantidadEstructuras; i++ {
+			File.Seek(int64((SB.StartArbolDirectorio + int32((i * int(unsafe.Sizeof(AVD)))))), 0)
+			s1 := &AVD
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
+		}
+
+		//BitMap DD
+		for i := 0; i < CantidadEstructuras; i++ {
+			File.Seek(int64(SB.StartBmDetalleDirectorio+int32(i)), 0)
+			var cero = '0'
+			s1 := &cero
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
+		}
+
+		//DD
+		for i := 0; i < CantidadEstructuras; i++ {
+			File.Seek(int64(SB.StartDetalleDirectorio+int32((i*int(unsafe.Sizeof(DD))))), 0)
+			s1 := &DD
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
+		}
+
+		//BitMap Inodo
+		for i := 0; i < (5 * CantidadEstructuras); i++ {
+			File.Seek(int64(SB.StartBmInodos+int32(i)), 0)
+			var cero = '0'
+			s1 := &cero
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
+		}
+
+		//Inodo
+		for i := 0; i < (5 * CantidadEstructuras); i++ {
+			File.Seek(int64(SB.StartInodos+int32((i*int(unsafe.Sizeof(Inodo))))), 0)
+			s1 := &Inodo
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
+		}
+
+		//BitMap Bloque
+		for i := 0; i < (20 * CantidadEstructuras); i++ {
+			File.Seek(int64(SB.StartBmBloques+int32(i)), 0)
+			var cero = '0'
+			s1 := &cero
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
+		}
+
+		//Bloque
+		for i := 0; i < (20 * CantidadEstructuras); i++ {
+			File.Seek(int64(SB.StartBloques+int32((i*int(unsafe.Sizeof(Bloque))))), 0)
+			s1 := &Bloque
+			var binario2 bytes.Buffer
+			binary.Write(&binario2, binary.BigEndian, s1)
+			File.Write(binario2.Bytes())
+		}
+
+		/*
+		 * SE CREA EL AVD QUE REPRESENTA AL ROOT
+		 */
+		CrearRoot("/", id, 0)
+
+		File = getFile(pathD)
+		SuperBlock := readSuperBloque(File, int64(PartStart))
+		DDroot := readDetalleDirectorio(File, int64(SuperBlock.StartDetalleDirectorio))
+		Ruta := strings.Split("user.txt", "/")
+		/*
+		 *	MANDANDO A CREAR EL USER.TXT
+		 */
+		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 0, "1,G,root")
+		SuperB := readSuperBloque(File, int64(PartStart))
+		prt := DDroot.DDArrayFiles[0].DDFileApInodo
+		CrearUsuario(int(prt), File, SuperB, "root", "123", "1", PartStart)
+		SuperB1 := readSuperBloque(File, int64(PartStart))
+		CrearGrupo(int(prt), File, SuperB1, "Usuarios", PartStart)
+		ErrorMessage("--------------------------------------------------------")
+		ErrorMessage("                *** Sistema Perdido ***                 ")
+		ErrorMessage("--------------------------------------------------------")
+
+	} else {
+		ErrorMessage("[MKFS] -> La particion no se encuentra montada")
+	}
+}
+
 //AnimacioniRecovery is...
 func AnimacioniRecovery() {
+	time.Sleep(1 * time.Second)
 	SuccessMessage("--------------------------------------------------------")
 	SuccessMessage("                 Recuperando Sistema. . .               ")
 	SuccessMessage("--------------------------------------------------------")
