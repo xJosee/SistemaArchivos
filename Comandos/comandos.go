@@ -182,7 +182,6 @@ func MKDISK(size int, fit byte, unit byte, path string, name string) bool {
 	//Creando una instancia del struct MBR que representa al disco
 	dt := time.Now()
 	fecha := dt.Format("01-02-2006 15:04:05")
-	fmt.Println(fecha)
 	Disco := MBR{}
 	Disco.Size = int32(CalcularSize(size, unit))
 	copy(Disco.FechaCreacion[:], fecha)
@@ -2632,12 +2631,6 @@ func Formatear(id string) {
 		File.Write(binario2.Bytes())
 
 		/*
-		 *	COPIA SUPERBLOQUE
-		 */
-		WriteSB(File, SB)
-		File.Close()
-
-		/*
 		 * SE CREA EL AVD QUE REPRESENTA AL ROOT
 		 */
 		CrearRoot("/", id, 0)
@@ -2649,7 +2642,7 @@ func Formatear(id string) {
 		/*
 		 *	MANDANDO A CREAR EL USER.TXT
 		 */
-		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 0, "1,G,root")
+		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 0, "1,G,root", false)
 		SuperB := readSuperBloque(File, int64(PartStart))
 		prt := DDroot.DDArrayFiles[0].DDFileApInodo
 		CrearUsuario(int(prt), File, SuperB, "root", "123", "1", PartStart)
@@ -2665,7 +2658,7 @@ func Formatear(id string) {
 }
 
 //ComandoMKDIR is...
-func ComandoMKDIR(id string, path string, p bool) {
+func ComandoMKDIR(id string, path string, p bool, Meterlog bool) {
 
 	if !isLogged {
 		ErrorMessage("[MKDIR] -> Para ejecutar este comando debes estar loggeado")
@@ -2688,25 +2681,26 @@ func ComandoMKDIR(id string, path string, p bool) {
 		File.Close()
 
 		MKDIR(Root, Rutas, RutaDisco, SuperBloque, 0, p)
-		SuccessMessage("[MKDIR] -> Carpeta creada correctamente")
+		if Meterlog {
+			SuccessMessage("[MKDIR] -> Carpeta creada correctamente")
+		}
 
-		/*
-		 *	CREAR LA BITACORA
-		 */
-		File = getFile(RutaDisco)
-		Bitacora := InicializarBitacora(Bitacora{})
-		dt := time.Now()
-		fecha := dt.Format("01-02-2006 15:04:05")
-		fmt.Println(fecha)
-		copy(Bitacora.Fecha[:], fecha)
-		copy(Bitacora.Nombre[:], path)
-		copy(Bitacora.TipoOp[:], "mkdir")
-		Bitacora.Tipo = 0
-		File.Seek(int64(SuperBloque.StartLog+(SuperBloque.FirstFreeBitacora*int32(unsafe.Sizeof(Bitacora)))), 0)
-		WriteBitacora(File, Bitacora)
-		SuperBloque.FirstFreeBitacora++
-		File.Seek(int64(PartStart), 0)
-		WriteSB(File, SuperBloque)
+		if Meterlog {
+			File = getFile(RutaDisco)
+			SuperBloque = readSuperBloque(File, int64(PartStart))
+			Bitacora := InicializarBitacora(Bitacora{})
+			dt := time.Now()
+			fecha := dt.Format("01-02-2006 15:04:05")
+			copy(Bitacora.Fecha[:], fecha)
+			copy(Bitacora.Nombre[:], path)
+			copy(Bitacora.TipoOp[:], "mkdir")
+			Bitacora.Tipo = 0
+			File.Seek(int64(SuperBloque.StartLog+(SuperBloque.FirstFreeBitacora*int32(unsafe.Sizeof(Bitacora)))), 0)
+			WriteBitacora(File, Bitacora)
+			SuperBloque.FirstFreeBitacora++
+			File.Seek(int64(PartStart), 0)
+			WriteSB(File, SuperBloque)
+		}
 
 	} else {
 		ErrorMessage("[MKDIR] -> No existe ningun path asociado a ese id")
@@ -3010,7 +3004,7 @@ func MKDIR(AVD Arbol, paths []string, RutaDisco string, SuperBloque SB, puntero 
 }
 
 //MKFILE is...
-func MKFILE(id string, path string, p bool, size int, count string) {
+func MKFILE(id string, path string, p bool, size int, count string, MeterLog bool) {
 
 	if isLogged {
 
@@ -3042,24 +3036,6 @@ func MKFILE(id string, path string, p bool, size int, count string) {
 				Rutas = Rutas[:len(Rutas)-1]
 				RutasMKFILE = RutasMKFILE[1:]
 
-				/*
-				 *	CREAR LA BITACORA
-				 */
-				/*Bitacora := InicializarBitacora(Bitacora{})
-				dt := time.Now()
-				fecha := dt.Format("01-02-2020 15:04:05")
-				copy(Bitacora.Fecha[:], fecha)
-				copy(Bitacora.Nombre[:], path)
-				copy(Bitacora.TipoOp[:], "mkfile")
-				copy(Bitacora.Contenido[:], count)
-				Bitacora.Tipo = 1
-				Bitacora.Size = int32(size)
-				File.Seek(int64(SuperBloque.StartLog+(SuperBloque.FirstFreeBitacora*int32(unsafe.Sizeof(Bitacora)))), 0)
-				WriteBitacora(File, Bitacora)
-				SuperBloque.FirstFreeBitacora++
-				File.Seek(int64(PartStart), 0)
-				WriteSB(File, SuperBloque)*/
-
 				File.Close()
 
 				//Mandamos a crear las carpetas si no estan creadas
@@ -3074,28 +3050,55 @@ func MKFILE(id string, path string, p bool, size int, count string) {
 				File1.Close()
 
 				if len(RutasMKFILE) == 1 {
-					CrearArchivo(DetalleRoot, RutasMKFILE, 0, PathDisco, SuperB, size, count)
+					CrearArchivo(DetalleRoot, RutasMKFILE, 0, PathDisco, SuperB, size, count, MeterLog)
 					return
 				}
 
-				RecorrerArbol(Raiz, RutasMKFILE, PathDisco, SuperB, size, count)
+				RecorrerArbol(Raiz, RutasMKFILE, PathDisco, SuperB, size, count, MeterLog)
+				if MeterLog {
+					SuccessMessage("[MKFILE] -> Archivo creado correctamente")
 
-				SuccessMessage("[MKFILE] -> Archivo creado correctamente")
+				}
+
+				if MeterLog {
+					File2 := getFile(PathDisco)
+					SuperBloque = readSuperBloque(File2, int64(PartStart))
+					Bitacora := InicializarBitacora(Bitacora{})
+					dt := time.Now()
+					fecha := dt.Format("01-02-2006 15:04:05")
+					copy(Bitacora.Fecha[:], fecha)
+					copy(Bitacora.Nombre[:], path)
+					copy(Bitacora.TipoOp[:], "mkfile")
+					copy(Bitacora.Contenido[:], count)
+					Bitacora.Tipo = 1
+					Bitacora.Size = int32(size)
+					File2.Seek(int64(SuperBloque.StartLog+(SuperBloque.FirstFreeBitacora*int32(unsafe.Sizeof(Bitacora)))), 0)
+					WriteBitacora(File2, Bitacora)
+					SuperBloque.FirstFreeBitacora++
+					File2.Seek(int64(PartStart), 0)
+					WriteSB(File2, SuperBloque)
+				}
 
 			} else {
-				ErrorMessage("[MKFILE] -> No se encuentra ningun disco en esa ruta")
+				if MeterLog {
+					ErrorMessage("[MKFILE] -> No se encuentra ningun disco en esa ruta")
+				}
 			}
 
 		} else {
-			ErrorMessage("[MKFILE] -> No hay ninguna particion montada con ese id")
+			if MeterLog {
+				ErrorMessage("[MKFILE] -> No hay ninguna particion montada con ese id")
+			}
 		}
 	} else {
-		ErrorMessage("[MKFILE] -> Para ejecutar este comando tienes que estar loggeado")
+		if MeterLog {
+			ErrorMessage("[MKFILE] -> Para ejecutar este comando tienes que estar loggeado")
+		}
 	}
 }
 
 //RecorrerArbol is...
-func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB, size int, count string) {
+func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB, size int, count string, MeterLog bool) {
 
 	if len(Rutas) == 0 {
 		return
@@ -3128,11 +3131,11 @@ func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB,
 					Archivos = readDetalleDirectorio(File, int64(Superbloque.StartDetalleDirectorio+(Apuntador*int32(unsafe.Sizeof(Archivos)))))
 					//Cerramos el archivo
 					File.Close()
-					CrearArchivo(Archivos, Rutas, int(Apuntador), PathDisco, Superbloque, size, count)
+					CrearArchivo(Archivos, Rutas, int(Apuntador), PathDisco, Superbloque, size, count, MeterLog)
 					return
 				}
 				File.Close()
-				RecorrerArbol(CarpetaHija, Rutas, PathDisco, Superbloque, size, count)
+				RecorrerArbol(CarpetaHija, Rutas, PathDisco, Superbloque, size, count, MeterLog)
 				return
 			}
 
@@ -3145,7 +3148,7 @@ func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB,
 		/*
 		 * LLAMAMOS EL METODO RECURSIVAMENTE
 		 */
-		RecorrerArbol(CopiaCarpeta, Rutas, PathDisco, Superbloque, size, count)
+		RecorrerArbol(CopiaCarpeta, Rutas, PathDisco, Superbloque, size, count, MeterLog)
 		return
 	}
 	ErrorMessage("[MKFILE] -> No hay ningun disco en la ruta indicada")
@@ -3153,7 +3156,7 @@ func RecorrerArbol(root Arbol, Rutas []string, PathDisco string, Superbloque SB,
 }
 
 //CrearArchivo is...
-func CrearArchivo(Archivo DetalleDirectorio, Rutas []string, apuntador int, RutaDisco string, SuperB SB, size int, count string) {
+func CrearArchivo(Archivo DetalleDirectorio, Rutas []string, apuntador int, RutaDisco string, SuperB SB, size int, count string, MeterLog bool) {
 
 	if VerificarRuta(RutaDisco) {
 		//Recorreremos el array de Files del detalle directorio
@@ -3257,10 +3260,9 @@ func CrearArchivo(Archivo DetalleDirectorio, Rutas []string, apuntador int, Ruta
 			copy(nameDirec[:], Rutas[0])
 
 			if bytes.Compare(nameDirec[:], Archivo.DDArrayFiles[i].DDFileNombre[:]) == 0 {
-				/*var InodoB TablaInodo
-				InodoB = readInodo(File, int64(SuperB.StartInodos+(Puntero*int32(unsafe.Sizeof(InodoB)))))
-				SustituirData(InodoB, SuperB, File, count)*/
-				ErrorMessage("[MKFILE] -> Ya existe un file con el mismo nombre")
+				if MeterLog {
+					ErrorMessage("[MKFILE] -> Ya existe un file con el mismo nombre")
+				}
 				return
 			}
 
@@ -3326,7 +3328,7 @@ func CrearArchivo(Archivo DetalleDirectorio, Rutas []string, apuntador int, Ruta
 			 * YA QUE CREAMOS EL DD COPIA MANDAMOS A LLAMAR AL METODO CREARARCHIVO RECURSIVAMENTE
 			 * PERO LE MANDAMOS COMO DD LA COPIA
 			 */
-			CrearArchivo(NuevoDetalleDirectorio, Rutas, int(ApuntadorCopia), RutaDisco, SuperB, size, count)
+			CrearArchivo(NuevoDetalleDirectorio, Rutas, int(ApuntadorCopia), RutaDisco, SuperB, size, count, MeterLog)
 			return
 		}
 		var DetalleDirectorioCopia DetalleDirectorio
@@ -3336,7 +3338,7 @@ func CrearArchivo(Archivo DetalleDirectorio, Rutas []string, apuntador int, Ruta
 		/*
 		 * LLAMAMOS RECURSIVAMENTE AL METODO CREAR ARCHIVO PERO LE MANDAMOS COMO DD LA COPIA
 		 */
-		CrearArchivo(DetalleDirectorioCopia, Rutas, int(ApuntadorCopia), RutaDisco, SuperB, size, count)
+		CrearArchivo(DetalleDirectorioCopia, Rutas, int(ApuntadorCopia), RutaDisco, SuperB, size, count, MeterLog)
 		return
 
 	}
@@ -3678,12 +3680,13 @@ func reFormatear(id string, SB SB) {
 		/*
 		 *	MANDANDO A CREAR EL USER.TXT
 		 */
-		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 0, "1,G,root")
+		CrearArchivo(DDroot, Ruta, 0, pathD, SuperBlock, 0, "1,G,root", false)
 		SuperB := readSuperBloque(File, int64(PartStart))
 		prt := DDroot.DDArrayFiles[0].DDFileApInodo
 		CrearUsuario(int(prt), File, SuperB, "root", "123", "1", PartStart)
 		SuperB1 := readSuperBloque(File, int64(PartStart))
 		CrearGrupo(int(prt), File, SuperB1, "Usuarios", PartStart)
+		time.Sleep(1 * time.Second)
 		ErrorMessage("--------------------------------------------------------")
 		ErrorMessage("                *** Sistema Perdido ***                 ")
 		ErrorMessage("--------------------------------------------------------")
@@ -3729,13 +3732,45 @@ func AnimacioniRecovery() {
 //SystemRecovery is...
 func SystemRecovery(id string) {
 	AnimacioniRecovery()
-	/*PathDisco := listaParticiones.GetDireccion(id)
-	if PathDisco != "null" {
-		PartStart := listaParticiones.GetPartStart(id)
-		File := getFile(PathDisco)
-		PosFinal := SuperBloque.StartLog + ((SuperBloque.FirstFreeBitacora - 1) * int32(unsafe.Sizeof(Bitacora{})))
-		SuperBloque := readSuperBloque(File, int64(PosFinal))
-	}*/
+
+	RutaDisco := listaParticiones.GetDireccion(id)
+
+	if RutaDisco != "null" {
+
+		if VerificarRuta(RutaDisco) {
+
+			PartStart := listaParticiones.GetPartStart(id)
+			File := getFile(RutaDisco)
+			SuperBloque := readSuperBloque(File, int64(PartStart))
+			var log Bitacora
+
+			for i := 0; i < int(SuperBloque.FirstFreeBitacora); i++ {
+				log = readBitacora(File, int64(SuperBloque.StartLog+int32(i*int(unsafe.Sizeof(log)))))
+				TipoOperacion := string(log.TipoOp[:])
+				TipoOperacion = strings.Replace(TipoOperacion, "\x00", "", -1)
+
+				if TipoOperacion == "mkdir" {
+					PathCarpeta := string(log.Nombre[:])
+					PathCarpeta = strings.Replace(PathCarpeta, "\x00", "", -1)
+					ComandoMKDIR(id, PathCarpeta, true, false)
+				} else if TipoOperacion == "mkfile" {
+					//Path File
+					PathFile := string(log.Nombre[:])
+					PathFile = strings.Replace(PathFile, "\x00", "", -1)
+					//
+					ContFile := string(log.Contenido[:])
+					ContFile = strings.Replace(ContFile, "\x00", "", -1)
+					MKFILE(id, PathFile, true, int(log.Size), ContFile, false)
+				}
+			}
+
+		} else {
+			ErrorMessage("[REP] -> No se encuentra el disco")
+		}
+
+	} else {
+		ErrorMessage("[REP] -> No hay ninguna particion montada con ese id")
+	}
 }
 
 /*
@@ -4574,7 +4609,7 @@ func ComandoCopy(id string, origin string, dest string) {
 			 */
 			if aux[1] == "txt" {
 				BuscarFile(Root, Rutas, File, SuperBloque, &Data, false, false, "")
-				MKFILE(id, dest+"/"+NombreArchivo, true, 0, Data)
+				MKFILE(id, dest+"/"+NombreArchivo, true, 0, Data, false)
 				SuccessMessage("[CP] -> File copiado Correctamente")
 				return
 			}
@@ -4668,7 +4703,7 @@ func RecorrerDD(Detalle DetalleDirectorio, File *os.File, SuperBloque SB, id str
 			Inodo = readInodo(File, int64(SuperBloque.StartInodos+(Apuntador*int32(unsafe.Sizeof(Inodo)))))
 			if !ComandoRM {
 				BuscarDataInodos(Inodo, File, SuperBloque, &Data)
-				MKFILE(id, dest+"/"+Nombre, true, 0, Data)
+				MKFILE(id, dest+"/"+Nombre, true, 0, Data, false)
 			}
 		}
 	}
@@ -4705,7 +4740,7 @@ func ComandoMove(id string, origin string, dest string) {
 			 */
 			if aux[1] == "txt" {
 				BuscarFile(Root, Rutas, File, SuperBloque, &Data, true, false, "")
-				MKFILE(id, dest+"/"+NombreArchivo, true, 0, Data)
+				MKFILE(id, dest+"/"+NombreArchivo, true, 0, Data, false)
 				SuccessMessage("[MV] -> File Movido Correctamente")
 				return
 			}

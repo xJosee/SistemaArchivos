@@ -243,7 +243,7 @@ func VerificarComando(listaComandos []string) {
 			} else if path == "" {
 				ErrorMessage("[MKFILE] -> Parametro -path no definido")
 			} else {
-				comandos.MKFILE(id, path, true, size, count)
+				comandos.MKFILE(id, path, true, size, count, true)
 			}
 		}
 
@@ -288,7 +288,7 @@ func VerificarComando(listaComandos []string) {
 			} else if path == "" {
 				ErrorMessage("[MKDIR] -> Parametro -path no definido")
 			} else {
-				comandos.ComandoMKDIR(id, path, p)
+				comandos.ComandoMKDIR(id, path, p, true)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "mkgrp" {
