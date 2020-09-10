@@ -21,3 +21,4 @@
 | cat | Mostrar Contenido de un file |
 | mv | Mover una carpeta o un file |
 | cp | Copiar una carpeta o un file |
+| rm | Eliminar una carpeta o un file |
