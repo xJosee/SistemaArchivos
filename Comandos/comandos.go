@@ -1442,7 +1442,7 @@ func ReporteDisco(direccion string, Path string) {
 					extendedBoot = readEBR(fp, int64(masterboot.Particion[i].PartStart))
 
 					fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='200' width='200'>\n     <table border='0'  height='200' WIDTH='200' cellborder='1'>\n")
-					fmt.Fprintf(graphDot, "     <tr>  <td height='60' colspan='15'>EXTENDIDA</td>  </tr>\n     <tr>\n")
+					fmt.Fprintf(graphDot, "     <tr>  <td height='60' colspan='15'>EXTENDIDA</td>  </tr>\n")
 
 					for extendedBoot.PartNext != -1 && (extendedBoot.PartNext < masterboot.Particion[i].PartStart+masterboot.Particion[i].PartSize) {
 						if extendedBoot.PartStatus != '1' {
@@ -3366,23 +3366,6 @@ func CrearArchivo(Archivo DetalleDirectorio, Rutas []string, apuntador int, Ruta
 
 }
 
-//SustituirData is...
-func SustituirData(Inodo TablaInodo, SuperBloque SB, file *os.File, cont string) {
-
-	for i := 0; i < 4; i++ {
-		ApuntadorBloque := Inodo.IArrayBloques[i]
-
-		if ApuntadorBloque != -1 {
-			var Block Bloque
-			Block = readBloque(file, int64(SuperBloque.StartBloques+(ApuntadorBloque*int32(unsafe.Sizeof(Block)))))
-			copy(Block.Texto[:], cont)
-			file.Seek(int64(SuperBloque.StartBloques+(ApuntadorBloque*int32(unsafe.Sizeof(Block)))), 0)
-			WriteBloque(file, Block)
-		}
-	}
-
-}
-
 //CrearInodo is...
 func CrearInodo(Inodo TablaInodo, NombreArchivo string, RutaDisco string, SuperBloque SB, contenido string, Bloques int) {
 
@@ -4241,40 +4224,72 @@ func EliminarGrupo(id string, name string) {
 
 		var DatosSpliteadosSaltoLinea []string
 		DatosSpliteadosSaltoLinea = strings.Split(Datos, "\n")
+		fmt.Println(DatosSpliteadosSaltoLinea)
+		IDGrupo := getIDGroup(DatosSpliteadosSaltoLinea, name)
 
 		if GroupExist(DatosSpliteadosSaltoLinea, name) {
-			for i := 0; i < 4; i++ {
-				ptr := InodoB.IArrayBloques[i]
-
-				if ptr != -1 {
-					var Block Bloque
-					Block = readBloque(File, int64(SuperBloque.StartBloques+(ptr*int32(unsafe.Sizeof(Block)))))
-					DataBlock := string(Block.Texto[:])
-
-					DataSplit := strings.Split(DataBlock, ",")
-					var nameGroup [16]byte
-					copy(nameGroup[:], DataSplit[2])
-
-					var nameGroupParameter [16]byte
-					copy(nameGroupParameter[:], name)
-
-					if DataSplit[1] == "G" {
-						if bytes.Compare(nameGroup[:], nameGroupParameter[:]) == 0 {
-							InodoB.IArrayBloques[i] = -1
-							File.Seek(int64(SuperBloque.StartInodos+int32(ApuntadorInodo*int32(unsafe.Sizeof(InodoB)))), 0)
-							WriteInode(File, InodoB)
-							return
-						}
-					}
-				}
-			}
-
+			BuscarBloque(InodoB, File, SuperBloque, name, ApuntadorInodo, IDGrupo)
 		} else {
 			ErrorMessage("[MKGRP] -> El grupo no existe")
 		}
 
 	} else {
 		ErrorMessage("[LOGIN] -> No se encuentra ninguna particion montada con ese id")
+	}
+}
+
+//BuscarBloque is...
+func BuscarBloque(InodoB TablaInodo, File *os.File, SuperBloque SB, name string, ApuntadorInodo int32, IDGrupo string) {
+	for i := 0; i < 4; i++ {
+		ptr := InodoB.IArrayBloques[i]
+		if ptr != -1 {
+			var Block Bloque
+			Block = readBloque(File, int64(SuperBloque.StartBloques+(ptr*int32(unsafe.Sizeof(Block)))))
+			DataBlock := string(Block.Texto[:])
+
+			DataSplit := strings.Split(DataBlock, ",")
+			var nameGroup [16]byte
+			copy(nameGroup[:], DataSplit[2])
+
+			var nameGroupParameter [16]byte
+			copy(nameGroupParameter[:], name)
+
+			if DataSplit[1] == "G" {
+				if bytes.Compare(nameGroup[:], nameGroupParameter[:]) == 0 {
+					InodoB.IArrayBloques[i] = -1
+					File.Seek(int64(SuperBloque.StartInodos+int32(ApuntadorInodo*int32(unsafe.Sizeof(InodoB)))), 0)
+					WriteInode(File, InodoB)
+				}
+			}
+		}
+	}
+	for i := 0; i < 4; i++ {
+		ptr := InodoB.IArrayBloques[i]
+		if ptr != -1 {
+			var Block Bloque
+			Block = readBloque(File, int64(SuperBloque.StartBloques+(ptr*int32(unsafe.Sizeof(Block)))))
+			DataBlock := string(Block.Texto[:])
+
+			DataSplit := strings.Split(DataBlock, ",")
+			var nameGroup [16]byte
+			copy(nameGroup[:], DataSplit[2])
+
+			var nameGroupParameter [16]byte
+			copy(nameGroupParameter[:], name)
+
+			if DataSplit[1] == "U" {
+				if strings.Compare(string(DataSplit[0][1]), IDGrupo) == 0 {
+					InodoB.IArrayBloques[i] = -1
+					File.Seek(int64(SuperBloque.StartInodos+int32(ApuntadorInodo*int32(unsafe.Sizeof(InodoB)))), 0)
+					WriteInode(File, InodoB)
+				}
+			}
+		}
+	}
+	if InodoB.IApIndirecto != -1 {
+		var InodoCopia TablaInodo
+		InodoCopia = readInodo(File, int64(SuperBloque.StartInodos+int32(InodoB.IApIndirecto*int32(unsafe.Sizeof(InodoB)))))
+		BuscarBloque(InodoCopia, File, SuperBloque, name, InodoB.IApIndirecto, IDGrupo)
 	}
 }
 
@@ -4826,6 +4841,49 @@ func ComandoRenombrar(id string, path string, name string) {
 		}
 	} else {
 		ErrorMessage("[RM] -> No hay ninguna particion montada con ese id")
+	}
+}
+
+//ComandoEdit is...
+func ComandoEdit(id string, size int, path string, cont string) {
+	PathDisco := listaParticiones.GetDireccion(id)
+
+	if PathDisco != "null" {
+		if VerificarRuta(PathDisco) {
+
+			File := getFile(PathDisco)
+			PartStart := listaParticiones.GetPartStart(id)
+			SuperBloque := readSuperBloque(File, int64(PartStart))
+			Root := readArbolVirtualDirectorio(File, int64(SuperBloque.StartArbolDirectorio))
+			var Rutas []string
+			Rutas = strings.Split(path, "/")
+			Rutas = Rutas[1:]
+			var NombreArchivo string
+			Nombre := Rutas[len(Rutas)-1:]
+			NombreArchivo = Nombre[0]
+			var Data string
+
+			var RutaFile string
+			for i := 0; i < len(Rutas)-1; i++ {
+				RutaFile += Rutas[i] + "/"
+			}
+			BuscarFile(Root, Rutas, File, SuperBloque, &Data, true, false, "")
+			MKFILE(id, RutaFile+NombreArchivo, true, size, cont, false)
+			fmt.Println("-------------------------")
+			fmt.Println("Contenido Anterior")
+			fmt.Println("-------------------------")
+			fmt.Println(Data)
+			fmt.Println("-------------------------")
+			fmt.Println("Contenido Nuevo")
+			fmt.Println("-------------------------")
+			fmt.Println(cont)
+			fmt.Println("-------------------------")
+
+		} else {
+			ErrorMessage("[EDIT] -> No hay ningun disco en esa ruta")
+		}
+	} else {
+		ErrorMessage("[EDIT] -> No hay ninguna particion montada con ese id")
 	}
 }
 

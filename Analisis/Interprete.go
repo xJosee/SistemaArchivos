@@ -403,6 +403,20 @@ func VerificarComando(listaComandos []string) {
 				comandos.ComandoRenombrar(id, path, name)
 			}
 		}
+	} else if strings.ToLower(listaComandos[0]) == "edit" {
+		if VerificarParametros(listaComandos) {
+			if id == "" {
+				ErrorMessage("[EDIT] -> Parametro -id no definido")
+			} else if path == "" {
+				ErrorMessage("[EDIT] -> Parametro -path no definido")
+			} else if count == "" {
+				ErrorMessage("[EDIT] -> Parametro -edit no definido")
+			} else if size == 0 {
+				ErrorMessage("[EDIT] -> Parametro -size no definido")
+			} else {
+				comandos.ComandoEdit(id, size, path, count)
+			}
+		}
 	} else if strings.ToLower(listaComandos[0]) == "1" {
 		fmt.Println("")
 		fmt.Println(" - mkdisk")
@@ -475,7 +489,11 @@ func VerificarParametros(listaComandos []string) bool {
 		case "-p":
 			p = true
 		case "-cont":
-			count = Paramatros[1]
+			if strings.Contains(Paramatros[1], "\"") {
+				count = strings.ReplaceAll(Paramatros[1], "\"", "")
+			} else {
+				count = Paramatros[1]
+			}
 		case "-nombre":
 			nombre = Paramatros[1]
 		case "-grp":
