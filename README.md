@@ -13,7 +13,4 @@ $ ./Fase1-go
 ```
 ---
 
-## Consola de comandos
-![Estructura del sistema de archivos LWH](https://github.com/xJosee/SistemaArchivos/blob/master/Assets/Principal.png)
-
 
