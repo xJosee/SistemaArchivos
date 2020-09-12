@@ -436,6 +436,8 @@ func CalcularSize(size int, unit byte) int {
 		return size * 1024 * 1024
 	} else if unit == 'K' || unit == 'k' {
 		return size * 1024
+	} else if unit == 'B' || unit == 'b' {
+		return size
 	}
 	return 0
 }
@@ -474,50 +476,39 @@ func RMDISK(path string) bool {
 
 //ParticionExist is...
 func ParticionExist(path string, name string) bool {
-	//extendida := -1
+
 	if VerificarRuta(path) {
 		File := getFile(path)
-		mbr := readMBR(File)
-		extendida := -1
-		for i := 0; i < 4; i++ {
+		var extendida int = -1
+		var masterboot MBR
+		File.Seek(0, 0)
+		masterboot = readMBR(File)
 
-			var nameByte [16]byte
-			copy(nameByte[:], name)
-			//fmt.Println("ParticionExisit", string(nameByte[:]), string(mbr.Particion[i].PartName[:]), bytes.Compare(nameByte[:], mbr.Particion[i].PartName[:]))
-			if bytes.Compare(nameByte[:], mbr.Particion[i].PartName[:]) == 0 {
-				fmt.Println("Si son iguales")
-				File.Close()
-				return true
-			} else if mbr.Particion[i].PartType == 'E' {
+		for i := 0; i < 4; i++ {
+			if masterboot.Particion[i].PartType == 'E' {
 				extendida = i
+				break
 			}
 		}
-
 		if extendida != -1 {
 
-			ebr := EBR{
-				PartNext: -2,
-			}
+			ebr := EBR{}
+			ebr = readEBR(File, int64(masterboot.Particion[extendida].PartStart))
 
-			for ebr.PartNext != -1 && (ebr.PartNext < (mbr.Particion[extendida].PartSize + mbr.Particion[extendida].PartStart)) {
-				if ebr.PartNext == -2 {
-					ebr = readEBR(File, int64(mbr.Particion[extendida].PartStart))
-				} else {
-					ebr = readEBR(File, int64(ebr.PartNext))
-				}
+			for (ebr.PartNext < masterboot.Particion[extendida].PartStart+masterboot.Particion[extendida].PartSize) && ebr.PartNext != -1 {
 				var nameByte [16]byte
 				copy(nameByte[:], name)
-
-				if bytes.Compare(nameByte[:], ebr.PartName[:]) == 0 {
-					File.Close()
+				if bytes.Compare(ebr.PartName[:], nameByte[:]) == 0 {
 					return true
 				}
 				if ebr.PartNext == -1 {
-					File.Close()
-					return false
+					//No hace nada
+				} else {
+					ebr = readEBR(File, int64(ebr.PartNext))
 				}
 			}
 		}
+		File.Close()
 	}
 	return false
 }
@@ -952,15 +943,16 @@ func MOUNT(path string, name string) {
 }
 
 //UNMOUNT is...
-func UNMOUNT(id string) bool {
-	var eliminado int = listaParticiones.EliminarNodo(id)
-	if eliminado == 1 {
-		SuccessMessage("[UNMOUNT] -> Particion desmontada correctamente")
-		listaParticiones.Listar()
-		return true
+func UNMOUNT(id []string) {
+
+	for i := 0; i < len(id); i++ {
+		var eliminado int = listaParticiones.EliminarNodo(id[i])
+		if eliminado == 1 {
+			SuccessMessage("[UNMOUNT] -> Particion desmontada correctamente")
+			listaParticiones.Listar()
+		}
+		ErrorMessage("[UNMOUNT] ->  La particion a desmontar no se encuentra")
 	}
-	ErrorMessage("[UNMOUNT] ->  La particion a desmontar no se encuentra")
-	return false
 }
 
 /*
@@ -1049,6 +1041,7 @@ func CrearParticionLogica(path string, name string, size int, fit byte) {
 		File.Seek(0, 0)
 		mbr = readMBR(File)
 		for i := 0; i < 4; i++ {
+			//Verificar si existe algun particion extendida
 			if mbr.Particion[i].PartType == 'E' || mbr.Particion[i].PartType == 'e' {
 				numExtendida = i
 				break
@@ -1069,8 +1062,9 @@ func CrearParticionLogica(path string, name string, size int, fit byte) {
 					}
 
 					espacioNecesario := EB.PartStart + EB.PartSize + int32(size)
+					espacioDisponible := (mbr.Particion[numExtendida].PartSize + mbr.Particion[numExtendida].PartStart)
 
-					if espacioNecesario <= (mbr.Particion[numExtendida].PartSize + mbr.Particion[numExtendida].PartStart) {
+					if espacioNecesario <= espacioDisponible {
 
 						// Escribimos el EBR anterior
 						EB.PartNext = EB.PartStart + int32(size) + int32(unsafe.Sizeof(EB))
@@ -4597,7 +4591,7 @@ func ComandoRM(id string, path string, rf bool) {
 			/*
 			 *	VERIFICAMOS SI ES FILE O CARPETA
 			 */
-			if aux[1] == "txt" {
+			if len(aux) == 2 {
 				BuscarFile(Root, Rutas, File, SuperBloque, &Data, true, false, "")
 				SuccessMessage("[RM] -> File Eliminado Correctamente")
 				return
@@ -4642,7 +4636,7 @@ func ComandoCopy(id string, origin string, dest string) {
 			/*
 			 *	VERIFICAMOS SI ES FILE O CARPETA
 			 */
-			if aux[1] == "txt" {
+			if len(aux) == 2 {
 				BuscarFile(Root, Rutas, File, SuperBloque, &Data, false, false, "")
 				MKFILE(id, dest+"/"+NombreArchivo, true, 0, Data, false)
 				SuccessMessage("[CP] -> File copiado Correctamente")
@@ -4773,7 +4767,7 @@ func ComandoMove(id string, origin string, dest string) {
 			/*
 			 *	VERIFICAMOS SI ES FILE O CARPETA
 			 */
-			if aux[1] == "txt" {
+			if len(aux) == 2 {
 				BuscarFile(Root, Rutas, File, SuperBloque, &Data, true, false, "")
 				MKFILE(id, dest+"/"+NombreArchivo, true, 0, Data, false)
 				SuccessMessage("[MV] -> File Movido Correctamente")
@@ -4823,7 +4817,7 @@ func ComandoRenombrar(id string, path string, name string) {
 			/*
 			 *	VERIFICAMOS SI ES FILE O CARPETA
 			 */
-			if aux[1] == "txt" {
+			if len(aux) == 2 {
 				BuscarFile(Root, Rutas, File, SuperBloque, &Data, false, true, name)
 				SuccessMessage("[RM] -> File Eliminado Correctamente")
 				return

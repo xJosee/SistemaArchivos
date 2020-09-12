@@ -21,7 +21,7 @@ var (
 	tipo     string = ""
 	delete   string = ""
 	add      int    = 0
-	id       string = ""
+	id       []string
 	user     string = ""
 	password string = ""
 	p        bool   = false
@@ -54,7 +54,6 @@ func Analizar(comandos string) {
 	tipo = ""
 	delete = ""
 	add = 0
-	id = ""
 	user = ""
 	password = ""
 	p = false
@@ -67,6 +66,7 @@ func Analizar(comandos string) {
 	rf = false
 	ruta = ""
 	dest = ""
+	id = nil
 }
 
 //VerificarComando is...
@@ -146,7 +146,7 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "unmount" {
 
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[MOUNT] -> Parametro -id no especificado")
 			} else {
 				comandos.UNMOUNT(id)
@@ -176,45 +176,45 @@ func VerificarComando(listaComandos []string) {
 					comandos.ReporteDisco(path, ruta)
 					SuccessMessage("[REP] -> Reporte 'disk' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "sb" {
-					comandos.ReporteSuperBloque(id, path)
+					comandos.ReporteSuperBloque(id[0], path)
 					SuccessMessage("[REP] -> Reporte 'sb' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "bm_arbdir" {
-					comandos.ReporteBMarbdir(path, id)
+					comandos.ReporteBMarbdir(path, id[0])
 					SuccessMessage("[REP] -> Reporte 'bm_arbdir' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "bm_detdir" {
-					comandos.ReporteBMdetdir(path, id)
+					comandos.ReporteBMdetdir(path, id[0])
 					SuccessMessage("[REP] -> Reporte 'bm_detdir' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "bm_inode" {
-					comandos.ReporteBMinode(path, id)
+					comandos.ReporteBMinode(path, id[0])
 					SuccessMessage("[REP] -> Reporte 'bm_inode' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "bm_block" {
-					comandos.ReporteBMblock(path, id)
+					comandos.ReporteBMblock(path, id[0])
 					SuccessMessage("[REP] -> Reporte 'bm_block' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "bitacora" {
-					comandos.ReporteBitacora(path, id)
+					comandos.ReporteBitacora(path, id[0])
 					SuccessMessage("[REP] -> Reporte 'bitacora' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "directorio" {
-					comandos.ReporteDirectorio(path, id)
+					comandos.ReporteDirectorio(path, id[0])
 					SuccessMessage("[REP] -> Reporte 'directorio' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "tree_file" {
 					fmt.Print("Ingresa la ruta de la carpeta : ")
 					scanner := bufio.NewScanner(os.Stdin)
 					scanner.Scan()
 					Carpeta := scanner.Text()
-					comandos.ReporteTreeFile(Carpeta, id, path)
+					comandos.ReporteTreeFile(Carpeta, id[0], path)
 					SuccessMessage("[REP] -> Reporte 'tree_file' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "tree_directorio" {
 					fmt.Print("Ingresa la ruta de la carpeta : ")
 					scanner := bufio.NewScanner(os.Stdin)
 					scanner.Scan()
 					Carpeta := scanner.Text()
-					comandos.ReporteTreeDirectorio(Carpeta, path, id)
+					comandos.ReporteTreeDirectorio(Carpeta, path, id[0])
 					SuccessMessage("[REP] -> Reporte 'tree_directorio' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "tree_complete" {
-					comandos.ReporteTreeComplete(path, id)
+					comandos.ReporteTreeComplete(path, id[0])
 					SuccessMessage("[REP] -> Reporte 'tree_complete' Generado Correctamente")
 				} else if strings.ToLower(nombre) == "ls" {
-					comandos.ReporteLS(path, id)
+					comandos.ReporteLS(path, id[0])
 					SuccessMessage("[REP] -> Reporte 'ls' Generado Correctamente")
 				}
 			}
@@ -228,22 +228,22 @@ func VerificarComando(listaComandos []string) {
 				ErrorMessage("[LOGIN] -> Parametro -usr no definido")
 			} else if password == "" {
 				ErrorMessage("[LOGIN] -> Parametro -pwd no definido")
-			} else if id == "" {
+			} else if len(id) == 0 {
 				ErrorMessage("[LOGIN] -> Parametro -id no definido")
 			} else {
-				comandos.Login(user, password, id)
+				comandos.Login(user, password, id[0])
 			}
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "mkfile" {
 
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[MKFILE] -> Parametro -id no definido")
 			} else if path == "" {
 				ErrorMessage("[MKFILE] -> Parametro -path no definido")
 			} else {
-				comandos.MKFILE(id, path, true, size, count, true)
+				comandos.MKFILE(id[0], path, true, size, count, true)
 			}
 		}
 
@@ -260,50 +260,50 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "loss" {
 
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[System] -> parametro -id no especificado")
 			} else {
-				comandos.SystemLoss(id)
+				comandos.SystemLoss(id[0])
 			}
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "recovery" {
 
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[System] -> parametro -id no especificado")
 			} else {
-				comandos.SystemRecovery(id)
+				comandos.SystemRecovery(id[0])
 			}
 		}
 
 	} else if strings.ToLower(listaComandos[0]) == "mkfs" {
 		if VerificarParametros(listaComandos) {
-			comandos.MKFS(id)
+			comandos.MKFS(id[0])
 		}
 	} else if strings.ToLower(listaComandos[0]) == "mkdir" {
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[MKDIR] -> Parametro -id no definido")
 			} else if path == "" {
 				ErrorMessage("[MKDIR] -> Parametro -path no definido")
 			} else {
-				comandos.ComandoMKDIR(id, path, p, true)
+				comandos.ComandoMKDIR(id[0], path, p, true)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "mkgrp" {
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[MKGRP] -> Parametro -id no definido")
 			} else if name == "" {
 				ErrorMessage("[MKGRP] -> Parametro -name no definido")
 			} else {
-				comandos.MKGRP(id, name)
+				comandos.MKGRP(id[0], name)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "mkusr" {
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[MKUSR] -> Parametro -id no definido")
 			} else if user == "" {
 				ErrorMessage("[MKUSR] -> Parametro -user no definido")
@@ -312,100 +312,100 @@ func VerificarComando(listaComandos []string) {
 			} else if grupo == "" {
 				ErrorMessage("[MKUSR] -> Parametro -grupo no definido")
 			} else {
-				comandos.MKUSR(id, user, grupo, password)
+				comandos.MKUSR(id[0], user, grupo, password)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "rmgrp" {
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[RMGRP] -> Parametro -id no definido")
 			} else if name == "" {
 				ErrorMessage("[RMGRP] -> Parametro -name no definido")
 			} else {
-				comandos.EliminarGrupo(id, name)
+				comandos.EliminarGrupo(id[0], name)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "rmusr" {
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[RMUSR] -> Parametro -id no definido")
 			} else if name == "" {
 				ErrorMessage("[RMUSR] -> Parametro -user no definido")
 			} else {
-				comandos.EliminarUsuario(id, name)
+				comandos.EliminarUsuario(id[0], name)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "chmod" {
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[CHMOD] -> Parametro -id no definido")
 			} else if path == "" {
 				ErrorMessage("[CHMOD] -> Parametro -path no definido")
 			} else if ugo == 0 {
 				ErrorMessage("[CHMOD] -> Parametro -ugo no definido")
 			} else {
-				comandos.CHMOD(id, path, ugo, r)
+				comandos.CHMOD(id[0], path, ugo, r)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "cat" {
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[CAT] -> Parametro -id no definido")
 			} else if len(file) == 0 {
 				ErrorMessage("[CAT] -> Parametro -file no definido")
 			} else {
-				comandos.ComandoCat(file, id)
+				comandos.ComandoCat(file, id[0])
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "rm" {
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[RM] -> Parametro -id no definido")
 			} else if path == "" {
 				ErrorMessage("[RM] -> Parametro -path no definido")
 			} else {
-				comandos.ComandoRM(id, path, rf)
+				comandos.ComandoRM(id[0], path, rf)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "cp" {
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[CP] -> Parametro -id no definido")
 			} else if path == "" {
 				ErrorMessage("[CP] -> Parametro -path no definido")
 			} else if dest == "" {
 				ErrorMessage("[CP] -> Parametro -dest no definido")
 			} else {
-				comandos.ComandoCopy(id, path, dest)
+				comandos.ComandoCopy(id[0], path, dest)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "mv" {
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[MV] -> Parametro -id no definido")
 			} else if path == "" {
 				ErrorMessage("[MV] -> Parametro -path no definido")
 			} else if dest == "" {
 				ErrorMessage("[MV] -> Parametro -dest no definido")
 			} else {
-				comandos.ComandoMove(id, path, dest)
+				comandos.ComandoMove(id[0], path, dest)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "ren" {
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[REN] -> Parametro -id no definido")
 			} else if path == "" {
 				ErrorMessage("[REN] -> Parametro -path no definido")
 			} else if name == "" {
 				ErrorMessage("[REN] -> Parametro -name no definido")
 			} else {
-				comandos.ComandoRenombrar(id, path, name)
+				comandos.ComandoRenombrar(id[0], path, name)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "edit" {
 		if VerificarParametros(listaComandos) {
-			if id == "" {
+			if len(id) == 0 {
 				ErrorMessage("[EDIT] -> Parametro -id no definido")
 			} else if path == "" {
 				ErrorMessage("[EDIT] -> Parametro -path no definido")
@@ -414,7 +414,7 @@ func VerificarComando(listaComandos []string) {
 			} else if size == 0 {
 				ErrorMessage("[EDIT] -> Parametro -size no definido")
 			} else {
-				comandos.ComandoEdit(id, size, path, count)
+				comandos.ComandoEdit(id[0], size, path, count)
 			}
 		}
 	} else if strings.ToLower(listaComandos[0]) == "1" {
@@ -442,6 +442,12 @@ func VerificarComando(listaComandos []string) {
 		fmt.Println(" - tree_complete")
 		fmt.Println(" - ls")
 		fmt.Println("")
+	} else if strings.ToLower(listaComandos[0]) == "3" {
+		fmt.Println("          Universidad San Carlos de Guatemala")
+		fmt.Println("          Ingenieria en Ciencias y Sistemas")
+		fmt.Println("          [MIA]Manejo e Implementacion de archivos")
+		fmt.Println("          Jose Luis Herrera Martinez")
+		fmt.Println("          201807431")
 	} else if strings.ToLower(listaComandos[0]) == " " {
 
 	} else {
@@ -472,7 +478,11 @@ func VerificarParametros(listaComandos []string) bool {
 		case "-unit":
 			unit = Paramatros[1]
 		case "-name":
-			name = Paramatros[1]
+			if strings.Contains(Paramatros[1], "\"") {
+				name = strings.ReplaceAll(Paramatros[1], "\"", "")
+			} else {
+				name = Paramatros[1]
+			}
 		case "-type":
 			tipo = strings.ToLower(Paramatros[1])
 		case "-delete":
@@ -481,11 +491,25 @@ func VerificarParametros(listaComandos []string) bool {
 			Add, _ := strconv.Atoi(Paramatros[1]) //Convirtiendo el size a int
 			add = Add
 		case "-id":
-			id = Paramatros[1]
+			if strings.Contains(Paramatros[1], "\"") {
+				aux := strings.ReplaceAll(Paramatros[1], "\"", "")
+				id = append(id, aux)
+			} else {
+				aux := strings.ReplaceAll(Paramatros[1], "\"", "")
+				id = append(id, aux)
+			}
 		case "-usr":
-			user = Paramatros[1]
+			if strings.Contains(Paramatros[1], "\"") {
+				user = strings.ReplaceAll(Paramatros[1], "\"", "")
+			} else {
+				user = Paramatros[1]
+			}
 		case "-pwd":
-			password = Paramatros[1]
+			if strings.Contains(Paramatros[1], "\"") {
+				password = strings.ReplaceAll(Paramatros[1], "\"", "")
+			} else {
+				password = Paramatros[1]
+			}
 		case "-p":
 			p = true
 		case "-cont":
@@ -495,22 +519,44 @@ func VerificarParametros(listaComandos []string) bool {
 				count = Paramatros[1]
 			}
 		case "-nombre":
-			nombre = Paramatros[1]
+			if strings.Contains(Paramatros[1], "\"") {
+				nombre = strings.ReplaceAll(Paramatros[1], "\"", "")
+			} else {
+				nombre = Paramatros[1]
+			}
 		case "-grp":
-			grupo = Paramatros[1]
+			if strings.Contains(Paramatros[1], "\"") {
+				grupo = strings.ReplaceAll(Paramatros[1], "\"", "")
+			} else {
+				grupo = Paramatros[1]
+			}
 		case "-ugo":
 			Aux, _ := strconv.Atoi(Paramatros[1]) //Convirtiendo el size a int
 			ugo = Aux
 		case "-r":
 			r = true
 		case "-file":
-			file = append(file, Paramatros[1])
+			if strings.Contains(Paramatros[1], "\"") {
+				aux := strings.ReplaceAll(Paramatros[1], "\"", "")
+				file = append(file, aux)
+			} else {
+				aux := strings.ReplaceAll(Paramatros[1], "\"", "")
+				file = append(file, aux)
+			}
 		case "-rf":
 			rf = true
 		case "-ruta":
-			ruta = Paramatros[1]
+			if strings.Contains(Paramatros[1], "\"") {
+				ruta = strings.ReplaceAll(Paramatros[1], "\"", "")
+			} else {
+				ruta = Paramatros[1]
+			}
 		case "-dest":
-			dest = Paramatros[1]
+			if strings.Contains(Paramatros[1], "\"") {
+				dest = strings.ReplaceAll(Paramatros[1], "\"", "")
+			} else {
+				dest = Paramatros[1]
+			}
 		default:
 			ErrorMessage("[CONSOLA] -> Parametro [" + Paramatros[0] + "] incorrecto")
 			return false
@@ -552,6 +598,8 @@ func CalcularSize(size int, unit byte) int {
 		return size * 1024 * 1024
 	} else if unit == 'K' || unit == 'k' {
 		return size * 1024
+	} else if unit == 'b' || unit == 'B' {
+		return size
 	}
 	return 0
 }
