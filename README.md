@@ -6,6 +6,15 @@ El sistema que se implementó utiliza algunos aspectos similares a los sistemas 
 
 ![Estructura del sistema de archivos LWH](https://github.com/xJosee/SistemaArchivos/blob/master/Assets/estructura.png)
 
-## Consola de comandos
-![Estructura del sistema de archivos LWH](https://github.com/xJosee/SistemaArchivos/blob/master/Assets/Principal.png)
+## Instalacion
+---
+```golang
+// code away!
+
+git clone https://github.com/xJosee/SistemaArchivos.git
+cd SistemaArchivos
+go build
+./Fase1-go
+```
+---
 
