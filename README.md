@@ -9,11 +9,15 @@ El sistema que se implementó utiliza algunos aspectos similares a los sistemas 
 ## Instalacion
 ---
 ```golang
-// code away!
+// Abres una terminal
 
+//Clonas el proyecto
 git clone https://github.com/xJosee/SistemaArchivos.git
+//Entras en la carpeta del proyecto
 cd SistemaArchivos
+//Generas el ejecutable
 go build
+//Lo corres
 ./Fase1-go
 ```
 ---
