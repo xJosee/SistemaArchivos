@@ -162,7 +162,7 @@ func (Lista *Lista) GetPartName(id string) string {
 	return "null"
 }
 
-//BuscarNodo is...
+//BuscarNodo is...MOUNT
 func (Lista *Lista) BuscarNodo(direccion string, nombre string) bool {
 	aux := Lista.Primero
 	for aux != nil {

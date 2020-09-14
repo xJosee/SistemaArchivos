@@ -197,6 +197,7 @@ func MKDISK(size int, fit byte, unit byte, path string, name string) bool {
 		Disco.Particion[p].PartStart = -1
 		copy(Disco.Particion[p].PartName[:], "")
 	}
+	name = strings.ReplaceAll(name, ".dsk", "")
 	if !VerificarRuta(path + name + ".dsk") {
 		//Metodo que escribe el disco(archivo)
 		os.MkdirAll(path, os.ModePerm)
@@ -453,7 +454,7 @@ func VerificarRuta(name string) bool {
 }
 
 //RMDISK is...
-func RMDISK(path string) bool {
+func RMDISK(path string) {
 	if VerificarRuta(path) {
 		fmt.Print("Seguro que deseas eliminar el disco [S/N]")
 		scanner := bufio.NewScanner(os.Stdin)
@@ -463,15 +464,12 @@ func RMDISK(path string) bool {
 			app := "rm"
 			cmd := exec.Command(app, path)
 			cmd.Output()
-		} else {
-			SuccessMessage("[RMDISK] -> Operacion cancelada correctamente")
 		}
+		SuccessMessage("[RMDISK] -> Operacion cancelada correctamente")
 
 	} else {
 		ErrorMessage("[RMDISK] -> El disco que desea eliminar no existe")
-		return false
 	}
-	return true
 }
 
 //ParticionExist is...
@@ -546,9 +544,13 @@ func EliminarParticion(path string, name string, delete string) {
 				}
 			}
 
-			fmt.Print("Seguro que deseas eliminar la particon? [S/N] ")
+			fmt.Print("Seguro que deseas eliminar la particon? [S/N]")
 			scanner := bufio.NewScanner(os.Stdin)
 			scanner.Scan()
+			if scanner.Text() != "S" {
+				ErrorMessage("[FDISK] -> Operacion cancelada correctamente")
+				return
+			}
 
 			if index != -1 {
 				if !flagExtendida {
@@ -612,21 +614,24 @@ func EliminarParticion(path string, name string, delete string) {
 				//Eliminar Particione Logicas
 				if indexExtendida != -1 {
 
-					var Logica EBR
-					Logica = readEBR(File, int64(masterboot.Particion[indexExtendida].PartStart))
-					for Logica.PartNext != -1 {
+					ebr := EBR{}
+					ebr = readEBR(File, int64(masterboot.Particion[indexExtendida].PartStart))
+
+					for (ebr.PartNext < masterboot.Particion[indexExtendida].PartStart+masterboot.Particion[indexExtendida].PartSize) && ebr.PartNext != -1 {
 						var nameByte [16]byte
 						copy(nameByte[:], name)
-						if bytes.Compare(nameByte[:], Logica.PartName[:]) == 0 {
-							Logica.PartStatus = '1'
-							Logica.PartSize = 0
-							reWriteEBR(File, Logica, int64(masterboot.Particion[indexExtendida].PartStart))
+						if bytes.Compare(ebr.PartName[:], nameByte[:]) == 0 {
+							ebr.PartStatus = '1'
+							reWriteEBR(File, ebr, int64(ebr.PartStart))
 							SuccessMessage("[FDISK] -> Particion Logica Eliminada correctamente")
 							return
 						}
-						Logica = readEBR(File, int64(Logica.PartNext))
+						if ebr.PartNext == -1 {
+							//No hace nada
+						} else {
+							ebr = readEBR(File, int64(ebr.PartNext))
+						}
 					}
-
 				} else {
 					ErrorMessage("[FDISK] -> No se encuentra la particion a eliminar")
 				}
@@ -653,196 +658,195 @@ func AgregarQuitarEspacio(path string, name string, add int, unit byte) {
 
 	var size int = CalcularSize(add, unit)
 
+	if tipo != "add" {
+		size = size * -1
+	}
+
+	fmt.Println("Size", size)
+
 	if VerificarRuta(path) {
 		File := getFile(path)
-		var mount bool = listaParticiones.BuscarNodo(path, name)
+		var masterboot MBR
+		File.Seek(0, 0)
+		masterboot = readMBR(File)
+		var index int = -1
+		var indexExtendida int = -1
+		var flagExtendida bool = false
 
-		if !mount {
-			var masterboot MBR
-			File.Seek(0, 0)
-			masterboot = readMBR(File)
-			var index int = -1
-			var indexExtendida int = -1
-			var flagExtendida bool = false
+		for i := 0; i < 4; i++ {
+			var nameByte [16]byte
+			copy(nameByte[:], name)
 
-			for i := 0; i < 4; i++ {
-				var nameByte [16]byte
-				copy(nameByte[:], name)
-
-				if bytes.Compare(masterboot.Particion[i].PartName[:], nameByte[:]) == 0 {
-					index = i
-					if masterboot.Particion[i].PartType == 'E' {
-						flagExtendida = true
-					}
-					break
-				} else if masterboot.Particion[i].PartType == 'E' {
-					indexExtendida = i
+			if bytes.Compare(masterboot.Particion[i].PartName[:], nameByte[:]) == 0 {
+				index = i
+				if masterboot.Particion[i].PartType == 'E' {
+					flagExtendida = true
 				}
+				break
+			} else if masterboot.Particion[i].PartType == 'E' {
+				indexExtendida = i
 			}
+		}
 
-			if index != -1 {
-				if !flagExtendida {
-					if tipo == "add" {
-						if index != 3 {
-							var p1 int = int(masterboot.Particion[index].PartStart + masterboot.Particion[index].PartSize)
-							var p2 int = int(masterboot.Particion[index+1].PartStart)
-							if (p2 - p1) != 0 {
-								var fragmentacion int = p2 - p1
-								if fragmentacion >= size {
-									masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
-									File.Seek(0, 0)
-									reWriteMBR(File, masterboot)
-									SuccessMessage("[FDISK] -> Espacio agregado correctamente")
+		if index != -1 {
+			if !flagExtendida {
+				if tipo == "add" {
+					if index != 3 {
+						var p1 int = int(masterboot.Particion[index].PartStart + masterboot.Particion[index].PartSize)
+						var p2 int = int(masterboot.Particion[index+1].PartStart)
+						if (p2 - p1) != 0 {
+							var fragmentacion int = p2 - p1
+							if fragmentacion >= size {
+								masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
+								File.Seek(0, 0)
+								reWriteMBR(File, masterboot)
+								SuccessMessage("[FDISK] -> Espacio agregado correctamente")
 
-								} else {
-									ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
-								}
-							} else {
-								if masterboot.Particion[index+1].PartStatus != '1' {
-									if masterboot.Particion[index+1].PartSize >= int32(size) {
-										masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
-										masterboot.Particion[index+1].PartSize = (masterboot.Particion[index+1].PartSize - int32(size))
-										masterboot.Particion[index+1].PartSize = masterboot.Particion[index+1].PartStart + int32(size)
-										File.Seek(0, 0)
-										reWriteMBR(File, masterboot)
-										SuccessMessage("[FDISK] -> Espacio agregado correctamente")
-									} else {
-										ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
-									}
-								}
-							}
-						} else {
-							var p int = int(masterboot.Particion[index].PartStart + masterboot.Particion[index].PartSize)
-							var total int = int(masterboot.Size + int32(unsafe.Sizeof(masterboot)))
-							if (total - p) != 0 {
-								var fragmentacion int = total - p
-								if fragmentacion >= size {
-									masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
-									File.Seek(0, 0)
-									reWriteMBR(File, masterboot)
-									SuccessMessage("[FDISK] -> Espacio agregado correctamente")
-								} else {
-									ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
-								}
 							} else {
 								ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
 							}
+						} else {
+							if masterboot.Particion[index+1].PartStatus != '1' {
+								if masterboot.Particion[index+1].PartSize >= int32(size) {
+									masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
+									masterboot.Particion[index+1].PartSize = (masterboot.Particion[index+1].PartSize - int32(size))
+									masterboot.Particion[index+1].PartSize = masterboot.Particion[index+1].PartStart + int32(size)
+									File.Seek(0, 0)
+									reWriteMBR(File, masterboot)
+									SuccessMessage("[FDISK] -> Espacio agregado correctamente")
+								} else {
+									ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+								}
+							}
 						}
 					} else {
-						if int32(size) >= masterboot.Particion[index].PartSize {
-							ErrorMessage("[FDISK] -> No se puede disminuir esa cantidad de espacio")
+						var p int = int(masterboot.Particion[index].PartStart + masterboot.Particion[index].PartSize)
+						var total int = int(masterboot.Size + int32(unsafe.Sizeof(masterboot)))
+						if (total - p) != 0 {
+							var fragmentacion int = total - p
+							if fragmentacion >= size {
+								masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
+								File.Seek(0, 0)
+								reWriteMBR(File, masterboot)
+								SuccessMessage("[FDISK] -> Espacio agregado correctamente")
+							} else {
+								ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+							}
 						} else {
-							masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize - int32(size)
+							ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+						}
+					}
+				} else {
+					if int32(size) >= masterboot.Particion[index].PartSize {
+						ErrorMessage("[FDISK] -> No se puede disminuir esa cantidad de espacio")
+					} else {
+						masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize - int32(size)
+						File.Seek(0, 0)
+						reWriteMBR(File, masterboot)
+						SuccessMessage("[FDISK] -> Espacio reducido correctamente")
+					}
+				}
+
+			} else {
+				if tipo == "add" {
+					if index != 3 {
+						var p1 int = int(masterboot.Particion[index].PartStart + masterboot.Particion[index].PartSize)
+						var p2 int = int(masterboot.Particion[index+1].PartStart)
+						if (p2 - p1) != 0 {
+							var fragmentacion int = p2 - p1
+							if fragmentacion >= size {
+								masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
+								File.Seek(0, 0)
+								reWriteMBR(File, masterboot)
+								SuccessMessage("[FDISK] -> Espacio agregado correctamente")
+
+							} else {
+								ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+							}
+						} else {
+							if masterboot.Particion[index+1].PartStatus != '1' {
+								if masterboot.Particion[index+1].PartSize >= int32(size) {
+									masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
+									masterboot.Particion[index+1].PartSize = (masterboot.Particion[index+1].PartSize - int32(size))
+									masterboot.Particion[index+1].PartStart = masterboot.Particion[index+1].PartStart + int32(size)
+									File.Seek(0, 0)
+									reWriteMBR(File, masterboot)
+									SuccessMessage("[FDISK] -> Espacio agregado correctamente")
+								} else {
+									ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+								}
+							}
+						}
+					} else {
+						var p int = int(masterboot.Particion[index].PartStart + masterboot.Particion[index].PartSize)
+						var total int = int(masterboot.Size + int32(unsafe.Sizeof(masterboot)))
+						if (total - p) != 0 {
+							var fragmentacion int = total - p
+
+							if fragmentacion >= size {
+								masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
+								File.Seek(0, 0)
+								reWriteMBR(File, masterboot)
+								SuccessMessage("[FDISK] -> Espacio agregado correctamente")
+							} else {
+								ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+							}
+						} else {
+							ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
+						}
+					}
+				} else {
+					if int32(size) >= masterboot.Particion[indexExtendida].PartSize {
+						ErrorMessage("[FDISK] -> No es posible reducir esa cantidad de espacio")
+					} else {
+						var extendedBoot EBR
+						extendedBoot = readEBR(File, int64(masterboot.Particion[indexExtendida].PartStart))
+
+						for (extendedBoot.PartNext != -1) && (extendedBoot.PartNext < (masterboot.Particion[indexExtendida].PartSize + masterboot.Particion[indexExtendida].PartStart)) {
+							extendedBoot = readEBR(File, int64(extendedBoot.PartNext))
+						}
+						var ultimaLogica int = int(extendedBoot.PartStart + extendedBoot.PartSize)
+						var aux int = int((masterboot.Particion[indexExtendida].PartStart + masterboot.Particion[indexExtendida].PartSize) - int32(size))
+						if aux > ultimaLogica { //No toca ninguna logica
+							masterboot.Particion[indexExtendida].PartSize = masterboot.Particion[indexExtendida].PartSize - int32(size)
 							File.Seek(0, 0)
 							reWriteMBR(File, masterboot)
 							SuccessMessage("[FDISK] -> Espacio reducido correctamente")
-						}
-					}
-
-				} else {
-					if tipo == "add" {
-						if index != 3 {
-							var p1 int = int(masterboot.Particion[index].PartStart + masterboot.Particion[index].PartSize)
-							var p2 int = int(masterboot.Particion[index+1].PartStart)
-							if (p2 - p1) != 0 {
-								var fragmentacion int = p2 - p1
-								if fragmentacion >= size {
-									masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
-									File.Seek(0, 0)
-									reWriteMBR(File, masterboot)
-									SuccessMessage("[FDISK] -> Espacio agregado correctamente")
-
-								} else {
-									ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
-								}
-							} else {
-								if masterboot.Particion[index+1].PartStatus != '1' {
-									if masterboot.Particion[index+1].PartSize >= int32(size) {
-										masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
-										masterboot.Particion[index+1].PartSize = (masterboot.Particion[index+1].PartSize - int32(size))
-										masterboot.Particion[index+1].PartStart = masterboot.Particion[index+1].PartStart + int32(size)
-										File.Seek(0, 0)
-										reWriteMBR(File, masterboot)
-										SuccessMessage("[FDISK] -> Espacio agregado correctamente")
-									} else {
-										ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
-									}
-								}
-							}
 						} else {
-							var p int = int(masterboot.Particion[index].PartStart + masterboot.Particion[index].PartSize)
-							var total int = int(masterboot.Size + int32(unsafe.Sizeof(masterboot)))
-							if (total - p) != 0 {
-								var fragmentacion int = total - p
-
-								if fragmentacion >= size {
-									masterboot.Particion[index].PartSize = masterboot.Particion[index].PartSize + int32(size)
-									File.Seek(0, 0)
-									reWriteMBR(File, masterboot)
-									SuccessMessage("[FDISK] -> Espacio agregado correctamente")
-								} else {
-									ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
-								}
-							} else {
-								ErrorMessage("[FDISK] -> No cuenta con suficiente espacio")
-							}
-						}
-					} else {
-						if int32(size) >= masterboot.Particion[indexExtendida].PartSize {
-							ErrorMessage("[FDISK] -> No es posible reducir esa cantidad de espacio")
-						} else {
-							var extendedBoot EBR
-							extendedBoot = readEBR(File, int64(masterboot.Particion[indexExtendida].PartStart))
-
-							for (extendedBoot.PartNext != -1) && (extendedBoot.PartNext < (masterboot.Particion[indexExtendida].PartSize + masterboot.Particion[indexExtendida].PartStart)) {
-								extendedBoot = readEBR(File, int64(extendedBoot.PartNext))
-							}
-							var ultimaLogica int = int(extendedBoot.PartStart + extendedBoot.PartSize)
-							var aux int = int((masterboot.Particion[indexExtendida].PartStart + masterboot.Particion[indexExtendida].PartSize) - int32(size))
-							if aux > ultimaLogica { //No toca ninguna logica
-								masterboot.Particion[indexExtendida].PartSize = masterboot.Particion[indexExtendida].PartSize - int32(size)
-								File.Seek(0, 0)
-								reWriteMBR(File, masterboot)
-								SuccessMessage("[FDISK] -> Espacio reducido correctamente")
-							} else {
-								ErrorMessage("[FDISk] -> No se puede reducir esa cantidad de espacio")
-							}
+							ErrorMessage("[FDISk] -> No se puede reducir esa cantidad de espacio")
 						}
 					}
 				}
-			} else {
-				if indexExtendida != -1 {
-					var logica int = ParticionLogicaExist(path, name)
-					if logica != -1 {
-						if tipo == "add" {
+			}
+		} else {
+			if indexExtendida != -1 {
+				var logica int = ParticionLogicaExist(path, name)
+				if logica != -1 {
+					if tipo == "add" {
 
-							var extendedBoot EBR
-							extendedBoot = readEBR(File, int64(logica))
-							_ = extendedBoot
+						var extendedBoot EBR
+						extendedBoot = readEBR(File, int64(logica))
+						_ = extendedBoot
 
-						} else {
-
-							var extendedBoot EBR
-							extendedBoot = readEBR(File, int64(logica))
-
-							if int32(size) >= extendedBoot.PartSize {
-								ErrorMessage("[FDISk] -> No se puede reducir esa cantidad de espacio")
-							} else {
-								extendedBoot.PartSize = extendedBoot.PartSize - int32(size)
-								reWriteEBR(File, extendedBoot, int64(logica))
-								SuccessMessage("[FDISK] -> Espacio reducido correctamente")
-							}
-						}
 					} else {
-						ErrorMessage("[FDISK] -> No se encuentra la particion")
+
+						var extendedBoot EBR
+						extendedBoot = readEBR(File, int64(logica))
+
+						if int32(size) >= extendedBoot.PartSize {
+							ErrorMessage("[FDISk] -> No se puede reducir esa cantidad de espacio")
+						} else {
+							extendedBoot.PartSize = extendedBoot.PartSize - int32(size)
+							reWriteEBR(File, extendedBoot, int64(logica))
+							SuccessMessage("[FDISK] -> Espacio reducido correctamente")
+						}
 					}
 				} else {
 					ErrorMessage("[FDISK] -> No se encuentra la particion")
 				}
+			} else {
+				ErrorMessage("[FDISK] -> No se encuentra la particion")
 			}
-
-		} else {
-			ErrorMessage("[FDISK] -> No se puede editar una particion montada")
 		}
 	}
 }
@@ -850,9 +854,18 @@ func AgregarQuitarEspacio(path string, name string, add int, unit byte) {
 //MOUNT is...
 func MOUNT(path string, name string) {
 
+	if path == "" && name == "" {
+		listaParticiones.Listar()
+		return
+	}
+
 	indexP := ParticionExtendidaExist(path, name)
 
 	if indexP != -1 {
+		if !VerificarRuta(path) {
+			ErrorMessage("[MOUNT] -> El disco no existe")
+			return
+		}
 		File := getFile(path)
 
 		if VerificarRuta(path) {
@@ -867,31 +880,32 @@ func MOUNT(path string, name string) {
 			File.Close()
 
 			letra := listaParticiones.BuscarLetra(path, name)
+			exist := listaParticiones.BuscarNodo(path, name)
 
-			if letra == -1 {
+			if exist {
 				ErrorMessage("[MOUNT] -> La particion ya se encuentra montada")
-			} else {
-				num := listaParticiones.BuscarNumero(path, name)
-				auxLetra := byte(letra)
-				id := "vd"
-				id += string(auxLetra) + string(num)
-
-				n := Estructuras.Nodo{
-					Direccion: path,
-					Nombre:    name,
-					Letra:     auxLetra,
-					Num:       num,
-					Siguiente: nil,
-					PartStart: int(masterboot.Particion[indexP].PartStart),
-					PartSize:  int(masterboot.Particion[indexP].PartSize),
-				}
-
-				listaParticiones.Insertar(&n)
-				listaParticiones.Listar()
-
-				SuccessMessage("[MOUNT] -> Particion montada correctamente")
-
+				return
 			}
+			num := listaParticiones.BuscarNumero(path, name)
+			auxLetra := byte(letra)
+			id := "vd"
+			id += string(auxLetra) + string(num)
+
+			n := Estructuras.Nodo{
+				Direccion: path,
+				Nombre:    name,
+				Letra:     auxLetra,
+				Num:       num,
+				Siguiente: nil,
+				PartStart: int(masterboot.Particion[indexP].PartStart),
+				PartSize:  int(masterboot.Particion[indexP].PartSize),
+			}
+
+			listaParticiones.Insertar(&n)
+			listaParticiones.Listar()
+
+			SuccessMessage("[MOUNT] -> Particion montada correctamente")
+
 		} else {
 			ErrorMessage("[MOUNT] -> El disco no existe")
 		}
@@ -910,28 +924,28 @@ func MOUNT(path string, name string) {
 				File.Close()
 
 				letra := listaParticiones.BuscarLetra(path, name)
-
-				if letra == -1 {
+				exist := listaParticiones.BuscarNodo(path, name)
+				if exist {
 					ErrorMessage("[MOUNT:ERROR] : La particion ya se encuentra montada")
-				} else {
-					num := listaParticiones.BuscarNumero(path, name)
-					auxLetra := byte(letra)
-					id := "vd"
-					id += string(auxLetra) + string(num)
-
-					n := Estructuras.Nodo{
-						Direccion: path,
-						Nombre:    name,
-						Letra:     auxLetra,
-						Num:       num,
-						Siguiente: nil,
-					}
-
-					listaParticiones.Insertar(&n)
-					listaParticiones.Listar()
-					SuccessMessage("[MOUNT] -> Particion montada correctamente")
-
+					return
 				}
+				num := listaParticiones.BuscarNumero(path, name)
+				auxLetra := byte(letra)
+				id := "vd"
+				id += string(auxLetra) + string(num)
+
+				n := Estructuras.Nodo{
+					Direccion: path,
+					Nombre:    name,
+					Letra:     auxLetra,
+					Num:       num,
+					Siguiente: nil,
+				}
+
+				listaParticiones.Insertar(&n)
+				listaParticiones.Listar()
+				SuccessMessage("[MOUNT] -> Particion montada correctamente")
+
 			} else {
 				ErrorMessage("[MOUNT] -> El disco no existe")
 			}
@@ -944,14 +958,15 @@ func MOUNT(path string, name string) {
 
 //UNMOUNT is...
 func UNMOUNT(id []string) {
-
 	for i := 0; i < len(id); i++ {
-		var eliminado int = listaParticiones.EliminarNodo(id[i])
-		if eliminado == 1 {
-			SuccessMessage("[UNMOUNT] -> Particion desmontada correctamente")
-			listaParticiones.Listar()
+		exist := listaParticiones.GetDireccion(id[i])
+		if exist != "null" {
+			var eliminado int = listaParticiones.EliminarNodo(id[i])
+			if eliminado == 1 {
+				SuccessMessage("[UNMOUNT] -> Particion desmontada correctamente")
+				listaParticiones.Listar()
+			}
 		}
-		ErrorMessage("[UNMOUNT] ->  La particion a desmontar no se encuentra")
 	}
 }
 
@@ -1216,6 +1231,7 @@ func ParticionExtendidaExist(path string, name string) int {
 
 //ParticionLogicaExist is...
 func ParticionLogicaExist(path string, name string) int {
+
 	if VerificarRuta(path) {
 		File := getFile(path)
 		var extendida int = -1
@@ -1234,14 +1250,14 @@ func ParticionLogicaExist(path string, name string) int {
 			ebr := EBR{}
 			ebr = readEBR(File, int64(masterboot.Particion[extendida].PartStart))
 
-			for ebr.PartNext != -1 && (ebr.PartNext < masterboot.Particion[extendida].PartStart+masterboot.Particion[extendida].PartSize) {
+			for (ebr.PartNext < masterboot.Particion[extendida].PartStart+masterboot.Particion[extendida].PartSize) && ebr.PartNext != -1 {
 				var nameByte [16]byte
 				copy(nameByte[:], name)
 				if bytes.Compare(ebr.PartName[:], nameByte[:]) == 0 {
 					return int((ebr.PartNext - int32(unsafe.Sizeof(ebr))))
 				}
 				if ebr.PartNext == -1 {
-
+					//No hace nada
 				} else {
 					ebr = readEBR(File, int64(ebr.PartNext))
 				}
@@ -1436,9 +1452,10 @@ func ReporteDisco(direccion string, Path string) {
 					extendedBoot = readEBR(fp, int64(masterboot.Particion[i].PartStart))
 
 					fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='200' width='200'>\n     <table border='0'  height='200' WIDTH='200' cellborder='1'>\n")
-					fmt.Fprintf(graphDot, "     <tr>  <td height='60' colspan='15'>EXTENDIDA</td>  </tr>\n")
+					fmt.Fprintf(graphDot, "     <tr>  <td height='60' colspan='15'>EXTENDIDA</td>  </tr>\n<tr>")
 
 					for extendedBoot.PartNext != -1 && (extendedBoot.PartNext < masterboot.Particion[i].PartStart+masterboot.Particion[i].PartSize) {
+
 						if extendedBoot.PartStatus != '1' {
 
 							fmt.Fprintf(graphDot, "     <td cellspacing= '0' height='140'>EBR</td>\n")
@@ -1770,7 +1787,6 @@ func GenerarDetalleDirectorio(Nombre string, name string, puntero int, file *os.
 	if Detalle.DDApDetalleDirectorio != -1 {
 		var aux string
 		aux = fmt.Sprint(aux, Detalle.DDApDetalleDirectorio)
-		fmt.Println("Test", "tbl", aux, "DD")
 		*GraficaDD += "tbl" + Nombre + "-> " + "tbl" + aux + "DDDD" + ";\n"
 		aux += "DD"
 		GenerarDetalleDirectorio(aux, name, int(Detalle.DDApDetalleDirectorio), file, super, GraficaDD, showInodes)

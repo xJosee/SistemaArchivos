@@ -18,7 +18,7 @@ var (
 	fit      string = "ff"
 	unit     string = "k"
 	name     string = ""
-	tipo     string = ""
+	tipo     string = "p"
 	delete   string = ""
 	add      int    = 0
 	id       []string
@@ -42,8 +42,6 @@ func Analizar(comandos string) {
 		if !strings.HasPrefix(comandos, "#") {
 			Comandos := strings.Split(comandos, " ")
 			VerificarComando(Comandos)
-		} else {
-			//Comentario(comandos)
 		}
 	}
 	size = 0
@@ -51,7 +49,7 @@ func Analizar(comandos string) {
 	fit = "ff"
 	unit = "k"
 	name = ""
-	tipo = ""
+	tipo = "p"
 	delete = ""
 	add = 0
 	user = ""
@@ -63,9 +61,6 @@ func Analizar(comandos string) {
 	r = false
 	ugo = 0
 	file = nil
-	rf = false
-	ruta = ""
-	dest = ""
 	id = nil
 }
 
@@ -96,9 +91,7 @@ func VerificarComando(listaComandos []string) {
 
 		if VerificarParametros(listaComandos) {
 			if path != "" {
-				if comandos.RMDISK(path) {
-					SuccessMessage("[RMDISK] -> Comando ejecutado correctamente")
-				}
+				comandos.RMDISK(path)
 			} else {
 				ErrorMessage("[RMDISK] -> Parametro -path no especificado")
 			}
@@ -109,21 +102,29 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "fdisk" {
 		if VerificarParametros(listaComandos) {
 
+			if add != 0 || delete != "" {
+				tipo = ""
+			}
 			if strings.ToLower(tipo) == "p" {
 				//CrearParicionPrimaria
 				comandos.CrearParticionPrimaria(path, CalcularSize(size, unit[0]), name, fit[0])
+				return
 			} else if strings.ToLower(tipo) == "e" {
 				//CrearParticionExtendida
 				comandos.CrearParticionExtendida(path, CalcularSize(size, unit[0]), name, fit[0])
+				return
 			} else if strings.ToLower(tipo) == "l" {
 				//CrearParticionLogica
 				comandos.CrearParticionLogica(path, name, CalcularSize(size, unit[0]), fit[0])
+				return
 			} else if strings.ToLower(delete) == "fast" || strings.ToLower(delete) == "full" {
 				//EliminarParticion
 				comandos.EliminarParticion(path, name, delete)
+				return
 			} else if add != 0 {
 				//AgregarQuitarEspacio
 				comandos.AgregarQuitarEspacio(path, name, add, unit[0])
+				return
 			}
 
 		} else {
@@ -133,13 +134,8 @@ func VerificarComando(listaComandos []string) {
 	} else if strings.ToLower(listaComandos[0]) == "mount" {
 
 		if VerificarParametros(listaComandos) {
-			if path == "" {
-				ErrorMessage("[MOUNT] -> Parametro -path no especificado")
-			} else if name == "" {
-				ErrorMessage("[MOUNT] -> Parametro -name no especificado")
-			} else {
-				comandos.MOUNT(path, name)
-			}
+
+			comandos.MOUNT(path, name)
 
 		}
 
@@ -460,6 +456,17 @@ func VerificarComando(listaComandos []string) {
 func VerificarParametros(listaComandos []string) bool {
 	for i := 1; i < len(listaComandos); i++ {
 		Paramatros := strings.Split(listaComandos[i], "->")
+		if strings.HasPrefix(Paramatros[0], "-id") {
+			Paramatros[0] = "-id"
+		} else if strings.HasPrefix(Paramatros[0], "-file") {
+			Paramatros[0] = "-file"
+		} else if Paramatros[0] == " " {
+			break
+		} else if Paramatros[0] == "" {
+			break
+		} else if strings.HasPrefix(Paramatros[0], "#") {
+			break
+		}
 		switch strings.ToLower(Paramatros[0]) {
 		case "-size":
 			Size, _ := strconv.Atoi(Paramatros[1]) //Convirtiendo el size a string
