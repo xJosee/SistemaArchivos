@@ -8,7 +8,6 @@ El sistema que se implementó utiliza algunos aspectos similares a los sistemas 
 ```shell
 $ git clone https://github.com/xJosee/SistemaArchivos.git
 $ cd SistemaArchivos
-$ go build
 $ ./Fase1-go
 ```
 ---
